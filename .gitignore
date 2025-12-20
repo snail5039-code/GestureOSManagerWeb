@@ -1,12 +1,17 @@
 /.metadata/
 
-# python venv
+# Python venv
 .venv/
 venv/
+ai-server/.venv/
 
-# python cache
+# Python cache
 __pycache__/
 *.pyc
 
-# node
+# Node
 node_modules/
+
+# Logs / OS
+*.log
+.DS_Store
