@@ -36,11 +36,11 @@ public class TranslateController {
     				.retrieve()
     				.bodyToMono(TranslateResponse.class)
     				.timeout(Duration.ofSeconds(3))
-    				.onErrorReturn(new TranslateResponse("번역 실패", 0.0, 0))
+    				.onErrorReturn(new TranslateResponse(null, "번역 실패", 0.0, 0))
     				.block();
     		
     		if(res == null) {
-    			res = new TranslateResponse("번역 실패", 0.0, 0);
+    			res = new TranslateResponse(null, "번역 실패", 0.0, 0);
     		}
     		double conf = Math.max(0.0, Math.min(1.0, res.getConfidence()));
             res.setConfidence(conf);

@@ -21,6 +21,11 @@ export default function Camera() {
   const [frameCount, setFrameCount] = useState(0);
   const [savedPayload, setSavedPayload] = useState(null);
   const [resultText, setResultText] = useState("");
+  const [resultLabel, setResultLabel] = useState("");
+  const [sentence, setSentence] = useState("");
+  const [lastWord, setLastWord] = useState("");
+  const [stableWord, setStableWord] = useState("");
+  const [stableCount, setStableCount] = useState(0);
 
   useEffect(() => {
     const start = async () => {
@@ -99,7 +104,7 @@ export default function Camera() {
 
       const { handsLm, handed } = latest;
       // 항상 [Left, Right] 순서로 고정
-      const handsFixed = [[], []]; // 0: Left, 1: Right
+      const handsFixed = [[], []]; // 1: Left, 0: Right
       for (let i = 0; i < handsLm.length; i++) {
         // mediapipe 버전에 따라 label 위치가 다를 수 있어서 안전하게 처리
         const label =
@@ -151,15 +156,70 @@ export default function Camera() {
       }));
 
     try {
-      const res = await axios.post("http://localhost:8080/api/translate", {
+      const res = await axios.post("/api/translate", {
         frames: framesForServer,
       });
       console.log("서버 응답:", res.data);
       setResultText(res.data.text);
+      setResultLabel(res.data.label ?? "");
+
+      const word = res.data.text;
+      const conf = Number(res.data.confidence ?? 0);
+
+      if (!word || word === "번역 실패" || conf < 0.2) {
+          setStableWord("");
+          setStableCount(0);
+          return;
+        }
+
+      if(word === stableWord) {
+        const next = stableCount + 1;
+        setStableCount(next);
+
+        if(next >= 2 && word !== lastWord) {
+          setSentence((prev) => {
+            if(prev) return prev + " " + word;
+            return word;
+          });
+          setLastWord(word);
+
+          setStableWord("");
+          setStableCount(0);
+        }
+      } else {
+        setStableWord(word);
+          setStableCount(1);
+      }
     } catch (error) {
       console.error("전송 실패:", error);
     }
   };
+  // 테스트임!! 샘플!!
+  const sendSample = async () => {
+  const sample = {
+    frames: [
+      {
+        hands: [
+          Array.from({ length: 21 }, () => ({ x: 0.1, y: 0.1, z: 0.0 }))
+        ]
+      }
+    ]
+  };
+
+  try {
+    const res = await axios.post("/api/translate", sample);
+    console.log("샘플 응답:", res.data);
+
+    setResultText(res.data.text);
+    setResultLabel(res.data.label ?? "");
+
+    // ✅ 여기서 너가 만든 안정화/누적 로직 그대로 실행되게 하면 됨
+    // (지금 onStop에 있는 "word/conf/stableCount" 블록을 여기로 복붙)
+  } catch (e) {
+    console.error("샘플 전송 실패:", e);
+  }
+};
+
   return (
     <div>
       <h1>웹캠</h1>
@@ -175,10 +235,14 @@ export default function Camera() {
       <div>
         <p>손 감지: {handDetected ? "✅ 감지됨" : "❌ 없음"}</p>
         <p>손 개수: {handCount}</p>
-        <p>번역결과:{resultText}</p>
         <div>손 라벨: {lrStatus}</div>
+        <p>한국어 텍스트:{resultText}</p>
+        <p>WORD 라벨:{resultLabel}</p>
+        <p>연속 한국어 번역 결과:{sentence || "(비어 있음)"}</p>
+        <button onClick={() => { setSentence(""); setLastWord(""); }}>문장 초기화</button>
       </div>
       <div>
+        <button onClick={sendSample}>샘플 전송(웹캠 없이 테스트)</button>
         <button onClick={onStart} disabled={recording}>
           시작(저장 시작)
         </button>

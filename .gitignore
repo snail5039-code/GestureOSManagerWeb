@@ -28,3 +28,7 @@ ai-server/dataset_raw_tiny/
 # optional: other generated stuff
 ai-server/__pycache__/
 ai-server/*.log
+
+# Front build
+dist/
+frontend-react/dist/

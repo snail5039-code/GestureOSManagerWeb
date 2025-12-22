@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TranslateResponse {
+	private String label;
 	private String text;
 	private double confidence;
 	private int framesReceived;
