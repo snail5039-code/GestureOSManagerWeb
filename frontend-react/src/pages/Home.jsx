@@ -2,17 +2,70 @@ import { Link } from "react-router-dom";
 
 export default function Home() {
   return (
-    <div>
-      <h1>메인</h1>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <div className="mx-auto max-w-3xl px-4 py-10">
+        {/* 헤더 */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-black tracking-tight text-slate-900">
+            메인
+          </h1>
+          <p className="mt-2 text-sm text-slate-600">
+            원하는 기능 페이지로 이동해보자.
+          </p>
+        </div>
 
-      <p>원하는 기능 페이지 이동:</p>
+        {/* 카드 */}
+        <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+          <div className="mb-3 text-xs font-semibold text-slate-500">
+            빠른 이동
+          </div>
 
-      <ul>
-        <li><Link to="/test">서버 연결 테스트</Link></li>
-        <li><Link to="/camera">카메라</Link></li>
-        <li><Link to="/translationLogPanel">번역 로그(개발참고)</Link></li>
-        {/*나중에 추가 해야함*/}
-      </ul>
+          <ul className="space-y-3">
+            <li>
+              <Link
+                to="/test"
+                className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-4 ring-1 ring-slate-200 hover:bg-slate-100"
+              >
+                <span className="font-semibold text-slate-900">
+                  서버 연결 테스트
+                </span>
+                <span className="text-slate-400">→</span>
+              </Link>
+            </li>
+
+            <li>
+              <Link
+                to="/camera"
+                className="flex items-center justify-between rounded-2xl bg-slate-900 px-4 py-4 text-white hover:bg-slate-800"
+              >
+                <span className="font-semibold">카메라</span>
+                <span className="text-white/70">→</span>
+              </Link>
+            </li>
+
+            <li>
+              <Link
+                to="/translationLogPanel"
+                className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-4 ring-1 ring-slate-200 hover:bg-slate-100"
+              >
+                <span className="font-semibold text-slate-900">
+                  번역 로그 (개발참고)
+                </span>
+                <span className="text-slate-400">→</span>
+              </Link>
+            </li>
+          </ul>
+
+          <div className="mt-4 text-xs text-slate-500">
+            * 나중에 로그인/설정 같은 메뉴도 여기 추가하면 됨
+          </div>
+        </div>
+
+        {/* 하단 작은 안내 */}
+        <div className="mt-6 text-xs text-slate-400">
+          SLT 프로젝트 · React + Tailwind
+        </div>
+      </div>
     </div>
   );
 }

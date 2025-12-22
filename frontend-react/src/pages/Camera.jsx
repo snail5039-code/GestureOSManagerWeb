@@ -35,12 +35,13 @@ export default function Camera() {
           audio: false,
         });
 
-        streamRef.current = stream; // 나중에 끄려고 저장해논거임 
+        streamRef.current = stream; // 나중에 끄려고 저장해논거임
         if (videoRef.current) {
           videoRef.current.srcObject = stream; //srcObject 카메라에서 받아온 영상 넣어주는거
 
           const hands = new Hands({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`, //미디어 파일들 모델 가져올지 
+            locateFile: (file) =>
+              `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`, //미디어 파일들 모델 가져올지
           });
           // 손 찾는 옵션들 우선은 1개 + 정확도임
           hands.setOptions({
@@ -52,11 +53,11 @@ export default function Camera() {
           // 손 감지용
           hands.onResults((results) => {
             const handsLm = results.multiHandLandmarks ?? [];
-            const handed = results.multiHandedness ?? []; //손 좌우 정보 저장 
+            const handed = results.multiHandedness ?? []; //손 좌우 정보 저장
             const labels = handed
-              .map(h => h?.label ?? h?.classification?.[0]?.label)
+              .map((h) => h?.label ?? h?.classification?.[0]?.label)
               .filter(Boolean)
-              .map(l => (l === "Left" ? "Right" : "Left"));
+              .map((l) => (l === "Left" ? "Right" : "Left"));
 
             setLrStatus(labels.length ? labels.join(", ") : "없음");
 
@@ -108,9 +109,7 @@ export default function Camera() {
       for (let i = 0; i < handsLm.length; i++) {
         // mediapipe 버전에 따라 label 위치가 다를 수 있어서 안전하게 처리
         const label =
-          handed?.[i]?.label ??
-          handed?.[i]?.classification?.[0]?.label ??
-          null;
+          handed?.[i]?.label ?? handed?.[i]?.classification?.[0]?.label ?? null;
 
         const idx = label === "Left" ? 1 : 0;
 
@@ -152,7 +151,7 @@ export default function Camera() {
         t: f.t,
         hands: f.hands.map((hand) =>
           hand.map((p) => ({ x: p.x, y: p.y, z: p.z }))
-        )
+        ),
       }));
 
     try {
@@ -167,18 +166,18 @@ export default function Camera() {
       const conf = Number(res.data.confidence ?? 0);
 
       if (!word || word === "번역 실패" || conf < 0.2) {
-          setStableWord("");
-          setStableCount(0);
-          return;
-        }
+        setStableWord("");
+        setStableCount(0);
+        return;
+      }
 
-      if(word === stableWord) {
+      if (word === stableWord) {
         const next = stableCount + 1;
         setStableCount(next);
 
-        if(next >= 2 && word !== lastWord) {
+        if (next >= 2 && word !== lastWord) {
           setSentence((prev) => {
-            if(prev) return prev + " " + word;
+            if (prev) return prev + " " + word;
             return word;
           });
           setLastWord(word);
@@ -188,7 +187,7 @@ export default function Camera() {
         }
       } else {
         setStableWord(word);
-          setStableCount(1);
+        setStableCount(1);
       }
     } catch (error) {
       console.error("전송 실패:", error);
@@ -196,82 +195,193 @@ export default function Camera() {
   };
   // 테스트임!! 샘플!!
   const sendSample = async () => {
-  const sample = {
-    frames: [
-      {
-        hands: [
-          Array.from({ length: 21 }, () => ({ x: 0.1, y: 0.1, z: 0.0 }))
-        ]
-      }
-    ]
+    const sample = {
+      frames: [
+        {
+          hands: [
+            Array.from({ length: 21 }, () => ({ x: 0.1, y: 0.1, z: 0.0 })),
+          ],
+        },
+      ],
+    };
+
+    try {
+      const res = await axios.post("/api/translate", sample);
+      console.log("샘플 응답:", res.data);
+
+      setResultText(res.data.text);
+      setResultLabel(res.data.label ?? "");
+
+      // ✅ 여기서 너가 만든 안정화/누적 로직 그대로 실행되게 하면 됨
+      // (지금 onStop에 있는 "word/conf/stableCount" 블록을 여기로 복붙)
+    } catch (e) {
+      console.error("샘플 전송 실패:", e);
+    }
   };
 
-  try {
-    const res = await axios.post("/api/translate", sample);
-    console.log("샘플 응답:", res.data);
-
-    setResultText(res.data.text);
-    setResultLabel(res.data.label ?? "");
-
-    // ✅ 여기서 너가 만든 안정화/누적 로직 그대로 실행되게 하면 됨
-    // (지금 onStop에 있는 "word/conf/stableCount" 블록을 여기로 복붙)
-  } catch (e) {
-    console.error("샘플 전송 실패:", e);
-  }
-};
-
   return (
-    <div>
-      <h1>웹캠</h1>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <div className="mx-auto max-w-6xl px-4 py-8">
+        {/* 상단 타이틀 */}
+        <div className="mb-6 flex items-end justify-between gap-3">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-slate-900">
+              웹캠
+            </h1>
+            <p className="mt-2 text-sm text-slate-600">
+              손 인식 → 프레임 저장 → 서버 번역
+            </p>
+          </div>
 
-      {error && <p>에러: {error}</p>}
-
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        style={{ width: 480, background: "#000" }}
-      />
-      <div>
-        <p>손 감지: {handDetected ? "✅ 감지됨" : "❌ 없음"}</p>
-        <p>손 개수: {handCount}</p>
-        <div>손 라벨: {lrStatus}</div>
-        <p>한국어 텍스트:{resultText}</p>
-        <p>WORD 라벨:{resultLabel}</p>
-        <p>연속 한국어 번역 결과:{sentence || "(비어 있음)"}</p>
-        <button onClick={() => { setSentence(""); setLastWord(""); }}>문장 초기화</button>
-      </div>
-      <div>
-        <button onClick={sendSample}>샘플 전송(웹캠 없이 테스트)</button>
-        <button onClick={onStart} disabled={recording}>
-          시작(저장 시작)
-        </button>
-
-        <button onClick={onStop} disabled={!recording}>
-          정지(저장 종료)
-        </button>
-
-        <p>상태: {recording ? "저장중..." : "대기중"}</p>
-        <p>현재까지 저장된 프레임 수: {frameCount}</p>
-      </div>
-
-      {savedPayload && (
-        <div>
-          <h3>정지 후 저장된 데이터(미리보기)</h3>
-          <pre style={{ whiteSpace: "pre-wrap" }}>
-            {JSON.stringify(
-              { ...savedPayload, frames: savedPayload.frames.slice(0, 5) },
-              null,
-              2
-            )}
-          </pre>
-          <p>(frames는 너무 길어서 앞 5개만 보여주는 중)</p>
+          <p className="text-sm">
+            <Link
+              to="/home"
+              className="rounded-xl px-3 py-2 font-semibold text-slate-700 hover:bg-slate-100"
+            >
+              ← 메인으로
+            </Link>
+          </p>
         </div>
-      )}
 
-      <p>
-        <Link to="/home">← 메인으로</Link>
-      </p>
+        {error && (
+          <p className="mb-4 rounded-2xl bg-rose-50 p-4 text-sm font-semibold text-rose-800 ring-1 ring-rose-200">
+            에러: {error}
+          </p>
+        )}
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          {/* 왼쪽: 카메라 */}
+          <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+            <div className="mb-3 flex items-center justify-between">
+              <div className="text-sm font-semibold text-slate-900">
+                카메라 화면
+              </div>
+              <span
+                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
+                  recording
+                    ? "bg-rose-50 text-rose-700 ring-1 ring-rose-200"
+                    : "bg-slate-50 text-slate-700 ring-1 ring-slate-200"
+                }`}
+              >
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    recording ? "bg-rose-500" : "bg-slate-400"
+                  }`}
+                />
+                상태: {recording ? "저장중..." : "대기중"}
+              </span>
+            </div>
+
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              className="w-full max-w-[480px] rounded-2xl bg-black shadow-sm ring-1 ring-slate-200"
+            />
+
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <button
+                onClick={sendSample}
+                className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900 ring-1 ring-slate-200 hover:bg-slate-200 active:scale-[0.99]"
+              >
+                샘플 전송(웹캠 없이 테스트)
+              </button>
+
+              <button
+                onClick={onStart}
+                disabled={recording}
+                className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                시작(저장 시작)
+              </button>
+
+              <button
+                onClick={onStop}
+                disabled={!recording}
+                className="rounded-2xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 ring-1 ring-rose-200 hover:bg-rose-100 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                정지(저장 종료)
+              </button>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+              <div className="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
+                <p className="text-xs font-semibold text-slate-500">
+                  현재까지 저장된 프레임 수
+                </p>
+                <p className="mt-1 text-lg font-black text-slate-900">
+                  {frameCount}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
+                <p className="text-xs font-semibold text-slate-500">손 감지</p>
+                <p className="mt-1 text-lg font-black text-slate-900">
+                  {handDetected ? "✅ 감지됨" : "❌ 없음"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 오른쪽: 결과 */}
+          <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+            <div className="mb-3 text-sm font-semibold text-slate-900">
+              번역 결과
+            </div>
+
+            <div className="space-y-2 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
+              <p className="text-sm">
+                손 감지: <span className="font-semibold">{handDetected ? "✅ 감지됨" : "❌ 없음"}</span>
+              </p>
+              <p className="text-sm">
+                손 개수: <span className="font-semibold">{handCount}</span>
+              </p>
+              <div className="text-sm">
+                손 라벨: <span className="font-semibold">{lrStatus}</span>
+              </div>
+              <p className="text-sm">
+                한국어 텍스트: <span className="font-semibold">{resultText}</span>
+              </p>
+              <p className="text-sm">
+                WORD 라벨: <span className="font-semibold">{resultLabel}</span>
+              </p>
+              <p className="text-sm">
+                연속 한국어 번역 결과:{" "}
+                <span className="font-semibold">{sentence || "(비어 있음)"}</span>
+              </p>
+
+              <button
+                onClick={() => {
+                  setSentence("");
+                  setLastWord("");
+                  setStableWord("");
+                  setStableCount(0);
+                }}
+                className="mt-2 w-full rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-900 ring-1 ring-slate-200 hover:bg-slate-100 active:scale-[0.99]"
+              >
+                문장 초기화
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {savedPayload && (
+          <div className="mt-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+            <h3 className="text-sm font-semibold text-slate-900">
+              정지 후 저장된 데이터(미리보기)
+            </h3>
+            <pre className="mt-3 max-h-72 overflow-auto rounded-2xl bg-slate-950 p-4 text-xs text-slate-100">
+              {JSON.stringify(
+                { ...savedPayload, frames: savedPayload.frames.slice(0, 5) },
+                null,
+                2
+              )}
+            </pre>
+            <p className="mt-2 text-xs text-slate-500">
+              (frames는 너무 길어서 앞 5개만 보여주는 중)
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
