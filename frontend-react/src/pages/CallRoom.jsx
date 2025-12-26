@@ -14,6 +14,9 @@ import { useParams } from "react-router-dom";
  * - ready는 카메라 유무 상관없이 count==2면 무조건 보냄 (수신 전용도 참여 가능)
  */
 export default function CallRoom() {
+
+  const [translatedText, setTranslatedText] = useState("번역 대기중...");
+
   // URL 파라미터: /call/:roomId
   const { roomId } = useParams();
 
@@ -38,7 +41,7 @@ export default function CallRoom() {
 
   // 캡션 테스트용
   const [lastWsMsg, setLastWsMsg] = useState("");
-  const [sendText, setSendText] = useState("안녕(테스트)");
+  const [sendText, setSendText] = useState("");
   const [recvCaption, setRecvCaption] = useState("");
 
   /**
@@ -110,7 +113,7 @@ export default function CallRoom() {
         // local video에 내 카메라 영상 출력
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = stream;
-          await localVideoRef.current.play().catch(() => {});
+          await localVideoRef.current.play().catch(() => { });
         }
 
         // ✅ WebRTC PC 만들고(전화기) 로컬 트랙을 PC에 꽂아줌(내 영상 송신 준비)
@@ -215,7 +218,11 @@ export default function CallRoom() {
 
       // caption: 채팅처럼 테스트하는 데이터
       if (msg.type === "caption") {
-        setRecvCaption(msg.text || "");
+        const t = (msg.text || "");
+        if (!t) return;
+
+        const ts = msg.ts ?? Date.now();
+        setRecvCaption((prev) => (prev ? prev + "\n" : "") + `peer|${ts}|${t}`);
         console.log("[WS] caption received:", msg.text);
       }
 
@@ -290,7 +297,7 @@ export default function CallRoom() {
     return () => {
       try {
         ws.close();
-      } catch {}
+      } catch { }
       if (wsRef.current === ws) wsRef.current = null;
     };
   }, [roomId]);
@@ -305,7 +312,10 @@ export default function CallRoom() {
       console.warn("[WS] caption blocked: ws not open");
       return;
     }
+    const now = Date.now();
+    setRecvCaption((prev) => (prev ? prev + "\n" : "") + `me|${now}|${sendText}`);
     ws.send(JSON.stringify({ type: "caption", text: sendText }));
+    setSendText("");
     console.log("[WS] caption sent:", sendText);
   };
 
@@ -388,7 +398,7 @@ export default function CallRoom() {
 
       if (v && stream) {
         v.srcObject = stream;
-        v.play().catch(() => {});
+        v.play().catch(() => { });
       }
     };
 
@@ -400,70 +410,173 @@ export default function CallRoom() {
     return pc;
   }
 
+  const leaveRoom = () => {
+    // 그냥 홈으로 보내기 (네 라우트에 맞게 바꿔)
+    window.history.back();
+  };
+
   // UI
   return (
-    <div className="min-h-screen p-4 flex flex-col gap-4">
-      <header className="flex items-center justify-between">
-        <div>
-          <div className="text-xl font-bold">Call Room</div>
-          <div className="text-sm text-gray-500">
-            roomId: <span className="font-mono">{roomId}</span>
+    <div className="min-h-screen bg-white">
+      {/* 상단 여백 + 방 정보 헤더 */}
+      <header className="mx-auto max-w-6xl px-6 pt-8 pb-4">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <div className="text-xs text-slate-500">영상통화 방</div>
+            <div className="text-sm hidden text-slate-600">media: {mediaStatus}</div>
+            <h1 className="mt-1 text-2xl font-bold text-slate-900">
+              {roomId}
+            </h1>
+            <div className="mt-1 text-sm text-slate-600">
+              상태: <span className="font-semibold">{wsStatus}</span>
+              <span className="mx-2 text-slate-300">|</span>
+              <span className="text-slate-500">상대 연결되면 화면 표시</span>
+            </div>
           </div>
-          <div className="text-xs text-gray-500">
-            count: <span className="font-mono">{roomCount}</span> / WS:{" "}
-            <span className="font-mono">{wsStatus}</span> / media:{" "}
-            <span className="font-mono">{mediaStatus}</span>
-          </div>
-        </div>
 
-        <div className="text-xs text-gray-500 font-mono break-all max-w-[55%]">
-          last: {lastWsMsg}
+          {/* 우측 액션 버튼(원하면 유지/삭제) */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setRecvCaption("")}
+              className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              채팅 비우기
+            </button>
+            <button
+              onClick={leaveRoom} // ✅ 네 코드에 있는 나가기 함수로
+              className="rounded-xl border border-slate-900 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-100"
+            >
+              나가기
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* 캡션 테스트 */}
-      <div className="rounded-2xl shadow p-3 flex flex-col gap-2">
-        <div className="text-sm text-gray-600">caption 테스트</div>
-        <div className="flex gap-2 items-center">
-          <input
-            value={sendText}
-            onChange={(e) => setSendText(e.target.value)}
-            className="border rounded-xl px-3 py-2 flex-1"
-            placeholder="보낼 caption"
-          />
-          <button onClick={sendCaption} className="px-3 py-2 rounded-xl shadow">
-            caption 보내기
-          </button>
-        </div>
-        <div className="text-sm text-gray-600">
-          받은 caption: <span className="font-mono">{recvCaption}</span>
-        </div>
-      </div>
+      {/* 본문 */}
+      <main className="mx-auto max-w-6xl px-6 pb-10">
+        <div className="flex gap-6">
+          {/* 왼쪽: 상대방 화면 */}
+          <section className="flex-1">
+            <div className="rounded-2xl border border-slate-200 overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+                <span className="text-sm font-semibold text-slate-900">상대방</span>
+                <span className="text-xs text-slate-500">Remote</span>
+              </div>
 
-      {/* 비디오 영역 */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <section className="rounded-2xl shadow p-3">
-          <div className="text-sm mb-2 text-gray-600">상대 화면(Remote)</div>
-          <video
-            ref={remoteVideoRef}
-            autoPlay
-            playsInline
-            muted
-            className="w-full aspect-video bg-black rounded-xl"
-          />
-        </section>
+              <div className="aspect-video bg-black">
+                <video
+                  ref={remoteVideoRef} // ✅ 네 remote ref로
+                  autoPlay
+                  playsInline
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            </div>
+            <section className="mt-6 rounded-2xl border border-slate-200 bg-white overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+                <span className="text-sm font-semibold text-slate-900">실시간 수어 번역</span>
+                <span className="text-xs text-slate-500">Live</span>
+              </div>
 
-        <section className="rounded-2xl shadow p-3">
-          <div className="text-sm mb-2 text-gray-600">내 화면(Local)</div>
-          <video
-            ref={localVideoRef}
-            autoPlay
-            playsInline
-            muted
-            className="w-full aspect-video bg-black rounded-xl"
-          />
-        </section>
-      </div>
+              <div className="p-4 min-h-[120px]">
+                <p className="text-base text-slate-900 whitespace-pre-wrap">
+                  {translatedText}
+                </p>
+              </div>
+            </section>
+          </section>
+
+          {/* 오른쪽: 내 화면 + 채팅 */}
+          <aside className="w-[340px] flex flex-col gap-6">
+            {/* 내 화면 */}
+            <section className="rounded-2xl border border-slate-200 overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+                <span className="text-sm font-semibold text-slate-900">내 화면</span>
+                <span className="text-xs text-slate-500">Local</span>
+              </div>
+
+              <div className="aspect-video bg-black">
+                <video
+                  ref={localVideoRef} // ✅ 네 local ref로
+                  autoPlay
+                  muted
+                  playsInline
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            </section>
+
+            {/* 채팅창 */}
+            <section className="rounded-2xl border border-slate-200 overflow-hidden flex flex-col h-[420px]">
+              <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+                <span className="text-sm font-semibold text-slate-900">채팅</span>
+                <span className="text-xs text-slate-500">Caption</span>
+              </div>
+
+              {/* 리스트 */}
+              <div className="flex-1 overflow-auto px-3 py-3">
+                <ul className="space-y-2">
+                  {(recvCaption || "")
+                    .split("\n")
+                    .map((s) => s.trim())
+                    .filter(Boolean)
+                    .map((line, i) => {
+                      const [who, tsStr, ...rest] = line.split("|");
+                      const text = rest.join("|");
+                      const ts = Number(tsStr);
+                      const time = Number.isFinite(ts)
+                        ? new Date(ts).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })
+                        : "";
+
+                      const isMe = who === "me";
+
+                      return (
+                        <li
+                          key={i}
+                          className={[
+                            "max-w-[85%] rounded-2xl px-3 py-2 text-sm",
+                            isMe
+                              ? "ml-auto bg-slate-900 text-white"
+                              : "mr-auto bg-slate-100 text-slate-900",
+                          ].join(" ")}
+                        >
+                          <div className="flex items-end justify-between gap-3">
+                            <span>{text}</span>
+                            {time && (
+                              <span className={isMe ? "text-xs text-white/70" : "text-xs text-slate-500"}>
+                                {time}
+                              </span>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
+                </ul>
+              </div>
+
+              {/* 입력 */}
+              <div className="border-t border-slate-200 p-3">
+                <div className="flex gap-2">
+                  <input
+                    value={sendText}
+                    onChange={(e) => setSendText(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && sendCaption()}
+                    className="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-200"
+                    placeholder="메시지 입력..."
+                  />
+                  <button
+                    onClick={sendCaption}
+                    className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 active:scale-[0.99]"
+                  >
+                    전송
+                  </button>
+                </div>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </main>
     </div>
   );
+
 }

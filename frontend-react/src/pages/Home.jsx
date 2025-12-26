@@ -45,7 +45,7 @@ export default function Home() {
 
             <li>
               <Link
-                to="/callRoom"
+                to="/callLobby"
                 className="flex items-center justify-between rounded-2xl bg-slate-900 px-4 py-4 text-white hover:bg-slate-800"
               >
                 <span className="font-semibold">실시간 영상 통화</span>
