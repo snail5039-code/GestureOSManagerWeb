@@ -183,7 +183,7 @@ def extract_word_id(folder_name: str):
             return part
     return "UNKNOWN"
 
-def main(): # 이거 뭔지 물어봐야함 
+def main(): 
     ap = argparse.ArgumentParser()
     ap.add_argument("--in_dir", required=True)
     ap.add_argument("--out_dir", required=True)

@@ -41,6 +41,7 @@ export default function Camera() {
         });
 
         streamRef.current = stream; // 나중에 끄려고 저장해논거임
+        
         if (videoRef.current) {
           videoRef.current.srcObject = stream; //srcObject 카메라에서 받아온 영상 넣어주는거
 

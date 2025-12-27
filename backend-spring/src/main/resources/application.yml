@@ -5,9 +5,10 @@ spring:
     password: sltpass
     driver-class-name: org.postgresql.Driver
 
+server:
+  address: 0.0.0.0
+  port: 8080		
 mybatis:
   configuration:
     map-underscore-to-camel-case: true
 
-server:
-  port: 8080
