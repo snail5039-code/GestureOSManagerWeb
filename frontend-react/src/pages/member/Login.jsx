@@ -21,19 +21,19 @@ export default function Login() {
     const u = username.trim();
     const p = password.trim();
 
-    if (!u) return setErrorMsg("아이디를 입력해줘.");
-    if (!p) return setErrorMsg("비밀번호를 입력해줘.");
+    if (!u) return setErrorMsg("아이디 입력");
+    if (!p) return setErrorMsg("비밀번호 입력해");
 
     try {
       setLoading(true);
 
-      // ✅ 엔드포인트/필드명은 백에 맞춰서 수정
-      const res = await api.post("/api/auth/login", {
+      // 엔드포인트/필드명은 백에 맞춰서 수정
+      const res = await api.post("/api/members/login", {
         username: u,
         password: p,
       });
 
-      // ✅ 예: { accessToken: "..." }
+      // 예: { accessToken: "..." }
       loginWithToken(res.data.accessToken);
 
       nav("/board"); // 로그인 후 이동할 페이지
@@ -51,7 +51,7 @@ export default function Login() {
       <div className="w-full max-w-sm bg-white border rounded-2xl p-6 shadow-sm">
         <h1 className="text-xl font-semibold">로그인</h1>
         <p className="text-sm text-gray-500 mt-1">
-          아이디와 비밀번호만 입력하면 돼.
+          아이디와 비밀번호만 입력
         </p>
 
         <form className="mt-5 space-y-3" onSubmit={onSubmit}>
