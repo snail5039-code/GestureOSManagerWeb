@@ -55,7 +55,7 @@ export default function Camera() {
             modelComplexity: 1,
             minDetectionConfidence: 0.5,
             minTrackingConfidence: 0.5,
-          });
+          });  
           // 손 감지용
           hands.onResults((results) => {
             const handsLm = results.multiHandLandmarks ?? [];
