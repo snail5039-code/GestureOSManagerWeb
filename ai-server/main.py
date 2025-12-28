@@ -165,12 +165,6 @@ def upsert_label_map(item: LabelMapItem):
 
     return {"ok": True, "count": len(label_to_text)}
 
-
-
-
-
-
-
 # =========================
 # 샘플 데이터로 /predict 테스트 (python main.py 로 실행)
 # =========================

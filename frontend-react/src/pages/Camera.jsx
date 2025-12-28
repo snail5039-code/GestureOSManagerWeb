@@ -142,8 +142,6 @@ export default function Camera() {
 
       const hasFace = face.length > 0;
       const hasHands = (latest?.handsLm?.length ?? 0) > 0; // hasHands 변수 추가해버림
-      
-      if (!hasHands) return;
 
       // const { handsLm, handed } = latest;
 
@@ -153,7 +151,7 @@ export default function Camera() {
       // 항상 [Left, Right] 순서로 고정
       const handsFixed = [[], []]; // 1: Right, 0: Left
 
-      if (hasHands) {
+      if (hasHands && latest) {
         const {handsLm, handed} = latest;
 
         for (let i = 0; i < handsLm.length; i++) {
@@ -166,6 +164,7 @@ export default function Camera() {
           handsFixed[idx] = handsLm[i].map((p) => ({ x: p.x, y: p.y, z: p.z}));
         }
       }
+      if (!hasFace && !hasHands) return;
       
       const frame = { t: Date.now(), hands: handsFixed, face }; // face 추가!!!
       bufferRef.current.push(frame);
