@@ -11,5 +11,8 @@ public class TranslateResponse {
 	private String label;
 	private String text;
 	private double confidence;
-	private int framesReceived;
+	private Integer framesReceived;
+	
+	private String mode;
+	private Integer streak;
 }

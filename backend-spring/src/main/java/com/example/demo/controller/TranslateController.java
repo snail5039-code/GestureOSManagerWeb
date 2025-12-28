@@ -17,7 +17,7 @@ import com.example.demo.dto.TranslationLog;
 import com.example.demo.service.TranslateResponseService;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(originPatterns = {"http://localhost:5173", "http://localhost:5174"})
 public class TranslateController {
 	//파이썬 연결
 	private final WebClient webClient = WebClient.create("http://127.0.0.1:8000");
@@ -36,17 +36,29 @@ public class TranslateController {
     				.retrieve()
     				.bodyToMono(TranslateResponse.class)
     				.timeout(Duration.ofSeconds(3))
-    				.onErrorReturn(new TranslateResponse(null, "번역 실패", 0.0, 0))
+    				.onErrorResume(e -> {
+    				    e.printStackTrace(); // ✅ 원인 콘솔에 출력
+    				    return reactor.core.publisher.Mono.just(
+    				        new TranslateResponse(null, null, 0.0, 0, "error", 0)
+    				    );
+    				})
     				.block();
     		
     		if(res == null) {
-    			res = new TranslateResponse(null, "번역 실패", 0.0, 0);
+    			res = new TranslateResponse(null, null, 0.0, 0, "error", 0);
     		}
-    		double conf = Math.max(0.0, Math.min(1.0, res.getConfidence()));
-            res.setConfidence(conf);
-			
-    	this.translateResponseService.save(res.getText(), res.getConfidence());
-    	
+    		
+    		if (res.getFramesReceived() == null) res.setFramesReceived(0);
+    	    if (res.getStreak() == null) res.setStreak(0);
+
+    	    double conf = Math.max(0.0, Math.min(1.0, res.getConfidence()));
+    	    res.setConfidence(conf);
+    		
+            if ("final".equalsIgnoreCase(res.getMode()) && res.getText() != null && !res.getText().isBlank()) {
+                this.translateResponseService.save(res.getText(), res.getConfidence());
+            }
+            
+            System.out.println(res);
     	return res;
     }
     
