@@ -15,15 +15,33 @@ export default function Join() {
   });
 
   useEffect(() => {
-    axios
-      .get("/api/countries")
-      .then((res) => setCountries(res.data))
-      .catch(() => {
-        alert("국적 목록 API(/api/countries) 없음");
-      });
-  }, []);
+  axios.get("/api/countries")
+    .then((res) => {
+      console.log("countries status:", res.status);
+      console.log("countries data:", res.data);
 
-  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+      const data = res.data;
+      const list =
+        Array.isArray(data) ? data :
+        Array.isArray(data?.data) ? data.data :
+        Array.isArray(data?.countries) ? data.countries :
+        Array.isArray(data?.items) ? data.items :
+        [];
+
+      setCountries(list);
+    })
+    .catch((e) => {
+      console.log("countries error:", e?.response?.status, e?.response?.data, e?.message);
+      alert("국적 목록 호출 실패");
+    });
+}, []);
+
+
+
+const onChange = (e) => {
+  const { name, value } = e.target;
+  setForm((prev) => ({ ...prev, [name]: value }));
+};
 
   const submit = async () => {
     if (!form.loginId.trim()) return alert("아이디 입력");
@@ -74,7 +92,7 @@ export default function Join() {
       >
         <option value="">국적 선택</option>
         {countries.map((c) => (
-          <option key={c.id} value={c.id}>{c.countryName}</option>
+          <option key={c.id} value={String(c.id)}>{c.countryName}</option>
         ))}
       </select>
 

@@ -2,25 +2,23 @@ package com.example.demo.controller;
 
 import java.util.List;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.example.demo.dao.CountryDao;
+import org.springframework.web.bind.annotation.*;
 import com.example.demo.dto.Country;
+import com.example.demo.service.MemberService;
 
 @RestController
 @RequestMapping("/api")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class CountryController {
 
-    private final CountryDao countryDao;
+    private final MemberService memberService;
 
-    public CountryController(CountryDao countryDao) {
-        this.countryDao = countryDao;
+    public CountryController(MemberService memberService) {
+        this.memberService = memberService;
     }
 
     @GetMapping("/countries")
     public List<Country> countries() {
-        return countryDao.findAll();
+        return memberService.countries();
     }
 }

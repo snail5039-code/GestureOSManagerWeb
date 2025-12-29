@@ -54,7 +54,7 @@ export default function BoardDetail() {
         <div className="text-sm text-gray-500 mt-2 flex flex-wrap gap-4">
           <span>게시판: {boardName}</span>
           <span>
-            작성자: {article.author?.nickname ?? article.authorNickname ?? "알 수 없음"}
+            작성자: {article.author?.loginId ?? article.authorLoginId ?? "알 수 없음"}
           </span>
           <span>작성일: {article.regDate}</span>
           <span>수정일: {article.updateDate}</span>
@@ -65,11 +65,15 @@ export default function BoardDetail() {
         <button className="mt-6 px-4 py-2 rounded-xl border" onClick={() => nav("/board")}>
           목록
         </button>
-        <button className="mt-6 px-4 py-2 rounded-xl border" onClick={() => nav("/modify")}>
+        <button className="mt-6 px-4 py-2 rounded-xl border" onClick={() => nav(`/board/${id}/modify`)}>
           수정
         </button>
-        <button className="mt-6 px-4 py-2 rounded-xl border" onClick={() => nav("/delete")}>
-          삭제
+        <button className="mt-6 px-4 py-2 rounded-xl border" onClick={async () => {
+          if (!confirm("정말 삭제할까?")) return;
+          await api.delete(`/api/boards/${id}`);
+          nav("/board");
+        }}>
+         삭제
         </button>
       </div>
     </div>

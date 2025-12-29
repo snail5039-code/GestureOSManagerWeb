@@ -2,8 +2,10 @@ package com.example.demo.controller;
 
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.example.demo.dao.RefreshTokenDao;
 import com.example.demo.dto.Member;
@@ -12,6 +14,7 @@ import com.example.demo.service.MemberService;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 @RestController
@@ -30,19 +33,21 @@ public class MemberController {
 
     // 회원가입
     @PostMapping("/join")
-    public Map<String, Object> join(@RequestBody Member member) {
-        memberService.join(member);
+    public Map<String, Object> join(@Valid @RequestBody Member member) {
+        this.memberService.join(member);
         return Map.of("message", "회원가입 완료");
     }
 
     // 로그인
     @PostMapping("/login")
     public Map<String, Object> login(@RequestBody Map<String, String> body, HttpServletResponse response) {
-        String loginId = body.get("loginId");
-        String loginPw = body.get("loginPw");
+        String loginId = body.getOrDefault("loginId", "");
+        String loginPw = body.getOrDefault("loginPw", "");
+
+        if (loginId.isBlank()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "아이디 입력");
+        if (loginPw.isBlank()) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "비밀번호 입력");
 
         Member m = memberService.login(loginId, loginPw);
-
         // ✅ access token
         String accessToken = jwtTokenProvider.createAccessToken(m.getId(), m.getLoginId());
 
@@ -62,10 +67,20 @@ public class MemberController {
     }
 
     // 로그아웃 (일단 메시지만)
-    @PostMapping("/logout")
-    public Map<String, Object> logout() {
-        return Map.of("message", "로그아웃");
-    }
+	public Map<String, Object> logout(HttpServletResponse response, Authentication authentication) {
+		// refreshToken 쿠키 삭제
+		Cookie cookie = new Cookie("refreshToken", "");
+		cookie.setHttpOnly(true);
+		cookie.setSecure(false);
+		cookie.setPath("/");
+		cookie.setMaxAge(0);
+		response.addCookie(cookie);
+
+		// DB refreshToken도 지우고 싶으면 (authentication에서 memberId 뽑아서)
+		// refreshTokenDao.delete(memberId);
+
+		return Map.of("message", "로그아웃");
+	}
 
     @GetMapping("/me")
     public Map<String, Object> me(Authentication authentication) {

@@ -33,6 +33,9 @@ public class MemberService {
 		if (member.getEmail() == null || member.getEmail().isBlank())
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이메일 필수");
 		
+		if (member.getName() == null || member.getName().isBlank())
+		    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이름 필수");
+		
 		if (member.getCountryId() == null)
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "국적 선택 필수");
 		
@@ -44,17 +47,17 @@ public class MemberService {
 
 	public Member login(String loginId, String loginPw) {
 		
-		Member m = this.memberDao.findByLoginId(loginId);
-		
-		if (m == null) {
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인 실패");
-		}
-		
-		if (!m.getLoginPw().equals(loginPw)) {
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인 실패");
-		}
-		
-		return m;
+		 Member m = this.memberDao.findByLoginId(loginId.trim());
+		    if (m == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인 실패");
+
+		    if (m.getProvider() != null) {
+		        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "소셜 로그인 계정입니다");
+		    }
+
+		    if (m.getLoginPw() == null || !m.getLoginPw().equals(loginPw.trim())) {
+		        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인 실패");
+		    }
+		    return m;
 	}
 	
 	public List<Country> countries() {

@@ -29,18 +29,24 @@ export default function Login() {
 
       // 엔드포인트/필드명은 백에 맞춰서 수정
       const res = await api.post("/api/members/login", {
-        loginId: l,
+        loginId: i,
         loginPw: p,
       });
 
-      // 예: { accessToken: "..." }
-      loginWithToken(res.data.accessToken);
+      const token = res?.data?.accessToken;
 
-      nav("/board"); // 로그인 후 이동할 페이지
+      if (!token) {
+        throw new Error("NO_TOKEN");
+      }
+
+      loginWithToken(res.data.accessToken);
+      nav("/"); // 로그인 후 이동할 페이지
+
     } catch (e2) {
-      const status = e2?.response?.status;
-      if (status === 401) setErrorMsg("아이디/비밀번호가 틀림");
+      if (e2.message === "NO_TOKEN") setErrorMsg("로그인 실패(토큰 없음)");
+      else if (e2?.response?.status === 401) setErrorMsg("아이디/비밀번호가 틀림");
       else setErrorMsg(e2?.response?.data?.message || "로그인 실패");
+
     } finally {
       setLoading(false);
     }

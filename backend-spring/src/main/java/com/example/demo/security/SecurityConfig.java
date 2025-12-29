@@ -46,9 +46,12 @@ public class SecurityConfig {
 				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/api/health").permitAll()
-						.requestMatchers("/api/members/join", "/api/members/login").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/countries").permitAll()
+						.requestMatchers("/api/members/join").permitAll()
 						.requestMatchers("/api/members/me").permitAll()
 						.requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
+						.requestMatchers("/api/members/login").permitAll()
+					    .requestMatchers("/api/auth/**").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/boards/**").permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/auth/token").permitAll()
 						.anyRequest().authenticated()

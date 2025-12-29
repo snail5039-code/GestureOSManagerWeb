@@ -11,6 +11,28 @@ export default function Board() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
+  const hhmm = (v) => {
+  if (!v) return "-";
+  const s = String(v);
+
+  // 1) ISO: 2025-12-29T16:12:09
+  if (s.includes("T")) return s.split("T")[1].slice(0, 5);
+
+  // 2) 공백형: 2025-12-29 16:12:09
+  const m1 = s.match(/\b(\d{2}:\d{2})(?::\d{2})?\b/);
+  if (m1) return m1[1];
+
+  // 3) Date로 파싱 가능한 값이면
+  const d = new Date(s);
+  if (!Number.isNaN(d.getTime())) {
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
+  }
+    return "-";
+  };
+
+
   const nav = useNavigate();
 
   const title = useMemo(
@@ -83,8 +105,8 @@ export default function Board() {
                     작성자: {board.author?.loginId ?? board.authorLoginId ?? "알 수 없음"}
                   </span>
 
-                  <span>작성일: {article.regDate}</span>
-                  <span>수정일: {article.updateDate}</span>
+                  <span>작성일: {hhmm(board.regDate ?? board.createdAt)}</span>
+                  <span>수정일: {hhmm(board.updateDate ?? board.updatedAt)}</span>
                 </div>
               </li>
             ))
