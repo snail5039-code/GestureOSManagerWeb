@@ -86,8 +86,13 @@ public class SecurityConfig {
         .requestMatchers("/oauth2/**", "/login/oauth2/**", "/login**").permitAll()
         .anyRequest().permitAll()
       )
-      .oauth2Login(o -> o.successHandler(oAuth2SuccessHandler));
+      .oauth2Login(oauth -> oauth
+              .successHandler((req, res, auth) -> {
+                  // 로그인 성공 후 프론트로 이동
+                  res.sendRedirect("http://localhost:5173/oauth2/success");
+              })
+          );
 
-    return http.build();
+      return http.build();
   }
 }

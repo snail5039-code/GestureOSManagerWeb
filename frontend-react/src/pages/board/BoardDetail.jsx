@@ -72,7 +72,7 @@ export default function BoardDetail() {
           className="mt-6 px-4 py-2 rounded-xl border"
           onClick={async () => {
             try {
-             if (!confirm("정말 삭제할까?")) return;
+             if (!confirm("정말 삭제?")) return;
                await api.delete(`/boards/${id}`);
                nav("/board");
             } catch (e) {

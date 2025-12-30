@@ -1,7 +1,7 @@
 export default function SocialLoginButtons() {
   const go = (provider) => {
     // 백으로 직접 이동 (OAuth2 로그인 시작)
-    window.location.href = `http://localhost:8080/oauth2/authorization/${provider}`;
+    window.location.href = `/oauth2/authorization/${provider}`;
   };
 
   return (
