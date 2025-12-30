@@ -1,149 +1,133 @@
-# tools/split_dataset.py
-# 목적:
-#   “학습용/시험용 데이터로 정리하는 코드”
-#   dataset_raw 폴더(라벨별로 npy가 모여있는 폴더)를
-#   dataset_split/train 과 dataset_split/val 로 나누어 복사한다.
-#
-# 입력 폴더 예시(dataset_raw):
-#   dataset_raw/
-#     WORD1501/
-#       a.npy
-#       b.npy
-#     WORD1502/
-#       c.npy
-#
-# 출력 폴더 예시(dataset_split):
-#   dataset_split/
-#     train/
-#       WORD1501/ (80%)
-#       WORD1502/ (80%)
-#     val/
-#       WORD1501/ (20%)
-#       WORD1502/ (20%)
+import argparse
+import os
+import random
+import re
+from pathlib import Path
 
-import argparse   # 터미널 옵션(--in_dir 등) 받기
-import random     # 파일 섞기(shuffle)용
-import shutil     # 파일 복사(copy2)용
-from pathlib import Path  # 경로(폴더/파일) 다루기 쉽게
+
+def ensure_dir(p: Path):
+    p.mkdir(parents=True, exist_ok=True)
+
+
+def ok(label_name: str, include_prefix: str | None) -> bool:
+    if not include_prefix:
+        return True
+    prefixes = [x.strip() for x in include_prefix.split(",") if x.strip()]
+    if not prefixes:
+        return True
+    return any(label_name.startswith(p) for p in prefixes)
+
+
+def hardlink_or_copy(src: Path, dst: Path):
+    """
+    Windows에서 하드링크 우선.
+    실패하면 최후에 copy로 fallback.
+    """
+    ensure_dir(dst.parent)
+    if dst.exists():
+        return
+    try:
+        os.link(src, dst)  # hard link
+    except Exception:
+        # fallback: copy (최후)
+        import shutil
+        shutil.copy2(src, dst)
+
+
+def find_pairs(label_dir: Path):
+    """
+    확정 규칙:
+      ..._X.hand.npy  <->  ..._X_face.npy
+    (X는 D/F/L/R/U 같은 카메라 방향 코드)
+    """
+    hands = sorted(label_dir.glob("*.hand.npy"))
+    pairs = []
+
+    for h in hands:
+        face_name = h.name.replace(".hand.npy", "_face.npy")
+        f = h.with_name(face_name)
+        if f.exists():
+            pairs.append((h, f))
+
+    return pairs
+
 
 def main():
-    # -------------------------------
-    # 1) 터미널 옵션(인자) 설정/읽기
-    # -------------------------------
     ap = argparse.ArgumentParser()
-
-    # --in_dir : 입력 폴더 경로 (dataset_raw)
-    ap.add_argument("--in_dir", required=True, help="입력 폴더 경로 (예: .\\dataset_raw)")
-
-    # --out_dir : 출력 폴더 경로 (dataset_split)
-    ap.add_argument("--out_dir", required=True, help="출력 폴더 경로 (예: .\\dataset_split)")
-
-    # --val_ratio : 전체에서 검증(val)로 보낼 비율 (기본 0.2 = 20%)
-    ap.add_argument("--val_ratio", type=float, default=0.2, help="val 비율 (기본 0.2)")
-
-    # --seed : 섞는 결과를 항상 똑같이 만들기 위한 숫자
-    ap.add_argument("--seed", type=int, default=42, help="랜덤 시드 (기본 42)")
-
-    # 실제로 옵션들을 읽어서 args에 저장
+    ap.add_argument("--in_dir", required=True)
+    ap.add_argument("--out_dir", required=True)
+    ap.add_argument("--val_ratio", type=float, default=0.2)
+    ap.add_argument("--include_prefix", default=None)  # "WORD" or "SEN" or "WORD,SEN"
+    ap.add_argument("--max_n", type=int, default=None)  # 라벨 폴더 개수 제한 (정렬 후 앞에서부터)
+    ap.add_argument("--seed", type=int, default=42)
     args = ap.parse_args()
 
-    # -------------------------------
-    # 2) 경로 준비 (문자열 -> Path 객체)
-    # -------------------------------
-    in_dir = Path(args.in_dir)    # 예: .\dataset_raw
-    out_dir = Path(args.out_dir)  # 예: .\dataset_split
+    in_dir = Path(args.in_dir)
+    out_dir = Path(args.out_dir)
 
-    # 출력 폴더 아래에 train/val 폴더 만들기
-    train_root = out_dir / "train"
-    val_root = out_dir / "val"
+    if not in_dir.exists():
+        raise FileNotFoundError(f"in_dir not found: {in_dir}")
 
-    # 폴더가 없으면 만들고, 이미 있으면 그냥 넘어감
-    train_root.mkdir(parents=True, exist_ok=True)
-    val_root.mkdir(parents=True, exist_ok=True)
-
-    # -------------------------------
-    # 3) 랜덤 섞기 고정 (재현성)
-    # -------------------------------
     random.seed(args.seed)
 
-    # -------------------------------
-    # 4) 통계용 변수(몇 개 처리했는지)
-    # -------------------------------
-    labels = 0       # 라벨 폴더 개수 (WORD1501 같은 폴더)
-    train_total = 0  # train에 복사된 파일 총 수
-    val_total = 0    # val에 복사된 파일 총 수
+    # 라벨 폴더 선택
+    label_dirs = [p for p in sorted(in_dir.iterdir()) if p.is_dir() and ok(p.name, args.include_prefix)]
+    if args.max_n is not None:
+        label_dirs = label_dirs[: args.max_n]
 
-    # -------------------------------
-    # 5) 입력 폴더(dataset_raw) 안의 "라벨 폴더"들 반복
-    #    예: dataset_raw/WORD1501, dataset_raw/WORD1502 ...
-    # -------------------------------
-    label_dirs = sorted([p for p in in_dir.iterdir() if p.is_dir()])
+    if not label_dirs:
+        print("[WARN] labels=0 (include_prefix/폴더 구조 확인 필요)")
+        return
+
+    train_root = out_dir / "train"
+    val_root = out_dir / "val"
+    ensure_dir(train_root)
+    ensure_dir(val_root)
+
+    total_labels = 0
+    total_train_pairs = 0
+    total_val_pairs = 0
 
     for label_dir in label_dirs:
-        # label_dir.name 은 "WORD1501" 같은 폴더 이름
-        label_name = label_dir.name
-
-        # 현재 라벨 폴더 안의 npy 파일들을 전부 찾기
-        npy_files = sorted(label_dir.glob("*.npy"))
-
-        # 파일이 없으면 스킵
-        if not npy_files:
+        label = label_dir.name
+        pairs = find_pairs(label_dir)
+        if not pairs:
+            print(f"[SKIP] {label}: no hand/face pairs")
             continue
 
-        labels += 1  # 라벨 하나 처리 시작
+        random.shuffle(pairs)
 
-        # -------------------------------
-        # 6) 파일 목록을 섞어서 랜덤 분리
-        # -------------------------------
-        random.shuffle(npy_files)
+        n = len(pairs)
+        n_val = int(round(n * args.val_ratio))
 
-        # 전체 파일 개수
-        n = len(npy_files)
+        val_pairs = pairs[:n_val]
+        train_pairs = pairs[n_val:]
 
-        # val로 보낼 개수 = 전체의 val_ratio
-        # 단, 최소 1개는 val로 보내도록 max(1, ...) 사용
-        n_val = max(1, int(n * args.val_ratio))
+        # 라벨 폴더 만들기
+        tr_label_dir = train_root / label
+        va_label_dir = val_root / label
+        ensure_dir(tr_label_dir)
+        ensure_dir(va_label_dir)
 
-        # 앞쪽 n_val개는 val, 나머지는 train
-        val_files = npy_files[:n_val]
-        train_files = npy_files[n_val:]
+        # 하드링크로 파일 생성 (복사 X)
+        for h, f in train_pairs:
+            hardlink_or_copy(h, tr_label_dir / h.name)
+            hardlink_or_copy(f, tr_label_dir / f.name)
 
-        # -------------------------------
-        # 7) 출력 폴더 만들기
-        #    dataset_split/train/WORD1501
-        #    dataset_split/val/WORD1501
-        # -------------------------------
-        train_label_dir = train_root / label_name
-        val_label_dir = val_root / label_name
+        for h, f in val_pairs:
+            hardlink_or_copy(h, va_label_dir / h.name)
+            hardlink_or_copy(f, va_label_dir / f.name)
 
-        train_label_dir.mkdir(parents=True, exist_ok=True)
-        val_label_dir.mkdir(parents=True, exist_ok=True)
+        total_labels += 1
+        total_train_pairs += len(train_pairs)
+        total_val_pairs += len(val_pairs)
 
-        # -------------------------------
-        # 8) 실제 파일 복사
-        # -------------------------------
-        for f in train_files:
-            # f는 원본 파일 경로 (예: dataset_raw/WORD1501/a.npy)
-            # 목적지 경로 (예: dataset_split/train/WORD1501/a.npy)
-            dst = train_label_dir / f.name
-            shutil.copy2(f, dst)
+        print(f"[OK] {label}: pairs={n} train={len(train_pairs)} val={len(val_pairs)}")
 
-        for f in val_files:
-            # 목적지 경로 (예: dataset_split/val/WORD1501/a.npy)
-            dst = val_label_dir / f.name
-            shutil.copy2(f, dst)
+    print(f"\nDONE labels={total_labels} train_pairs={total_train_pairs} val_pairs={total_val_pairs}")
+    print(f"train_dir: {train_root}")
+    print(f"val_dir:   {val_root}")
 
-        # 통계 업데이트
-        train_total += len(train_files)
-        val_total += len(val_files)
 
-    # -------------------------------
-    # 9) 결과 출력
-    # -------------------------------
-    print(f"DONE labels={labels} train={train_total} val={val_total}")
-    print("train_dir:", train_root)
-    print("val_dir:  ", val_root)
-
-# 파이썬 파일을 직접 실행하면 main()을 실행
 if __name__ == "__main__":
     main()

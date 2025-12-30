@@ -1,34 +1,97 @@
-/.metadata/
+# =========================
+# OS / IDE / Editor
+# =========================
+.DS_Store
+Thumbs.db
+Desktop.ini
 
-# Python venv
+# Eclipse / Spring tooling
+/.metadata/
+.recommenders/
+.settings/
+.project
+.classpath
+
+# IntelliJ
+.idea/
+*.iml
+out/
+
+
+# =========================
+# Logs / Temp
+# =========================
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# =========================
+# Python
+# =========================
+# venv
 .venv/
 venv/
 ai-server/.venv/
 
-# Python cache
+# cache / build
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+build/
+dist/
 
-# Node
+# Jupyter
+.ipynb_checkpoints/
+
+# =========================
+# Node / Frontend
+# =========================
 node_modules/
+dist/
+frontend-react/dist/
+frontend-react/node_modules/
 
-# Logs / OS
-*.log
-.DS_Store
-
-# AI datasets (big)
+# =========================
+# AI datasets (BIG) - DO NOT COMMIT
+# =========================
 ai-server/dataset_raw/
-ai-server/dataset_split/
-ai-server/dataset_split_tiny/
-ai-server/dataset_split_small/
-ai-server/dataset_npy/
+ai-server/dataset_raw_all/
 ai-server/dataset_raw_small/
 ai-server/dataset_raw_tiny/
 
-# optional: other generated stuff
+ai-server/dataset_split/
+ai-server/dataset_split_tiny/
+ai-server/dataset_split_small/
+ai-server/dataset_split_word16_sen10/
+ai-server/dataset_npy/
+
+ai-server/dataset_top50_raw/
+ai-server/dataset_top50_split/
+
+ai-server/_mini_raw/
+ai-server/_mini_split/
+ai-server/_mini_npy/
+*.npy
+
+# =========================
+# AI generated / runs (optional)
+# =========================
 ai-server/__pycache__/
 ai-server/*.log
+ai-server/runs/
+ai-server/wandb/
 
-# Front build
-dist/
-frontend-react/dist/
+# =========================
+# Optional: ignore all model weights (OFF by default)
+# =========================
+# 만약 나중에 모델이 너무 커져서 git에 안 올리기로 하면 아래 주석 해제:
+# *.pth
+# *.pt
+# *.onnx
+# (모델은 current/만 예외로 올리고 싶으면:)
+# !ai-server/current/*.pth

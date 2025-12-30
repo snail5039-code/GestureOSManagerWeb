@@ -12,5 +12,5 @@ public class TranslationLog {
 	private String createdAt;
 	private String text;
 	private double confidence;
-	
+
 }
