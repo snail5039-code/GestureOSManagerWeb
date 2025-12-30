@@ -100,6 +100,7 @@ const testTranslateSample = async () => {
   const [wsStatus, setWsStatus] = useState("ws_init");
   const [mediaStatus, setMediaStatus] = useState("init");
   const [roomCount, setRoomCount] = useState(0);
+  const faceReadyRef = useRef(false);
 
   // 캡션 테스트용
   const [lastWsMsg, setLastWsMsg] = useState("");
@@ -110,12 +111,12 @@ const testTranslateSample = async () => {
    * ✅ React state는 ws.onmessage 안에서 "옛값(closure)"이 될 수 있음
    * 그래서 ws/pc 흐름 제어는 ref로 한다.
    */
-  const wsOpenRef = useRef(false);        // WS가 열렸는지
+  const wsOpenRef = useRef(false); // WS가 열렸는지
   const hasLocalMediaRef = useRef(false); // 카메라(송신 트랙) 있는지
 
   // ✅ ready/offer 중복 방지용
-  const readySentRef = useRef(false);       // 내가 ready 보냈는지
-  const readyReceivedRef = useRef(false);   // 서버에서 ready를 받았는지(참고용)
+  const readySentRef = useRef(false); // 내가 ready 보냈는지
+  const readyReceivedRef = useRef(false); // 서버에서 ready를 받았는지(참고용)
 
   /**
    * offerLockedRef = "나는 더 이상 offer 만들면 안 됨"
@@ -399,14 +400,17 @@ const startVisionOnRemote = async (videoEl) => {
         // local video에 내 카메라 영상 출력
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = stream;
-          await localVideoRef.current.play().catch(() => { });
+          await localVideoRef.current.play().catch(() => {});
         }
 
         // ✅ WebRTC PC 만들고(전화기) 로컬 트랙을 PC에 꽂아줌(내 영상 송신 준비)
         const pc = ensurePeerConnection();
         stream.getTracks().forEach((track) => pc.addTrack(track, stream));
 
-        console.log("[MEDIA] local tracks added:", stream.getTracks().map((t) => t.kind));
+        console.log(
+          "[MEDIA] local tracks added:",
+          stream.getTracks().map((t) => t.kind)
+        );
 
         // 혹시 이미 상대가 준비돼서 offer를 보내야 하는 상황이면 시도
         maybeStartOffer();
@@ -504,7 +508,7 @@ const startVisionOnRemote = async (videoEl) => {
 
       // caption: 채팅처럼 테스트하는 데이터
       if (msg.type === "caption") {
-        const t = (msg.text || "");
+        const t = msg.text || "";
         if (!t) return;
 
         const ts = msg.ts ?? Date.now();
@@ -583,7 +587,7 @@ const startVisionOnRemote = async (videoEl) => {
     return () => {
       try {
         ws.close();
-      } catch { }
+      } catch {}
       if (wsRef.current === ws) wsRef.current = null;
     };
   }, [roomId]);
@@ -599,7 +603,9 @@ const startVisionOnRemote = async (videoEl) => {
       return;
     }
     const now = Date.now();
-    setRecvCaption((prev) => (prev ? prev + "\n" : "") + `me|${now}|${sendText}`);
+    setRecvCaption(
+      (prev) => (prev ? prev + "\n" : "") + `me|${now}|${sendText}`
+    );
     ws.send(JSON.stringify({ type: "caption", text: sendText }));
     setSendText("");
     console.log("[WS] caption sent:", sendText);
@@ -614,8 +620,8 @@ const startVisionOnRemote = async (videoEl) => {
   const maybeStartOffer = async () => {
     const ws = wsRef.current;
     if (!ws || ws.readyState !== 1) return; // WS 아직이면 못 보냄
-    if (!wsOpenRef.current) return;         // open 체크
-    if (offerLockedRef.current) return;     // 이미 offer 보냈거나, offer 받은 answerer면 금지
+    if (!wsOpenRef.current) return; // open 체크
+    if (offerLockedRef.current) return; // 이미 offer 보냈거나, offer 받은 answerer면 금지
 
     // ✅ 카메라(송신 트랙) 있는 쪽만 offer 생성
     if (!hasLocalMediaRef.current) return;
@@ -711,10 +717,10 @@ const startVisionOnRemote = async (videoEl) => {
         <div className="flex items-end justify-between gap-4">
           <div>
             <div className="text-xs text-slate-500">영상통화 방</div>
-            <div className="text-sm hidden text-slate-600">media: {mediaStatus}</div>
-            <h1 className="mt-1 text-2xl font-bold text-slate-900">
-              {roomId}
-            </h1>
+            <div className="text-sm hidden text-slate-600">
+              media: {mediaStatus}
+            </div>
+            <h1 className="mt-1 text-2xl font-bold text-slate-900">{roomId}</h1>
             <div className="mt-1 text-sm text-slate-600">
               상태: <span className="font-semibold">{wsStatus}</span>
               <span className="mx-2 text-slate-300">|</span>
@@ -754,10 +760,47 @@ const startVisionOnRemote = async (videoEl) => {
           <section className="flex-1">
             <div className="rounded-2xl border border-slate-200 overflow-hidden">
               <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
-                <span className="text-sm font-semibold text-slate-900">상대방</span>
+                <span className="text-sm font-semibold text-slate-900">
+                  상대방
+                </span>
                 <span className="text-xs text-slate-500">Remote</span>
               </div>
-
+              <div className="p-4 min-h-[120px]">
+                
+                {/* 메타는 본문 아래에 */}
+                <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
+                  <span className="rounded-full border px-2 py-1">
+                    mode: <b>{liveMeta.mode}</b>
+                  </span>
+                  <span className="rounded-full border px-2 py-1">
+                    frames: <b>{liveMeta.frames}</b>
+                  </span>
+                  <span className="rounded-full border px-2 py-1">
+                    send: <b>{liveMeta.sendFrames}</b>
+                  </span>
+                  <span className="rounded-full border px-2 py-1">
+                    hand: <b>{handDetected ? "✅" : "❌"}</b>
+                  </span>
+                  <span className="rounded-full border px-2 py-1">
+                    face: <b>{faceDetected ? "✅" : "❌"}</b>
+                  </span>
+                  <span className="rounded-full border px-2 py-1">
+                    conf: <b>{liveMeta.conf.toFixed(2)}</b>
+                  </span>
+                  <span
+                    className={`rounded-full border px-2 py-1 ${
+                      liveMeta.inFlight ? "bg-yellow-50" : ""
+                    }`}
+                  >
+                    inFlight: <b>{liveMeta.inFlight ? "ON" : "OFF"}</b>
+                  </span>
+                  {liveMeta.err && (
+                    <span className="rounded-full border px-2 py-1 bg-red-50">
+                      err: <b>{liveMeta.err}</b>
+                    </span>
+                  )}
+                </div>
+              </div>
               <div className="aspect-video bg-black">
                 <video
                   ref={remoteVideoRef} // ✅ 네 remote ref로
@@ -769,15 +812,47 @@ const startVisionOnRemote = async (videoEl) => {
             </div>
             <section className="mt-6 rounded-2xl border border-slate-200 bg-white overflow-hidden">
               <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
-                <span className="text-sm font-semibold text-slate-900">실시간 수어 번역</span>
+                <span className="text-sm font-semibold text-slate-900">
+                  실시간 수어 번역
+                </span>
                 <span className="text-xs text-slate-500">Live</span>
               </div>
 
-              <div className="p-4 min-h-[120px]">
-                <p className="text-base text-slate-900 whitespace-pre-wrap">
+              <div className="mb-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-900">
                   {translatedText}
-                </p>
-              </div>
+                </div>
+                <div className="h-[180px] overflow-auto rounded-lg border bg-white p-3">
+                  {translationLog.length === 0 ? (
+                    <div className="text-sm text-slate-400">
+                      확정된 단어가 아직 없어요.
+                    </div>
+                  ) : (
+                    <ul className="space-y-2">
+                      {translationLog.map((m, i) => (
+                        <li
+                          key={m.ts + "-" + i}
+                          className="rounded-xl bg-slate-100 px-3 py-2"
+                        >
+                          <div className="flex items-end justify-between gap-3">
+                            <span className="text-sm text-slate-900">
+                              {m.text}
+                            </span>
+                            <span className="text-xs text-slate-500">
+                              {new Date(m.ts).toLocaleTimeString("ko-KR", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                              {typeof m.conf === "number"
+                                ? ` (${m.conf.toFixed(2)})`
+                                : ""}
+                            </span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div ref={translationEndRef} />
+                </div>
             </section>
           </section>
 
@@ -786,7 +861,9 @@ const startVisionOnRemote = async (videoEl) => {
             {/* 내 화면 */}
             <section className="rounded-2xl border border-slate-200 overflow-hidden">
               <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
-                <span className="text-sm font-semibold text-slate-900">내 화면</span>
+                <span className="text-sm font-semibold text-slate-900">
+                  내 화면
+                </span>
                 <span className="text-xs text-slate-500">Local</span>
               </div>
 
@@ -804,7 +881,9 @@ const startVisionOnRemote = async (videoEl) => {
             {/* 채팅창 */}
             <section className="rounded-2xl border border-slate-200 overflow-hidden flex flex-col h-[420px]">
               <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
-                <span className="text-sm font-semibold text-slate-900">채팅</span>
+                <span className="text-sm font-semibold text-slate-900">
+                  채팅
+                </span>
                 <span className="text-xs text-slate-500">Caption</span>
               </div>
 
@@ -820,7 +899,10 @@ const startVisionOnRemote = async (videoEl) => {
                       const text = rest.join("|");
                       const ts = Number(tsStr);
                       const time = Number.isFinite(ts)
-                        ? new Date(ts).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })
+                        ? new Date(ts).toLocaleTimeString("ko-KR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
                         : "";
 
                       const isMe = who === "me";
@@ -838,7 +920,13 @@ const startVisionOnRemote = async (videoEl) => {
                           <div className="flex items-end justify-between gap-3">
                             <span>{text}</span>
                             {time && (
-                              <span className={isMe ? "text-xs text-white/70" : "text-xs text-slate-500"}>
+                              <span
+                                className={
+                                  isMe
+                                    ? "text-xs text-white/70"
+                                    : "text-xs text-slate-500"
+                                }
+                              >
                                 {time}
                               </span>
                             )}

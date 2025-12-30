@@ -231,9 +231,6 @@ def make_tcn_input_from_frames(frames: List[Dict[str, Any]]):
     # concat -> (30,1560)
     x = np.concatenate([hand_flat, face_flat], axis=1)
 
-    # 학습 때 /1000 스케일을 썼으면 여기서도 동일하게 맞춰줌(일관성!)
-    x = x / 1000.0
-
     return x, frames_hand, frames_face
 
 # ------------------------------------------------------------
@@ -243,6 +240,7 @@ class PredictRequest(BaseModel):
     # session_id가 없으면 기본값 default로 (프론트가 안 보내도 됨)
     session_id: Optional[str] = "default"
     frames: List[Any]
+    forceFinal: Optional[bool] = False
 
 class Candidate(BaseModel):
     label: str
@@ -255,6 +253,7 @@ class PredictResponse(BaseModel):
     text: Optional[str]       # label_to_text 매핑 결과(없으면 None)
     confidence: float         # top1 확률
     streak: int               # 현재 연속 카운트(디버그용)
+    framesReceived: int  
     candidates: List[Candidate]  # 후보 topK (프론트에서 3개 보여주기 가능)
 
 # ------------------------------------------------------------
@@ -266,34 +265,31 @@ def predict(req: PredictRequest):
 
     sid = req.session_id or "default"
     frames = req.frames or []
+    force_final = bool(req.forceFinal)
 
-    # 1) frames -> (30,1560)
     made = make_tcn_input_from_frames(frames)
     if made[0] is None:
-        # 손이 하나도 없으면 pending 처리
         return PredictResponse(
             mode="pending",
             label=None,
             text=None,
             confidence=0.0,
             streak=0,
+            framesReceived=0,
             candidates=[]
         )
 
     x, frames_hand, frames_face = made
-    xt = torch.from_numpy(x).unsqueeze(0).to(device)  # (1,30,1560)
+    xt = torch.from_numpy(x).unsqueeze(0).to(device)
 
-    # 2) 모델 추론
     with torch.no_grad():
-        logits = model(xt)[0]               # (C,)
+        logits = model(xt)[0]
         probs = torch.softmax(logits, dim=0)
 
-    # 3) top1 + topK 후보 만들기
     confidence, pred_idx = torch.max(probs, dim=0)
     confidence = float(confidence.item())
     pred_label = idx_to_label[int(pred_idx.item())]
 
-    # 후보는 3개만 내려주자(원하면 5로 바꿔도 됨)
     k = min(3, probs.numel())
     topk = torch.topk(probs, k=k)
     candidates = []
@@ -304,6 +300,18 @@ def predict(req: PredictRequest):
             text=label_to_text.get(lb),
             prob=float(p)
         ))
+
+    # ✅✅✅ 원샷(정지) 강제 확정: 실시간 streak/threshold 로직 건드리지 않음
+    if force_final:
+        return PredictResponse(
+            mode="final",
+            label=pred_label,
+            text=label_to_text.get(pred_label),
+            confidence=confidence,
+            streak=1,
+            framesReceived=frames_hand,
+            candidates=candidates
+        )
 
     # 4) session별 streak 업데이트
     now = time.time()
@@ -323,6 +331,7 @@ def predict(req: PredictRequest):
             text=None,
             confidence=confidence,
             streak=0,
+            framesReceived=frames_hand, 
             candidates=candidates
         )
 
@@ -344,6 +353,7 @@ def predict(req: PredictRequest):
             text=label_to_text.get(pred_label),
             confidence=confidence,
             streak=STREAK_N,
+            framesReceived=frames_hand,
             candidates=candidates
         )
 
@@ -354,5 +364,6 @@ def predict(req: PredictRequest):
         text=None,
         confidence=confidence,
         streak=st["streak"],
+        framesReceived=frames_hand, 
         candidates=candidates
     )
