@@ -418,7 +418,7 @@ export default function CallRoom() {
         // local video에 내 카메라 영상 출력
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = stream;
-          await localVideoRef.current.play().catch(() => { });
+          await localVideoRef.current.play().catch(() => {});
         }
 
         // ✅ WebRTC PC 만들고(전화기) 로컬 트랙을 PC에 꽂아줌(내 영상 송신 준비)
@@ -605,7 +605,7 @@ export default function CallRoom() {
     return () => {
       try {
         ws.close();
-      } catch { }
+      } catch {}
       if (wsRef.current === ws) wsRef.current = null;
     };
   }, [roomId]);
