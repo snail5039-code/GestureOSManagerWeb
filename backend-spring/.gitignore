@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Project secrets (DO NOT COMMIT) ###
+src/main/resources/application-api.yml

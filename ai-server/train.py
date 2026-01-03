@@ -259,6 +259,7 @@ def main():
     # 재현성 / DataLoader 옵션
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--num_workers", type=int, default=0)  # 윈도우에서 꼬이면 0이 안전
+    ap.add_argument("--pretrained", type=str, default="", help="pretrained .pth (warm start, classifier auto-skip)")
 
     args = ap.parse_args()
 
@@ -314,6 +315,32 @@ def main():
     feat_dim = int(x0.shape[1])
     model = TCNClassifier(feat_dim, num_classes=len(label_to_idx)).to(device)
 
+    # --- model 생성 직후 ---
+    if args.pretrained:
+        print(f"[pretrained] loading: {args.pretrained}")
+        ckpt = torch.load(args.pretrained, map_location="cpu")
+
+        # 너는 torch.save(model.state_dict())로 저장하니까 ckpt 자체가 state_dict일 확률이 큼
+        pretrained_sd = ckpt
+
+        model_sd = model.state_dict()
+        loaded, skipped = 0, 0
+
+        # shape 맞는 키만 로드 (분류층은 클래스 수 달라서 shape 안 맞아 자동 스킵됨)
+        filtered = {}
+        for k, v in pretrained_sd.items():
+            if k in model_sd and hasattr(v, "shape") and v.shape == model_sd[k].shape:
+                filtered[k] = v
+                loaded += 1
+            else:
+                skipped += 1
+
+        model_sd.update(filtered)
+        model.load_state_dict(model_sd)
+
+        print(f"[pretrained] loaded keys: {loaded}, skipped(keys/shape mismatch): {skipped}")
+
+
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
 
@@ -357,7 +384,10 @@ def main():
     # (6) 학습 루프 + ✅ best 모델 저장
     # ------------------------------------------------------------
     best_acc1 = -1.0
-    best_path = Path("best_model.pth")
+    best_acc5 = -1.0
+
+    best_path_top1 = Path("best_model_top1.pth")
+    best_path_top5 = Path("best_model_top5.pth")
 
     for epoch in range(1, args.epochs + 1):
         model.train()
@@ -394,11 +424,16 @@ def main():
             f"val_acc1={val_acc1:.4f} | val_acc5={val_acc5:.4f}"
         )
 
-        # ✅ 핵심: best 모델 저장 (중간에 최고점 찍은 모델을 살려둠)
+        # ✅ 핵심: best 모델 저장 (top1 / top5 각각 따로 저장)
         if args.save_best and val_acc1 > best_acc1:
             best_acc1 = val_acc1
-            torch.save(model.state_dict(), best_path)
-            print(f"✅ saved best: {best_path} (val_acc1={best_acc1:.4f})")
+            torch.save(model.state_dict(), best_path_top1)
+            print(f"✅ saved best top1: {best_path_top1} (val_acc1={best_acc1:.4f})")
+
+        if args.save_best and val_acc5 > best_acc5:
+            best_acc5 = val_acc5
+            torch.save(model.state_dict(), best_path_top5)
+            print(f"✅ saved best top5: {best_path_top5} (val_acc5={best_acc5:.4f})")
 
     # ------------------------------------------------------------
     # (7) 저장: 마지막 모델 + 라벨 맵
@@ -414,7 +449,8 @@ def main():
     print("saved:", out_model)
     print("saved:", out_map)
     if args.save_best:
-        print("saved:", best_path)
+        print("saved:", best_path_top1)
+        print("saved:", best_path_top5)
 
 
 if __name__ == "__main__":

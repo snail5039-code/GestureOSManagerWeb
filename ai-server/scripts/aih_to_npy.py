@@ -35,6 +35,20 @@ import json
 from pathlib import Path
 import numpy as np
 
+def safe_float(v, default=0.0):
+    """숫자/문자 섞여도 안전하게 float로 바꿈. 실패하면 default."""
+    try:
+        if v is None:
+            return default
+        if isinstance(v, str):
+            vv = v.strip().lower()
+            if vv in ("", "nan", "none", "null", "inf", "-inf"):
+                return default
+        return float(v)
+    except Exception:
+        return default
+
+
 # -----------------------------
 # 고정 파라미터 (학습과 동일하게)
 # -----------------------------
@@ -47,12 +61,18 @@ FACE_POINTS = 478
 # JSON 파일 로드
 # -----------------------------
 def load_json(p: Path):
-    """JSON 읽기. 깨진 파일이면 None 반환."""
     try:
-        return json.loads(p.read_text(encoding="utf-8"))
+        text = p.read_text(encoding="utf-8", errors="replace")  # ignore 대신 replace 추천
+        return json.loads(
+            text,
+            parse_float=safe_float,   # 숫자 파싱을 safe하게
+            parse_int=safe_float      # int도 같이
+        )
     except Exception as e:
         print(f"[BAD JSON] {p} -> {type(e).__name__}: {e}")
         return None
+
+
 
 
 # -----------------------------
@@ -65,10 +85,9 @@ def hand_keypoints_to_21x3(hand_kps):
     if not isinstance(hand_kps, list) or len(hand_kps) < HAND_POINTS * 3:
         return out
 
-    arr = np.array(hand_kps[:HAND_POINTS * 3], dtype=np.float32).reshape(HAND_POINTS, 3)
-    out[:, 0] = arr[:, 0]  # x
-    out[:, 1] = arr[:, 1]  # y
-    out[:, 2] = arr[:, 2]  # (있으면) z / 없으면 보통 0 비슷
+    vals = [safe_float(v) for v in hand_kps[:HAND_POINTS * 3]]
+    arr = np.array(vals, dtype=np.float32).reshape(HAND_POINTS, 3)
+    out[:, :] = arr
     return out
 
 
@@ -87,9 +106,9 @@ def mp_points_to_nx3(points, n_points: int):
     m = min(len(points), n_points)
     for i in range(m):
         p = points[i]
-        out[i, 0] = float(p.get("x", 0.0))
-        out[i, 1] = float(p.get("y", 0.0))
-        out[i, 2] = float(p.get("z", 0.0))
+        out[i, 0] = safe_float(p.get("x", 0.0))
+        out[i, 1] = safe_float(p.get("y", 0.0))
+        out[i, 2] = safe_float(p.get("z", 0.0))
     return out
 
 
@@ -99,27 +118,31 @@ def mp_points_to_nx3(points, n_points: int):
 def face_keypoints_to_478x3(face_kps):
     out = np.zeros((FACE_POINTS, 3), dtype=np.float32)
 
-    # 1) mediapipe dict 배열 케이스
+    # 1) mediapipe dict 배열 케이스는 그대로
     if isinstance(face_kps, list) and len(face_kps) > 0 and isinstance(face_kps[0], dict):
         m = min(len(face_kps), FACE_POINTS)
         for i in range(m):
             p = face_kps[i]
-            out[i, 0] = float(p.get("x", 0.0))
-            out[i, 1] = float(p.get("y", 0.0))
-            out[i, 2] = float(p.get("z", 0.0))
+            out[i, 0] = safe_float(p.get("x", 0.0))
+            out[i, 1] = safe_float(p.get("y", 0.0))
+            out[i, 2] = safe_float(p.get("z", 0.0))
         return out
 
-    # 2) 숫자 배열 케이스(=478*3)
-    if (
-        isinstance(face_kps, list)
-        and len(face_kps) >= FACE_POINTS * 3
-        and all(isinstance(v, (int, float)) for v in face_kps[:6])
-    ):
-        arr = np.array(face_kps[:FACE_POINTS * 3], dtype=np.float32).reshape(FACE_POINTS, 3)
-        out[:, :] = arr
+    # 2) 숫자 배열(=478*3) 케이스: 여기서 np.array에 바로 넣지 말고 safe_float로 정리
+    if isinstance(face_kps, list) and len(face_kps) >= FACE_POINTS * 3:
+        try:
+            vals = [safe_float(v) for v in face_kps[:FACE_POINTS * 3]]
+            arr = np.array(vals, dtype=np.float32).reshape(FACE_POINTS, 3)
+            out[:, :] = arr
+        except Exception as e:
+            # 깨진 값 섞인 프레임은 그냥 0얼굴로 처리
+            # (여기서 print 해두면 어떤 파일에서 자주 깨지는지 추적 가능)
+            # print("[BAD FACE KP]", type(e).__name__, e)
+            pass
         return out
 
     return out
+
 
 
 # -----------------------------
@@ -233,9 +256,12 @@ def folder_to_sample(folder: Path):
             iterable = [j]  # 단일 프레임 dict로 취급
 
         for fr in iterable:
-            hand = one_frame_json_to_hand_tensor(fr)
-            face = one_frame_json_to_face_tensor(fr)
-
+            try:
+                hand = one_frame_json_to_hand_tensor(fr)
+                face = one_frame_json_to_face_tensor(fr)
+            except Exception as e:
+                print(f"[BAD FRAME] {fp} -> {type(e).__name__}: {e}")
+                continue
             # 둘 다 완전 0이면 학습 의미 없으니 스킵
             if hand.sum() == 0 and face.sum() == 0:
                 continue
@@ -290,25 +316,37 @@ def main():
 
     done = 0
     for f in folders:
-        x_hand, x_face, received = folder_to_sample(f)
-        if x_hand is None:
+        try:
+            x_hand, x_face, received = folder_to_sample(f)
+        except Exception as e:
+            print(f"[BAD SAMPLE] {f} -> {type(e).__name__}: {e}")
             continue
 
+        if x_hand is None or x_face is None:
+            print(f"[SKIP] {f.name} (no valid frames)")
+            continue
         label = extract_word_id(f.name)
         label_dir = out_dir / label
         label_dir.mkdir(parents=True, exist_ok=True)
 
-        # 저장 파일명 규칙:
-        #  - hand: "{샘플명}.hand.npy"
-        #  - face: "{샘플명}_face.npy"
-        np.save(label_dir / f"{f.name}.hand.npy", x_hand)
-        np.save(label_dir / f"{f.name}_face.npy", x_face)
+        # ✅ 여기서 먼저 출력 파일 경로를 "정의"해야 함
+        hand_out = label_dir / f"{f.name}.hand.npy"
+        face_out = label_dir / f"{f.name}_face.npy"
+
+        # ✅ 이미 변환된 건 스킵(재시작/재개용)
+        if hand_out.exists() and face_out.exists():
+            continue
+
+        # ✅ 저장은 한 번만
+        np.save(hand_out, x_hand)
+        np.save(face_out, x_face)
 
         print(f"[OK] {f.name} hand={x_hand.shape} face={x_face.shape} framesReceived={received}")
 
         done += 1
         if done >= args.max:
             break
+
 
     print("DONE:", done)
 

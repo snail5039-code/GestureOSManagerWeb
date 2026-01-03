@@ -17,6 +17,8 @@ Desktop.ini
 *.iml
 out/
 
+# VSCode
+.vscode/
 
 # =========================
 # Logs / Temp
@@ -59,6 +61,7 @@ frontend-react/node_modules/
 # =========================
 # AI datasets (BIG) - DO NOT COMMIT
 # =========================
+# raw / split / npy / derived datasets
 ai-server/dataset_raw/
 ai-server/dataset_raw_all/
 ai-server/dataset_raw_small/
@@ -68,30 +71,41 @@ ai-server/dataset_split/
 ai-server/dataset_split_tiny/
 ai-server/dataset_split_small/
 ai-server/dataset_split_word16_sen10/
+
 ai-server/dataset_npy/
+ai-server/data_npy/
+ai-server/data_npy_word/
+ai-server/data_npy_word_top*/
+ai-server/dataset_top*_split/
+ai-server/dataset_split_word/
 
-ai-server/dataset_top50_raw/
-ai-server/dataset_top50_split/
-
-ai-server/_mini_raw/
-ai-server/_mini_split/
-ai-server/_mini_npy/
+# ignore all npy anywhere
 *.npy
 
 # =========================
-# AI generated / runs (optional)
+# AI runs / artifacts (optional)
 # =========================
-ai-server/__pycache__/
-ai-server/*.log
 ai-server/runs/
 ai-server/wandb/
+ai-server/logs/
+ai-server/artifacts/
 
 # =========================
-# Optional: ignore all model weights (OFF by default)
+# Model weights
 # =========================
-# 만약 나중에 모델이 너무 커져서 git에 안 올리기로 하면 아래 주석 해제:
-# *.pth
-# *.pt
-# *.onnx
-# (모델은 current/만 예외로 올리고 싶으면:)
-# !ai-server/current/*.pth
+# ignore all weights by default
+*.pth
+*.pt
+*.onnx
+
+# ✅ BUT: allow only the serving model in current/
+!ai-server/current/*.pth
+!ai-server/current/*.pt
+!ai-server/current/label_map.json
+
+
+ai-server/archive/
+ai-server/samples/
+backend-spring/.metadata/
+
+node_modules/

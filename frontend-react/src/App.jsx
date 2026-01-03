@@ -12,6 +12,9 @@ import DictionaryDetail from "./pages/dictionary/DictionaryDetail.jsx";
 
 
 export default function App() {
+  const { loading } = useAuth();
+  if (loading) return null;
+
   return (
     <Routes>
       <Route path="/" element={<Home />} />

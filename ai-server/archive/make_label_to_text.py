@@ -4,14 +4,25 @@ from pathlib import Path        # 윈도우 경로/파일 탐색을 편하게 �
 
 # ✅ 1) morpheme JSON들이 들어있는 "루트 폴더" 경로
 # 여기 안에 17, 18 폴더가 있고, 그 안에 *_morpheme.json 파일들이 있음
-ROOT = Path(r"D:\puh\download (5)\004.수어영상\2.Validation\라벨링데이터\REAL\WORD\01_real_word_morpheme\morpheme")
+ROOT = Path(r"D:\aihub_word\morpheme\01_real_word_morpheme\morpheme")
 
 out = {}                        # ✅ 결과를 저장할 딕셔너리: label -> 한국어
 # 예: out["WORD00001"] = "고민"
+label_map = json.loads((Path("current") / "label_map.json").read_text(encoding="utf-8"))
+
+# idx->label이면 values가 WORD..., label->idx이면 keys가 WORD...
+if all(str(k).isdigit() for k in label_map.keys()):
+    valid_labels = set(label_map.values())
+else:
+    valid_labels = set(label_map.keys())
+
+# 자리수 통일(WORD0001/WORD00001 섞일 수 있으니)
+valid_labels = set("WORD" + v[4:].zfill(5) for v in valid_labels)
+
 
 # ✅ 2) 파일명에서 "WORD숫자" 형태를 뽑기 위한 정규식
 # 예: "NIA_SL_WORD00001_REAL17_D_morpheme.json" 에서 "WORD00001"만 뽑음
-pat = re.compile(r"(WORD\d+)")
+pat = re.compile(r"(WORD\d{4,5})")
 
 # ✅ 3) ROOT 아래(17,18 포함) 모든 *_morpheme.json 파일을 다 찾기
 # rglob는 하위 폴더까지 전부 찾아줌
@@ -25,6 +36,10 @@ for fp in json_files:            # fp는 파일 경로(Path 객체)
     if not m:                    # WORD가 없으면 스킵
         continue
     label = m.group(1)           # group(1) = 괄호로 묶은 (WORD\d+) 부분
+    label = "WORD" + label[4:].zfill(5)
+
+    if label not in valid_labels:
+        continue
 
     # (2) JSON 파일 읽기
     # 대부분 utf-8인데, 혹시 오류 나면 cp949로 한 번 더 시도

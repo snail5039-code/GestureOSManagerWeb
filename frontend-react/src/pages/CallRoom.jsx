@@ -40,6 +40,20 @@ export default function CallRoom() {
   const stableWordRef = useRef("");
   const stableCountRef = useRef(0);
   const lastWordRef = useRef("");
+  const [liveMeta, setLiveMeta] = useState({
+    mode: "idle",
+    frames: 0,
+    sendFrames: 0,
+    conf: 0,
+    inFlight: false,
+    err: "",
+  });
+
+  // ✅ 번역 확정 로그(채팅처럼 쌓는 용)
+  const [translationLog, setTranslationLog] = useState([]);
+
+  // ✅ 로그 자동 스크롤용
+  const translationEndRef = useRef(null);
 
   // 선택 (디버그용)
   const [handDetected, setHandDetected] = useState(false);
@@ -700,9 +714,8 @@ export default function CallRoom() {
                     conf: <b>{Number(liveMeta.conf ?? 0).toFixed(2)}</b>
                   </span>
                   <span
-                    className={`rounded-full border px-2 py-1 ${
-                      liveMeta.inFlight ? "bg-yellow-50" : ""
-                    }`}
+                    className={`rounded-full border px-2 py-1 ${liveMeta.inFlight ? "bg-yellow-50" : ""
+                      }`}
                   >
                     inFlight: <b>{liveMeta.inFlight ? "ON" : "OFF"}</b>
                   </span>
@@ -816,9 +829,9 @@ export default function CallRoom() {
                       const ts = Number(tsStr);
                       const time = Number.isFinite(ts)
                         ? new Date(ts).toLocaleTimeString("ko-KR", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                         : "";
 
                       const isMe = who === "me";

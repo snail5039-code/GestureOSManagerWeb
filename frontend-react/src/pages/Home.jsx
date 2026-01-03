@@ -73,6 +73,32 @@ export default function Home() {
               </Link>
             </li>
           </ul>
+          <ul>
+          <li>
+              <Link
+                to="/board"
+                className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-4 ring-1 ring-slate-200 hover:bg-slate-100"
+              >
+                <span className="font-semibold text-slate-900">
+                  테스트
+                </span>
+                <span className="text-slate-400">→</span>
+              </Link>
+            </li>
+          </ul>
+          <ul>
+           <li>
+              <Link
+                to="/Login"
+                className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-4 ring-1 ring-slate-200 hover:bg-slate-100"
+              >
+                <span className="font-semibold text-slate-900">
+                  로그인
+                </span>
+                <span className="text-slate-400">→</span>
+              </Link>
+            </li>
+          </ul>
 
           <div className="mt-4 text-xs text-slate-500">
             * 나중에 로그인/설정 같은 메뉴도 여기 추가하면 됨

@@ -22,12 +22,14 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
+from collections import deque, defaultdict
 
 from pathlib import Path
 import time
 import json
 import numpy as np
 import torch
+import re
 
 from train import TCNClassifier  # ✅ 학습 때 쓴 모델 클래스 그대로 사용
 
@@ -56,6 +58,16 @@ BASE_TH = 0.50     # 이 값 미만이면 확신 낮음 -> streak 리셋/보류
 FINAL_TH = 0.65    # 이 값 이상 + streak 조건이면 final 확정
 STREAK_N = 2       # 같은 라벨이 몇 번 연속 나오면 확정할지
 
+# ------------------------------------------------------------
+# ✅✅✅ 실시간 후처리: Sliding Window TopK Voting
+# ------------------------------------------------------------
+TOPK_K = 5                         # top5까지 받아서 투표 (Top5가 강점이라 이득)
+WIN_SIZE = 12                      # 최근 12개 예측으로 투표(0.4~0.8초 느낌)
+VOTE_MIN_RATIO = 0.58              # 승자 점유율(너무 높이면 coverage 낮아짐)
+MIN_AVG_PROB = 0.20                # 승자 평균 확률(TopK 기반이라 낮게 시작)
+COOLDOWN_SEC = 0.7                 # 한번 확정 후 잠깐 중복 방지
+TOPK_WEIGHTS = [5, 4, 3, 2, 1]      # rank 가중치(1등=5점..)
+
 SESSION_TTL_SEC = 10  # 오래된 세션 상태 자동 삭제
 
 # ------------------------------------------------------------
@@ -71,6 +83,14 @@ def load_label_to_text() -> Dict[str, str]:
         return {}
 
 label_to_text = load_label_to_text()
+
+def norm_word(label: Optional[str]) -> Optional[str]:
+    if not label:
+        return label
+    m = re.match(r"^WORD(\d+)$", label)
+    if not m:
+        return label
+    return f"WORD{int(m.group(1)):05d}"
 
 # ------------------------------------------------------------
 # 4) label_map 로드 (정수 인덱스 -> 라벨 문자열)
@@ -95,21 +115,45 @@ label_to_idx = {v: k for k, v in idx_to_label.items()}
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("device:", device)
 
-MODEL_PATH = MODEL_DIR / "best_model_face.pth"  # ✅ 손+얼굴 학습 best 모델
+MODEL_PATH = MODEL_DIR / "best_model.pth" # ✅ 손+얼굴 학습 best 모델
 print("MODEL_PATH =", MODEL_PATH)
 print("exists? =", MODEL_PATH.exists())
 if not MODEL_PATH.exists():
     raise FileNotFoundError(f"model not found: {MODEL_PATH}")
 
 model = TCNClassifier(feat_dim=FEAT_DIM, num_classes=len(label_to_idx)).to(device)
-state = torch.load(MODEL_PATH, map_location=device)
-model.load_state_dict(state)
+
+state = torch.load(MODEL_PATH, map_location="cpu", weights_only=True)
+state_dict = state.get("state_dict", state)
+
+model_sd = model.state_dict()
+
+# (A) 흔한 키 이름 리맵: head.weight -> head.1.weight
+if "head.weight" in state_dict and "head.1.weight" in model_sd:
+    state_dict["head.1.weight"] = state_dict.pop("head.weight")
+if "head.bias" in state_dict and "head.1.bias" in model_sd:
+    state_dict["head.1.bias"] = state_dict.pop("head.bias")
+
+# (B) shape 맞는 것만 로드 (나머지는 스킵)
+filtered = {}
+for k, v in state_dict.items():
+    if k in model_sd and hasattr(v, "shape") and v.shape == model_sd[k].shape:
+        filtered[k] = v
+
+model_sd.update(filtered)
+missing, unexpected = model.load_state_dict(model_sd, strict=False)
+
+print("missing:", missing)
+print("unexpected:", unexpected)
+
 model.eval()
 
-# ------------------------------------------------------------
-# 6) session 상태 저장 (연속 확정용)
-#   session_id -> {"last_label": str|None, "streak": int, "last_time": float}
-# ------------------------------------------------------------
+# 6) session 상태 저장 (윈도우 투표용)
+# session_id -> {
+#   "buf": deque(maxlen=WIN_SIZE),   # 최근 예측 topK 저장
+#   "last_time": float,              # 마지막 요청 시간
+#   "cooldown_until": float          # 중복 확정 방지
+# }
 SESSION_STATE: Dict[str, Dict[str, Any]] = {}
 
 def cleanup_sessions():
@@ -290,14 +334,14 @@ def predict(req: PredictRequest):
     confidence = float(confidence.item())
     pred_label = idx_to_label[int(pred_idx.item())]
 
-    k = min(3, probs.numel())
+    k = min(TOPK_K, probs.numel())
     topk = torch.topk(probs, k=k)
     candidates = []
     for p, idx in zip(topk.values.tolist(), topk.indices.tolist()):
         lb = idx_to_label[int(idx)]
         candidates.append(Candidate(
             label=lb,
-            text=label_to_text.get(lb),
+            text=label_to_text.get(norm_word(lb)) or label_to_text.get(lb),
             prob=float(p)
         ))
 
@@ -306,53 +350,106 @@ def predict(req: PredictRequest):
         return PredictResponse(
             mode="final",
             label=pred_label,
-            text=label_to_text.get(pred_label),
+            text=label_to_text.get(norm_word(pred_label)) or label_to_text.get(pred_label),
             confidence=confidence,
             streak=1,
             framesReceived=frames_hand,
             candidates=candidates
         )
 
-    # 4) session별 streak 업데이트
+    # ------------------------------------------------------------
+    # ✅✅✅ Window Voting (session별 버퍼)
+    # ------------------------------------------------------------
     now = time.time()
     st = SESSION_STATE.get(sid)
     if st is None:
-        st = {"last_label": None, "streak": 0, "last_time": now}
+        st = {
+            "buf": deque(maxlen=WIN_SIZE),
+            "last_time": now,
+            "cooldown_until": 0.0
+        }
         SESSION_STATE[sid] = st
     st["last_time"] = now
 
-    # (a) 확신 낮으면 pending + streak 리셋
+    # (a) 확신이 너무 낮으면 이번 프레임은 버퍼에 넣지 않고 pending
+    #     (노이즈 프레임이 윈도우를 오염시키는 걸 방지)
     if confidence < BASE_TH:
-        st["last_label"] = None
-        st["streak"] = 0
         return PredictResponse(
             mode="pending",
             label=None,
             text=None,
             confidence=confidence,
-            streak=0,
-            framesReceived=frames_hand, 
+            streak=0,  # debug용 의미 없음
+            framesReceived=frames_hand,
             candidates=candidates
         )
 
-    # (b) 확신 어느 정도면 streak 갱신
-    if st["last_label"] == pred_label:
-        st["streak"] += 1
-    else:
-        st["last_label"] = pred_label
-        st["streak"] = 1
+    # (b) topK 후보를 버퍼에 저장
+    #     buf 원소 예: {"topk":[("WORD0001",0.3),("WORD0007",0.2)...], "t": now}
+    st["buf"].append({
+        "topk": [(c.label, float(c.prob)) for c in candidates],
+        "t": now
+    })
 
-    # (c) 최종 확정 조건
-    if st["streak"] >= STREAK_N and confidence >= FINAL_TH:
-        # 확정 후 다음 단어를 위해 초기화
-        st["last_label"] = None
-        st["streak"] = 0
+    # (c) cooldown이면 확정 금지
+    if now < st["cooldown_until"]:
+        return PredictResponse(
+            mode="pending",
+            label=None,
+            text=None,
+            confidence=confidence,
+            streak=len(st["buf"]),
+            framesReceived=frames_hand,
+            candidates=candidates
+        )
+
+    # (d) 윈도우 투표 점수 계산 (rank 가중치 * 확률)
+    scores = defaultdict(float)
+    for item in st["buf"]:
+        topk_list = item["topk"]
+        for r, (lb, pr) in enumerate(topk_list):
+            w = TOPK_WEIGHTS[r] if r < len(TOPK_WEIGHTS) else 1.0
+            scores[lb] += w * pr
+
+    if not scores:
+        return PredictResponse(
+            mode="pending",
+            label=None,
+            text=None,
+            confidence=confidence,
+            streak=len(st["buf"]),
+            framesReceived=frames_hand,
+            candidates=candidates
+        )
+
+    winner = max(scores.items(), key=lambda x: x[1])[0]
+    total = float(sum(scores.values()))
+    vote_ratio = float(scores[winner] / total) if total > 0 else 0.0
+
+    # winner 평균 확률(윈도우 내에서 winner가 topK에 등장한 prob 평균)
+    probs_w = []
+    for item in st["buf"]:
+        pr = 0.0
+        for lb, p in item["topk"]:
+            if lb == winner:
+                pr = float(p)
+                break
+        probs_w.append(pr)
+    avg_prob = float(sum(probs_w) / max(1, len(probs_w)))
+
+    # (e) 확정 조건
+    #   - vote_ratio 충분히 크고
+    #   - winner가 윈도우에서 평균적으로 어느 정도 확률이 나오면
+    if vote_ratio >= VOTE_MIN_RATIO and avg_prob >= MIN_AVG_PROB:
+        st["buf"].clear()
+        st["cooldown_until"] = now + COOLDOWN_SEC
+
         return PredictResponse(
             mode="final",
-            label=pred_label,
-            text=label_to_text.get(pred_label),
-            confidence=confidence,
-            streak=STREAK_N,
+            label=winner,
+            text=label_to_text.get(norm_word(winner)) or label_to_text.get(winner),
+            confidence=avg_prob,         # final confidence는 avg_prob로 주는 게 더 안정적
+            streak=WIN_SIZE,             # debug용
             framesReceived=frames_hand,
             candidates=candidates
         )
@@ -363,7 +460,7 @@ def predict(req: PredictRequest):
         label=None,
         text=None,
         confidence=confidence,
-        streak=st["streak"],
-        framesReceived=frames_hand, 
+        streak=len(st["buf"]),
+        framesReceived=frames_hand,
         candidates=candidates
     )
