@@ -15,7 +15,6 @@ const CDN = "https://cdn.jsdelivr.net/npm"; // mediapipe asset CDN
 // =========================
 const ZERO_PT = { x: 0, y: 0, z: 0 };
 const ZERO_HAND21 = Array.from({ length: 21 }, () => ({ ...ZERO_PT }));
-const ZERO_HAND = ZERO_HAND21; // alias
 const ZERO_FACE70 = Array.from({ length: 70 }, () => ({ ...ZERO_PT }));
 
 export default function Camera() {
@@ -57,7 +56,6 @@ export default function Camera() {
 
   // ============================================================
   // ✅ 얼굴 70개 = dlib68(68) + iris center 2개
-  //    (너 pasted.txt에 있던 MP_DLIB68 그대로 사용)
   // ============================================================
   const MP_DLIB68 = useMemo(
     () => [
@@ -72,83 +70,97 @@ export default function Camera() {
     ],
     []
   );
-  console.log("MP_DLIB68.length =", MP_DLIB68.length);
   const MP_IRIS_CENTER_1 = 468;
   const MP_IRIS_CENTER_2 = 473;
 
   // ============================================================
-  // ✅ 포인트 변환 (x,y는 픽셀 / z는 confidence처럼 사용)
-  //    - 값 있으면 z=1.0, 없으면 0
+  // ✅ 학습 파이프라인 맞춤 전처리
+  // 1) 손: z는 학습에서 0으로 통일했음 -> 무조건 0
+  // 2) 얼굴: AIHub/OpenPose는 score(0~1) 성격 -> 여기선 "있으면 1.0"로 통일
   // ============================================================
-  const toPxConf = (p, W, H) => ({
+  const toPxHand = (p, W, H) => ({
     x: (p?.x ?? 0) * W,
     y: (p?.y ?? 0) * H,
-    z: (p?.z ?? 0) * W,   // ✅ 여기! 1.0 고정 금지
+    z: 0, // ✅ 손 z는 0 고정
+  });
+
+  const toPxFace = (p, W, H) => ({
+    x: (p?.x ?? 0) * W,
+    y: (p?.y ?? 0) * H,
+    z: p ? 1.0 : 0.0, // ✅ 얼굴 z는 score처럼 사용(있으면 1)
   });
 
   const faceMeshToAIHub70 = (faceLm, W, H) => {
     if (!Array.isArray(faceLm) || faceLm.length < 468) return ZERO_FACE70;
 
-    // ✅ 혹시 MP_DLIB68 길이가 틀려도 앞 68개만 사용
     const dlib68 = MP_DLIB68.slice(0, 68);
-
-    const out = dlib68.map((idx) => toPxConf(faceLm[idx], W, H)); // 68개
+    const out = dlib68.map((idx) => toPxFace(faceLm[idx], W, H));
 
     const iris1 = faceLm[MP_IRIS_CENTER_1];
     const iris2 = faceLm[MP_IRIS_CENTER_2];
+    out.push(iris1 ? toPxFace(iris1, W, H) : { x: 0, y: 0, z: 0 });
+    out.push(iris2 ? toPxFace(iris2, W, H) : { x: 0, y: 0, z: 0 });
 
-    out.push(iris1 ? toPxConf(iris1, W, H) : { x: 0, y: 0, z: 0 });
-    out.push(iris2 ? toPxConf(iris2, W, H) : { x: 0, y: 0, z: 0 });
-
-    // ✅ 길이 강제 보정 (혹시라도 이상하면)
-    if (out.length < 70) {
-      while (out.length < 70) out.push({ x: 0, y: 0, z: 0 });
-    } else if (out.length > 70) {
-      out.length = 70;
-    }
-
+    if (out.length < 70) while (out.length < 70) out.push({ x: 0, y: 0, z: 0 });
+    if (out.length > 70) out.length = 70;
     return out;
   };
 
-
   // ============================================================
-  // ✅ Hands 정리 (2슬롯: Right=0, Left=1)
+  // ✅ Hands 정리 (2슬롯: Right=0, Left=1)  ← 학습 파이프라인 전제와 동일
   // ============================================================
   const handsTo2Slots = (handsLm, handed, W, H) => {
-    const slots = [ZERO_HAND21.map(p => ({ ...p })), ZERO_HAND21.map(p => ({ ...p }))];
+    const slots = [
+      ZERO_HAND21.map((p) => ({ ...p })), // slot0 = Right
+      ZERO_HAND21.map((p) => ({ ...p })), // slot1 = Left
+    ];
+    if (!Array.isArray(handsLm) || handsLm.length === 0) return slots;
 
-    // 손이 없으면 그대로 0
-    if (!handsLm || handsLm.length === 0) return slots;
+    const labels = Array.isArray(handed)
+      ? handed.map((h) => h?.label || h?.classification?.[0]?.label || "")
+      : [];
 
-    // ✅ 1) 손이 1개면 무조건 slot0에 고정
-    if (handsLm.length === 1) {
-      const lm = handsLm[0];
-      if (Array.isArray(lm) && lm.length === 21) {
-        slots[0] = lm.map((p) => toPxConf(p, W, H));
-      }
-      return slots;
+    // 1) handedness 우선 배치
+    for (let i = 0; i < Math.min(handsLm.length, 2); i++) {
+      const lm = handsLm[i];
+      if (!Array.isArray(lm) || lm.length !== 21) continue;
+
+      const lab = labels[i];
+      if (lab === "Right") slots[0] = lm.map((p) => toPxHand(p, W, H));
+      else if (lab === "Left") slots[1] = lm.map((p) => toPxHand(p, W, H));
     }
 
-    // ✅ 2) 손이 2개 이상이면 "화면에서 x가 더 작은 손을 slot0"으로 고정
+    // 2) fallback: handedness 없을 때 x로 채우기
+    const slot0Has = slots[0].some((p) => p.x || p.y);
+    const slot1Has = slots[1].some((p) => p.x || p.y);
+    if (slot0Has && slot1Has) return slots;
+
     const scored = handsLm
       .map((lm, i) => {
         if (!Array.isArray(lm) || lm.length !== 21) return null;
-        const xs = lm.map(p => p?.x ?? 0);
-        const meanX = xs.reduce((a, b) => a + b, 0) / xs.length; // 0~1
+        const meanX = lm.reduce((sum, p) => sum + (p?.x ?? 0), 0) / 21; // 0~1
         return { i, meanX };
       })
       .filter(Boolean)
       .sort((a, b) => a.meanX - b.meanX);
 
-    const i0 = scored[0]?.i;
-    const i1 = scored[1]?.i;
+    // 화면 왼쪽=Left(slot1), 오른쪽=Right(slot0)로 넣어보기 (셀카/거울이면 반대일 수 있음)
+    const iLeft = scored[0]?.i;
+    const iRight = scored[1]?.i;
 
-    if (i0 != null) slots[0] = handsLm[i0].map((p) => toPxConf(p, W, H));
-    if (i1 != null) slots[1] = handsLm[i1].map((p) => toPxConf(p, W, H));
+    if (!slot0Has && iRight != null) slots[0] = handsLm[iRight].map((p) => toPxHand(p, W, H));
+    if (!slot1Has && iLeft != null) slots[1] = handsLm[iLeft].map((p) => toPxHand(p, W, H));
+
+    // 손이 1개뿐인데 slot이 비었으면: 오른쪽으로 가정
+    if (!slots[0].some((p) => p.x || p.y) && slots[1].some((p) => p.x || p.y)) {
+      // 그대로 둠 (Left만 있는 상황)
+    }
+    if (!slots[1].some((p) => p.x || p.y) && slots[0].some((p) => p.x || p.y)) {
+      // 그대로 둠 (Right만 있는 상황)
+    }
 
     return slots;
   };
-
 
   // ============================================================
   // ✅ locateFile (mediapipe wasm/asset 로딩)
@@ -165,7 +177,6 @@ export default function Camera() {
     let alive = true;
 
     const startCamera = async () => {
-      // 기존 스트림 정리
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
@@ -201,9 +212,7 @@ export default function Camera() {
       hands.onResults((res) => {
         const handsLm = res?.multiHandLandmarks ?? [];
         const handed = res?.multiHandedness ?? [];
-
         latestHandsRef.current = { handsLm, handed };
-
         setHandDetected(handsLm.length > 0);
         setHandCount(handsLm.length);
       });
@@ -212,7 +221,7 @@ export default function Camera() {
       const face = new FaceMesh({ locateFile: locateMP });
       face.setOptions({
         maxNumFaces: 1,
-        refineLandmarks: true, // 478 환경
+        refineLandmarks: true, // 478
         minDetectionConfidence: 0.5,
         minTrackingConfidence: 0.5,
       });
@@ -220,15 +229,8 @@ export default function Camera() {
       face.onResults((res) => {
         const faces = res?.multiFaceLandmarks ?? [];
         latestFacesRef.current = faces;
-
         setFaceDetected(faces.length > 0);
         setFaceCount(faces.length);
-
-        // ✅ 디버깅 로그(필요하면 켜라)
-        //if (faces[0]) {
-        //console.log("hasFace", true, "faceLmLen", faces[0].length);
-        //console.log("face0_468", faces[0][468]);
-        //}
       });
 
       handsRef.current = hands;
@@ -241,14 +243,10 @@ export default function Camera() {
       const v = videoRef.current;
       if (v && v.readyState >= 2) {
         try {
-          // 같은 프레임을 hands/face 둘 다 처리
           await handsRef.current?.send({ image: v });
           await faceRef.current?.send({ image: v });
-        } catch (e) {
-          // mediapipe 내부 에러는 일단 무시(스팸방지)
-        }
+        } catch {}
       }
-
       requestAnimationFrame(loop);
     };
 
@@ -267,7 +265,7 @@ export default function Camera() {
       try {
         handsRef.current?.close?.();
         faceRef.current?.close?.();
-      } catch { }
+      } catch {}
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
@@ -289,8 +287,6 @@ export default function Camera() {
       const v = videoRef.current;
       const W = v?.videoWidth || 1;
       const H = v?.videoHeight || 1;
-
-      // ✅ W/H 안잡히면 저장하지 마
       if (W <= 1 || H <= 1) return;
 
       const { handsLm, handed } = latestHandsRef.current ?? { handsLm: [], handed: [] };
@@ -300,48 +296,42 @@ export default function Camera() {
       const hasHands = (handsLm?.length ?? 0) > 0;
       const hasFace = !!face0;
 
-      // ✅ 손 + 얼굴 둘 다 잡힐 때만 저장 (학습 데이터와 동일 조건)
+      // 학습 조건처럼 손+얼굴 다 있어야 저장 (일단 유지)
       if (!hasHands || !hasFace) return;
 
       const handsFixed = handsTo2Slots(handsLm, handed, W, H);
       const face70 = faceMeshToAIHub70(face0, W, H);
 
-      // ✅ face70 진짜 0인지 체크 (x/y 기준)
-      const faceNonZero = face70.some((p) => p.x || p.y);
-      if (!faceNonZero) {
-        console.warn("FACE70 ALL ZERO", {
-          W,
-          H,
-          face0len: face0?.length,
-          sample: face70.slice(0, 3),
-        });
-      }
+      const handsSlots =
+        (handsFixed?.[0]?.some((p) => p.x || p.y) ? 1 : 0) +
+        (handsFixed?.[1]?.some((p) => p.x || p.y) ? 1 : 0);
 
-      const frame = { t: Date.now(), hands: handsFixed, face: face70 };
+      const faceOk = face70?.some((p) => p.x || p.y) ? 1 : 0;
+      if (!faceOk) return;
+
+      const frame = { t: Date.now(), hands: handsFixed, face: face70, handsSlots };
 
       bufferRef.current.push(frame);
       setFrameCount(bufferRef.current.length);
 
-      // 프리뷰는 5프레임마다 업데이트(콘솔/렌더 스팸 방지)
       if (bufferRef.current.length % 5 === 0) {
         if (previewMode === "raw") {
           setPreviewJson(JSON.stringify(frame, null, 2));
         } else {
-          const nonZeroSlots =
-            frame.hands?.filter((h) => h?.some((p) => p.x || p.y)).length ?? 0;
-
-          const hasFace2 = frame.face?.some((p) => p.x || p.y) ? 1 : 0;
-
           setPreviewJson(
             JSON.stringify(
               {
                 t: frame.t,
-                handsSlots: nonZeroSlots,
-                face: hasFace2,
+                handsSlots,
+                face: faceOk,
                 hands0_sample_5: frame.hands?.[0]?.slice(0, 5) ?? [],
                 hands1_sample_5: frame.hands?.[1]?.slice(0, 5) ?? [],
                 face_sample_5: frame.face?.slice(0, 5) ?? [],
-                hint: { hands: "2x21", face: "70", dims: "x,y,conf(z)" },
+                hint: {
+                  hands: "2x21",
+                  face: "70",
+                  z: "hand z=0, face z=1/0",
+                },
               },
               null,
               2
@@ -384,11 +374,9 @@ export default function Camera() {
 
     const frames = bufferRef.current.slice(-T);
 
-    // ✅ 여기 추가!!
     const hasHandFrame = frames.filter(
       (f) =>
-      (f.hands?.[0]?.some((p) => p.x || p.y) ||
-        f.hands?.[1]?.some((p) => p.x || p.y))
+        f.hands?.[0]?.some((p) => p.x || p.y) || f.hands?.[1]?.some((p) => p.x || p.y)
     ).length;
 
     const hasFaceFrame = frames.filter((f) => f.face?.some((p) => p.x || p.y)).length;
@@ -401,7 +389,7 @@ export default function Camera() {
       setError(`얼굴 인식이 부족해서 번역 중단 (${hasFaceFrame}/${T})`);
       return;
     }
-    console.log("SEND frames =", frames.length, frames[0]);
+
     try {
       const res = await axios.post("/api/translate", { frames });
       const { text, label } = res.data ?? {};
@@ -417,9 +405,6 @@ export default function Camera() {
 
   const onResetSentence = () => setSentence("");
 
-  // =========================
-  // UI
-  // =========================
   return (
     <div style={{ padding: 16, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
       <div>

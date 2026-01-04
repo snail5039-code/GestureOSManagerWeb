@@ -1,15 +1,16 @@
 package com.example.demo.dto;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true) // ✅ 추가: candidates 같은 필드 와도 파싱 안 터짐
 public class TranslateResponse {
 
-  // ✅ label / word_id / wordId / id 전부 허용
   @JsonProperty("label")
   @JsonAlias({"word_id", "wordId", "id"})
   private String label;
@@ -17,7 +18,6 @@ public class TranslateResponse {
   private String text;
   private double confidence;
 
-  // ✅ frames_received or framesReceived
   @JsonProperty("frames_received")
   @JsonAlias({"framesReceived"})
   private Integer framesReceived;
