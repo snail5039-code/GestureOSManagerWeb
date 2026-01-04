@@ -1,0 +1,496 @@
+{
+  "version": "1.0",
+  "updatedAt": "2026-01-02T00:00:00+09:00",
+  "cards": [
+    {
+      "id": "cam-001",
+      "category": "camera",
+      "title": "카메라 화면이 아예 안 떠요(검은 화면)",
+      "symptoms": ["검은 화면", "카메라 미리보기 없음", "video가 재생 안 됨"],
+      "quickChecks": [
+        "브라우저 주소창 왼쪽 아이콘 → 카메라 권한 '허용'인지 확인",
+        "다른 앱(Zoom/Discord/OBS)이 카메라 점유 중이면 종료",
+        "페이지 새로고침 후 다시 허용"
+      ],
+      "steps": [
+        { "label": "권한 확인", "detail": "Chrome: 설정 → 개인정보 및 보안 → 사이트 설정 → 카메라에서 현재 사이트 허용 확인" },
+        { "label": "장치 선택", "detail": "PC에 카메라가 여러 개면 입력 장치가 다른 카메라로 잡힐 수 있어요. 카메라 선택 UI 제공 권장" },
+        { "label": "점유 앱 종료", "detail": "다른 앱이 카메라 쓰는 중이면 브라우저가 못 가져와요(특히 노트북 내장캠)" },
+        { "label": "HTTPS/로컬 확인", "detail": "일부 환경은 https 또는 localhost에서만 getUserMedia 동작" }
+      ],
+      "links": [{ "label": "권한/장치 확인 가이드", "url": "/help/camera-permission" }],
+      "tags": ["getUserMedia", "permission", "black-screen"]
+    },
+    {
+      "id": "cam-002",
+      "category": "camera",
+      "title": "권한을 허용했는데도 카메라가 안 잡혀요",
+      "symptoms": ["권한 허용했는데 실패", "NotAllowedError 아닌데도 실패"],
+      "quickChecks": [
+        "브라우저에서 '차단됨' 상태로 저장된 사이트인지 확인",
+        "시크릿 창에서 테스트(확장 프로그램 영향 분리)",
+        "OS 카메라 권한(Windows/macOS)도 허용인지 확인"
+      ],
+      "steps": [
+        { "label": "사이트 권한 리셋", "detail": "Chrome: 자물쇠 아이콘 → 사이트 설정 → 권한 초기화 후 재접속" },
+        { "label": "OS 권한 확인", "detail": "Windows: 설정 → 개인정보 → 카메라 → 앱 접근 허용 / macOS: 시스템 설정 → 개인정보 보호 → 카메라" },
+        { "label": "확장프로그램 끄기", "detail": "광고차단/보안 확장이 미디어 권한을 막을 수 있어요" }
+      ],
+      "links": [],
+      "tags": ["permission", "os-privacy"]
+    },
+    {
+      "id": "cam-003",
+      "category": "camera",
+      "title": "모바일에서 카메라가 안 돼요",
+      "symptoms": ["모바일 사파리", "모바일 크롬", "카메라 호출 실패"],
+      "quickChecks": [
+        "모바일은 브라우저 제약이 많아서 Chrome/Edge 권장",
+        "iOS는 WebRTC/카메라 제약이 더 큼"
+      ],
+      "steps": [
+        { "label": "브라우저 변경", "detail": "가능하면 Android는 Chrome, iOS는 최신 Safari에서 테스트" },
+        { "label": "앱 내 웹뷰 주의", "detail": "카톡/인스타 내장 브라우저(WebView)는 카메라 제약이 많아요. 외부 브라우저로 열기" }
+      ],
+      "links": [],
+      "tags": ["mobile", "webview"]
+    },
+    {
+      "id": "cam-004",
+      "category": "camera",
+      "title": "손/얼굴 인식이 안 돼요(화면은 뜸)",
+      "symptoms": ["영상은 나오는데 인식이 0", "랜드마크 안 잡힘"],
+      "quickChecks": [
+        "조명이 어두우면 인식률이 급감",
+        "손이 프레임 밖으로 나가면 인식 안 됨",
+        "브라우저 탭이 백그라운드면 FPS 낮아짐"
+      ],
+      "steps": [
+        { "label": "조명/배경", "detail": "정면 조명 + 배경 단순하게(손과 배경 대비 높게)" },
+        { "label": "프레임 위치", "detail": "손을 카메라 중앙, 너무 가까이/너무 멀지 않게" },
+        { "label": "성능 모드", "detail": "노트북 절전 모드면 성능이 떨어질 수 있어요. 전원 연결 추천" }
+      ],
+      "links": [{ "label": "촬영 자세 팁", "url": "/help/pose-tips" }],
+      "tags": ["mediapipe", "hands", "facemesh"]
+    },
+    {
+      "id": "cam-005",
+      "category": "camera",
+      "title": "인식이 너무 느려요/렉 걸려요",
+      "symptoms": ["FPS 낮음", "팬이 돎", "브라우저가 버벅"],
+      "quickChecks": [
+        "해상도를 낮추면 체감이 크게 좋아짐(예: 1280x720 → 640x480)",
+        "탭/확장프로그램/다른 앱을 닫아 CPU/GPU 확보"
+      ],
+      "steps": [
+        { "label": "영상 해상도 낮추기", "detail": "getUserMedia constraints에서 width/height 낮추기" },
+        { "label": "프레임 전송 빈도 제한", "detail": "서버로 프레임 보내면 5~10fps로 제한 + 버퍼 길이 제한" },
+        { "label": "모델 옵션 낮추기", "detail": "Hands/FaceMesh 설정(정밀도/최대 손 개수)을 낮추면 빨라져요" }
+      ],
+      "links": [],
+      "tags": ["performance", "fps", "throttle"]
+    },
+    {
+      "id": "cam-006",
+      "category": "camera",
+      "title": "카메라는 되는데 마이크가 안 돼요",
+      "symptoms": ["상대가 소리 못 들음", "마이크 권한 문제"],
+      "quickChecks": [
+        "사이트 마이크 권한 허용 확인",
+        "OS에서 마이크 접근 허용 확인"
+      ],
+      "steps": [
+        { "label": "브라우저 권한", "detail": "자물쇠 → 마이크 허용" },
+        { "label": "입력장치 선택", "detail": "헤드셋/내장 마이크가 여러 개면 잘못 선택될 수 있음" }
+      ],
+      "links": [],
+      "tags": ["audio", "mic", "permission"]
+    },
+    {
+      "id": "cam-007",
+      "category": "camera",
+      "title": "카메라 호출 에러: NotFoundError",
+      "symptoms": ["NotFoundError", "No device"],
+      "quickChecks": [
+        "카메라가 물리적으로 연결되어 있는지 확인",
+        "장치 관리자에서 카메라 비활성화 여부 확인"
+      ],
+      "steps": [
+        { "label": "장치 연결", "detail": "외장캠이면 USB 재연결/다른 포트 시도" },
+        { "label": "권한/드라이버", "detail": "드라이버 문제면 재설치 필요할 수 있어요" }
+      ],
+      "links": [],
+      "tags": ["NotFoundError", "device"]
+    },
+    {
+      "id": "cam-008",
+      "category": "camera",
+      "title": "카메라 호출 에러: NotAllowedError",
+      "symptoms": ["NotAllowedError", "Permission denied"],
+      "quickChecks": [
+        "권한을 '차단' 눌렀던 적이 있으면 자동으로 막힘",
+        "시크릿/다른 프로필에서 재시도"
+      ],
+      "steps": [
+        { "label": "권한 재허용", "detail": "사이트 권한 초기화 후 새로고침" },
+        { "label": "정책/회사PC", "detail": "회사 PC는 정책으로 카메라가 막혀 있을 수 있어요" }
+      ],
+      "links": [],
+      "tags": ["NotAllowedError", "permission"]
+    },
+    {
+      "id": "cam-009",
+      "category": "camera",
+      "title": "카메라 호출 에러: OverconstrainedError",
+      "symptoms": ["OverconstrainedError", "constraints 불만족"],
+      "quickChecks": [
+        "해상도/프레임레이트 요구조건이 너무 빡빡하면 실패"
+      ],
+      "steps": [
+        { "label": "constraints 완화", "detail": "width/height를 ideal로 두거나 낮춘 값으로 시도" },
+        { "label": "기기별 차이", "detail": "특정 노트북/웹캠은 지원 해상도가 제한적" }
+      ],
+      "links": [],
+      "tags": ["constraints", "getUserMedia"]
+    },
+    {
+      "id": "cam-010",
+      "category": "camera",
+      "title": "카메라 미러(좌우 반전)가 이상해요",
+      "symptoms": ["좌우 반전", "손 방향 혼동"],
+      "quickChecks": [
+        "preview는 미러링, 분석은 원본 좌표일 수 있음"
+      ],
+      "steps": [
+        { "label": "UI와 분석 분리", "detail": "화면 표시만 transform: scaleX(-1) 적용하고, 분석은 원본 프레임 기준 유지" }
+      ],
+      "links": [],
+      "tags": ["mirror", "ui"]
+    },
+
+    {
+      "id": "err-001",
+      "category": "error",
+      "title": "CORS blocked (Access-Control-Allow-Origin)",
+      "symptoms": ["CORS policy", "blocked by CORS", "No 'Access-Control-Allow-Origin'"],
+      "quickChecks": [
+        "프론트 주소(5173/5174)와 백엔드 허용 origin이 일치해야 함",
+        "쿠키/세션 쓰면 credentials 설정도 맞아야 함"
+      ],
+      "steps": [
+        { "label": "백엔드 CORS 설정", "detail": "allowedOrigins에 http://localhost:5173, http://localhost:5174 추가" },
+        { "label": "credentials 일치", "detail": "프론트 axios withCredentials=true ↔ 백엔드 allowCredentials(true)" },
+        { "label": "프록시 사용", "detail": "vite proxy로 /api를 백엔드로 넘기면 CORS를 피할 수 있어요" }
+      ],
+      "links": [{ "label": "CORS 체크리스트", "url": "/help/cors" }],
+      "tags": ["cors", "axios", "spring"]
+    },
+    {
+      "id": "err-002",
+      "category": "error",
+      "title": "404 Not Found (API 경로 문제)",
+      "symptoms": ["404", "NoResourceFoundException", "not found"],
+      "quickChecks": [
+        "요청 URL이 진짜 /api/xxx인지 확인(Network 탭)",
+        "Spring Controller 매핑(@RequestMapping) 확인"
+      ],
+      "steps": [
+        { "label": "프론트 baseURL", "detail": "axios baseURL 또는 vite proxy가 /api를 제대로 붙이는지 확인" },
+        { "label": "백엔드 매핑", "detail": "@RequestMapping('/api/...') 경로와 정확히 일치하는지 확인" }
+      ],
+      "links": [],
+      "tags": ["404", "routing"]
+    },
+    {
+      "id": "err-003",
+      "category": "error",
+      "title": "500 Internal Server Error (백엔드 예외)",
+      "symptoms": ["500", "Internal Server Error"],
+      "quickChecks": [
+        "백엔드 콘솔 로그에서 stacktrace 상단 20줄 확보",
+        "어떤 API에서 터지는지(Network에서 URL/바디 확인)"
+      ],
+      "steps": [
+        { "label": "스택트레이스 확인", "detail": "최초 예외 원인(맨 위)부터 잡아야 함. BeanCreation/NullPointer/SQL 등" },
+        { "label": "요청 바디 검증", "detail": "DTO 필드명 mismatch면 null 들어와서 터질 수 있어요" }
+      ],
+      "links": [{ "label": "로그 캡처 방법", "url": "/help/log-capture" }],
+      "tags": ["500", "stacktrace"]
+    },
+    {
+      "id": "err-004",
+      "category": "error",
+      "title": "무한 리다이렉트 /oauth2/success 관련",
+      "symptoms": ["redirect", "No static resource oauth2/success", "무한 루프"],
+      "quickChecks": [
+        "백엔드가 프론트 라우트로 리다이렉트하도록 설정 필요",
+        "스프링이 정적 리소스로 착각하는 경로인지 확인"
+      ],
+      "steps": [
+        { "label": "리다이렉트 URI 확인", "detail": "OAuth2 성공 후 프론트의 라우트(/oauth2/success)로 보내면 프론트가 처리해야 함" },
+        { "label": "백엔드 매핑/포워딩", "detail": "해당 경로를 Spring에서 직접 처리하거나, SPA index.html로 포워딩 처리" }
+      ],
+      "links": [],
+      "tags": ["oauth2", "redirect"]
+    },
+    {
+      "id": "err-005",
+      "category": "error",
+      "title": "axios 요청이 8080으로 튀어요",
+      "symptoms": ["요청이 8080으로 감", "vite proxy 의심"],
+      "quickChecks": [
+        "axios baseURL 설정 확인",
+        "vite.config.js proxy 설정 확인"
+      ],
+      "steps": [
+        { "label": "프록시 설정", "detail": "개발환경에서 /api → http://localhost:8080 으로 프록시하는게 정상일 수도 있어요" },
+        { "label": "절대 URL 확인", "detail": "코드에 http://localhost:8080을 박아놨는지 검색" }
+      ],
+      "links": [],
+      "tags": ["axios", "vite", "proxy"]
+    },
+    {
+      "id": "err-006",
+      "category": "error",
+      "title": "WebSocket 연결 실패",
+      "symptoms": ["WS failed", "1006", "WebSocket is closed"],
+      "quickChecks": [
+        "WS URL(wss/ws)과 서버 엔드포인트가 일치하는지 확인",
+        "프론트와 백엔드 포트/호스트가 다르면 CORS/보안 정책 영향"
+      ],
+      "steps": [
+        { "label": "서버 엔드포인트 확인", "detail": "Spring WebSocket 설정에서 /ws 등 경로 확인" },
+        { "label": "프록시/리버스프록시", "detail": "배포 환경에서 Nginx가 WS 업그레이드를 허용해야 함" }
+      ],
+      "links": [],
+      "tags": ["websocket", "signaling"]
+    },
+    {
+      "id": "err-007",
+      "category": "error",
+      "title": "Mixed Content / https에서 http 호출",
+      "symptoms": ["Mixed Content", "blocked insecure content"],
+      "quickChecks": [
+        "https 페이지에서 http API를 호출하면 브라우저가 막아요"
+      ],
+      "steps": [
+        { "label": "API도 https", "detail": "배포 시 API도 https로 맞추거나, 동일 도메인 리버스프록시 사용" }
+      ],
+      "links": [],
+      "tags": ["https", "mixed-content"]
+    },
+    {
+      "id": "err-008",
+      "category": "error",
+      "title": "JSON 파싱 오류 / 응답이 HTML(Whitelabel)로 와요",
+      "symptoms": ["Unexpected token <", "Whitelabel Error Page", "XML/HTML 응답"],
+      "quickChecks": [
+        "API가 아니라 에러 페이지(HTML)를 받아서 JSON.parse가 터진 케이스가 많음"
+      ],
+      "steps": [
+        { "label": "Network에서 Response 확인", "detail": "실패 응답이 { 로 시작하는지, <html>로 시작하는지 확인" },
+        { "label": "URL/프록시 확인", "detail": "요청이 잘못된 서버/경로로 가면 HTML이 옵니다" }
+      ],
+      "links": [],
+      "tags": ["whitelabel", "json"]
+    },
+    {
+      "id": "err-009",
+      "category": "error",
+      "title": "토큰/세션 문제(로그인 유지 안 됨)",
+      "symptoms": ["로그인 풀림", "401", "쿠키 안 옴"],
+      "quickChecks": [
+        "쿠키 기반이면 SameSite/Secure 설정 영향",
+        "프론트 요청에 withCredentials가 필요할 수 있음"
+      ],
+      "steps": [
+        { "label": "쿠키 확인", "detail": "Application → Cookies에서 Set-Cookie가 오는지 확인" },
+        { "label": "SameSite 설정", "detail": "크로스도메인이면 SameSite=None; Secure가 필요할 수 있어요(https 전제)" }
+      ],
+      "links": [],
+      "tags": ["auth", "cookie", "jwt"]
+    },
+    {
+      "id": "err-010",
+      "category": "error",
+      "title": "서버 응답이 느려요/타임아웃",
+      "symptoms": ["timeout", "응답 지연"],
+      "quickChecks": [
+        "서버 CPU 과부하(프레임 처리/모델) 확인",
+        "요청당 처리량 줄이기"
+      ],
+      "steps": [
+        { "label": "요청 빈도 제한", "detail": "프레임 전송을 5~10fps로 제한" },
+        { "label": "큐/비동기", "detail": "무거운 작업은 큐로 넘기고 즉시 응답(accepted) 구조도 고려" }
+      ],
+      "links": [],
+      "tags": ["timeout", "performance"]
+    },
+
+    {
+      "id": "call-001",
+      "category": "call",
+      "title": "방에 들어갔는데 상대 영상이 안 떠요",
+      "symptoms": ["remote video 없음", "상대 화면 검정"],
+      "quickChecks": [
+        "상대가 카메라 권한을 거부했는지 확인",
+        "서로 같은 방(roomId)인지 확인",
+        "signaling(WS)이 연결됐는지 확인"
+      ],
+      "steps": [
+        { "label": "WS 연결 확인", "detail": "콘솔에서 WS open/ready 메시지 확인" },
+        { "label": "offer/answer 교환", "detail": "offer 생성→전송→answer 수신 흐름 로그 남기기" },
+        { "label": "ICE 후보 교환", "detail": "candidate가 양쪽에서 오가는지 확인" }
+      ],
+      "links": [{ "label": "통화방 진단 체크리스트", "url": "/help/call-debug" }],
+      "tags": ["webrtc", "remote"]
+    },
+    {
+      "id": "call-002",
+      "category": "call",
+      "title": "같은 와이파이에서는 되는데 밖에서는 안 돼요",
+      "symptoms": ["외부 네트워크 실패", "NAT 환경"],
+      "quickChecks": [
+        "TURN 서버가 없으면 일부 NAT에서 연결이 안 될 수 있어요"
+      ],
+      "steps": [
+        { "label": "STUN/TURN 설정", "detail": "STUN만으로 안 되는 환경이 있어 TURN이 필요" },
+        { "label": "iceConnectionState 확인", "detail": "failed/disconnected면 NAT/방화벽 이슈 가능성이 큼" }
+      ],
+      "links": [],
+      "tags": ["turn", "nat"]
+    },
+    {
+      "id": "call-003",
+      "category": "call",
+      "title": "상대는 나를 보는데 나는 상대를 못 봐요(단방향)",
+      "symptoms": ["one-way media", "단방향"],
+      "quickChecks": [
+        "상대쪽 트랙 추가(addTrack) 누락 여부",
+        "answer 생성 시 localDescription 설정 누락 여부"
+      ],
+      "steps": [
+        { "label": "트랙 추가 확인", "detail": "getTracks().forEach(track => pc.addTrack(track, stream)) 실행 확인" },
+        { "label": "SDP 설정 순서", "detail": "setLocalDescription → signaling 전송 → setRemoteDescription 순서 체크" }
+      ],
+      "links": [],
+      "tags": ["addTrack", "sdp"]
+    },
+    {
+      "id": "call-004",
+      "category": "call",
+      "title": "소리가 안 들려요",
+      "symptoms": ["audio 없음", "mute"],
+      "quickChecks": [
+        "상대가 mute인지, 브라우저 탭 음소거인지 확인",
+        "오디오 트랙이 실제로 추가됐는지 확인"
+      ],
+      "steps": [
+        { "label": "오디오 트랙 확인", "detail": "stream.getAudioTracks().length 확인 + addTrack 여부" },
+        { "label": "오디오 출력 장치", "detail": "OS 출력 장치가 다른 스피커로 잡힌 케이스 있음" }
+      ],
+      "links": [],
+      "tags": ["audio", "track"]
+    },
+    {
+      "id": "call-005",
+      "category": "call",
+      "title": "통화방에서 연결이 자주 끊겨요",
+      "symptoms": ["disconnect", "ice state flapping"],
+      "quickChecks": [
+        "네트워크 불안정/와이파이 약함",
+        "ICE 후보 처리 로직이 중복/누락"
+      ],
+      "steps": [
+        { "label": "상태 로깅", "detail": "iceConnectionState / connectionState 변화 로그 남기기" },
+        { "label": "재시도 전략", "detail": "끊김 감지 시 재offer 또는 재접속 정책 필요" }
+      ],
+      "links": [],
+      "tags": ["reconnect", "ice"]
+    },
+    {
+      "id": "call-006",
+      "category": "call",
+      "title": "방은 들어가졌는데 상대가 'ready'가 안 떠요",
+      "symptoms": ["ready 신호 없음", "매칭 안 됨"],
+      "quickChecks": [
+        "roomId가 같은지",
+        "서버에서 방 인원 카운트가 맞는지"
+      ],
+      "steps": [
+        { "label": "룸 관리 확인", "detail": "서버에서 roomId별 세션 목록/인원 수 로그 찍기" },
+        { "label": "클라이언트 재접속", "detail": "새로고침 시 이전 세션 정리가 안 되면 유령 세션 생길 수 있음" }
+      ],
+      "links": [],
+      "tags": ["room", "ready"]
+    },
+    {
+      "id": "call-007",
+      "category": "call",
+      "title": "ICE candidate 에러가 떠요",
+      "symptoms": ["addIceCandidate failed", "candidate parse error"],
+      "quickChecks": [
+        "candidate를 JSON으로 주고받다가 깨지는 경우가 많음",
+        "null candidate 처리 누락"
+      ],
+      "steps": [
+        { "label": "candidate 통째 전달", "detail": "RTCIceCandidateInit를 그대로 serialize/deserialize" },
+        { "label": "null candidate 처리", "detail": "candidate가 null이면 end-of-candidates로 간주하고 addIceCandidate 하지 않기" }
+      ],
+      "links": [],
+      "tags": ["ice", "candidate"]
+    },
+    {
+      "id": "call-008",
+      "category": "call",
+      "title": "상대 영상은 뜨는데 끊기거나 프레임이 멈춰요",
+      "symptoms": ["freeze", "stutter"],
+      "quickChecks": [
+        "CPU 과부하(인식 + 통화 동시) 가능",
+        "네트워크 대역폭 부족"
+      ],
+      "steps": [
+        { "label": "해상도/비트레이트 낮추기", "detail": "senders의 parameters로 maxBitrate 제한 고려" },
+        { "label": "인식 프레임 제한", "detail": "인식/전송 루프를 낮추고, 통화 우선순위" }
+      ],
+      "links": [],
+      "tags": ["bitrate", "performance"]
+    },
+    {
+      "id": "call-009",
+      "category": "call",
+      "title": "통화방에서 카메라를 켰는데 상대에게 반영이 안 돼요",
+      "symptoms": ["track replace 필요", "카메라 토글"],
+      "quickChecks": [
+        "기존 sender track을 replaceTrack 해야 함"
+      ],
+      "steps": [
+        { "label": "replaceTrack", "detail": "pc.getSenders()에서 video sender 찾아 replaceTrack(newTrack)" },
+        { "label": "재협상 필요", "detail": "상황에 따라 renegotiation(offer/answer) 필요" }
+      ],
+      "links": [],
+      "tags": ["replaceTrack", "renegotiation"]
+    },
+    {
+      "id": "call-010",
+      "category": "call",
+      "title": "통화방 디버그용 체크리스트(한 방에 확인)",
+      "symptoms": ["전체 진단"],
+      "quickChecks": [
+        "WS 연결됨?",
+        "offer/answer 교환됨?",
+        "ICE 후보 오감?",
+        "iceConnectionState가 connected/completed?",
+        "remoteStream track 들어옴?"
+      ],
+      "steps": [
+        { "label": "1) signaling", "detail": "WS open 로그 + room join/ready 확인" },
+        { "label": "2) SDP", "detail": "localDescription/remoteDescription 존재 여부" },
+        { "label": "3) ICE", "detail": "candidate count + ice state" },
+        { "label": "4) Media", "detail": "remote video element srcObject 설정 확인" }
+      ],
+      "links": [],
+      "tags": ["debug", "checklist"]
+    }
+  ]
+}

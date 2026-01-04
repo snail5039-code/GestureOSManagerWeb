@@ -1,4 +1,9 @@
 # =========================
+# Spring Boot secrets / env-specific configs
+# =========================
+backend-spring/src/main/resources/application-api.yml
+
+# =========================
 # OS / IDE / Editor
 # =========================
 .DS_Store

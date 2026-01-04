@@ -98,6 +98,7 @@ export default function ChatWidget() {
         { role: "assistant", type: "text", text: data.text || "관련 해결 방법을 찾았어!" },
         { role: "assistant", type: "cards", matched },
       ]);
+      
     } catch (e) {
       setMessages((m) => [
         ...m,
