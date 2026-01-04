@@ -1,131 +1,125 @@
 # main.py
-# ============================================================
-# FastAPI 메인 서버 (너 프로젝트 구조 기준: main.py가 엔트리)
-#
-# 이 서버가 하는 일:
-# 1) 프론트/스프링에서 frames(List[dict])를 받는다.
-#    각 frame은 {"hands": [...], "face": [...]} 형태
-#
-# 2) 손(2*21*3=126) + 얼굴(478*3=1434) = 1560 차원으로 합쳐서
-#    (T=30, F=1560) 입력을 만든다.
-#
-# 3) 학습된 TCN 모델(best_model_face.pth)로 추론해서
-#    top1 라벨/확률 + topK 후보를 만든다.
-#
-# 4) "자동 확정" 규칙:
-#    - top1 확률이 BASE_TH 미만이면: pending (확신 낮음)
-#    - 같은 라벨이 STREAK_N번 연속 나오고 + top1 확률이 FINAL_TH 이상이면: final
-#
-# 5) session_id 별로 연속(streak)을 관리한다.
-# ============================================================
-
-from fastapi import FastAPI
-from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
-from collections import deque, defaultdict
-
-from pathlib import Path
-import time
 import json
+import time
+from pathlib import Path
+from collections import deque, defaultdict
+from typing import Any, Dict, List, Optional
+
 import numpy as np
 import torch
+from fastapi import FastAPI
+from pydantic import BaseModel
 
-from train import TCNClassifier  # ✅ 학습 때 쓴 모델 클래스 그대로 사용
-
-# ------------------------------------------------------------
-# 0) FastAPI 앱
-# ------------------------------------------------------------
+# =========================
+# 0) FastAPI
+# =========================
 app = FastAPI()
 
-# ------------------------------------------------------------
-# 1) 경로/상수
-# ------------------------------------------------------------
-BASE_DIR = Path(__file__).resolve().parent
-MODEL_DIR = BASE_DIR / "current"        # ✅ 모델/라벨맵/텍스트맵은 current 폴더에서만 읽기
-
+# =========================
+# 1) 상수 / 설정
+# =========================
 T = 30
 HAND_POINTS = 21
-FACE_POINTS = 478
+FACE_POINTS = 70
+FEAT_DIM = 336  # hand(2*21*3=126) + face(70*3=210)
 
-# 손(2*21*3=126) + 얼굴(478*3=1434) = 1560
-FEAT_DIM = 1560
+BASE_TH = 0.60
+WIN_SIZE = 5
+VOTE_MIN_RATIO = 0.60
+MIN_AVG_PROB = 0.60
+COOLDOWN_SEC = 0.7
+TOPK_K = 5
+TOPK_WEIGHTS = [1.0, 0.6, 0.35, 0.2, 0.1]
+SESSION_TTL_SEC = 30
 
-# ------------------------------------------------------------
-# 2) 자동 확정 규칙(전략 파라미터)
-# ------------------------------------------------------------
-BASE_TH = 0.50     # 이 값 미만이면 확신 낮음 -> streak 리셋/보류
-FINAL_TH = 0.65    # 이 값 이상 + streak 조건이면 final 확정
-STREAK_N = 2       # 같은 라벨이 몇 번 연속 나오면 확정할지
+ROOT = Path(__file__).resolve().parent
+MODEL_DIR = ROOT / "current"   # ✅ 너 폴더 구조가 current 쓰는걸로 보였음
 
-# ------------------------------------------------------------
-# ✅✅✅ 실시간 후처리: Sliding Window TopK Voting
-# ------------------------------------------------------------
-TOPK_K = 5                         # top5까지 받아서 투표 (Top5가 강점이라 이득)
-WIN_SIZE = 12                      # 최근 12개 예측으로 투표(0.4~0.8초 느낌)
-VOTE_MIN_RATIO = 0.58              # 승자 점유율(너무 높이면 coverage 낮아짐)
-MIN_AVG_PROB = 0.20                # 승자 평균 확률(TopK 기반이라 낮게 시작)
-COOLDOWN_SEC = 0.7                 # 한번 확정 후 잠깐 중복 방지
-TOPK_WEIGHTS = [5, 4, 3, 2, 1]      # rank 가중치(1등=5점..)
+# =========================
+# 2) 모델 정의 (너 코드에 맞게 유지)
+# =========================
+class TCNClassifier(torch.nn.Module):
+    def __init__(self, feat_dim: int, num_classes: int):
+        super().__init__()
+        self.net = torch.nn.Sequential(
+            torch.nn.Conv1d(feat_dim, 256, kernel_size=3, padding=1),
+            torch.nn.ReLU(),
+            torch.nn.AdaptiveAvgPool1d(1),
+        )
+        self.head = torch.nn.Sequential(
+            torch.nn.Flatten(),
+            torch.nn.Linear(256, num_classes),
+        )
 
-SESSION_TTL_SEC = 10  # 오래된 세션 상태 자동 삭제
+    def forward(self, x):
+        # x: (B, T, F) -> (B, F, T)
+        x = x.transpose(1, 2)
+        x = self.net(x)
+        x = self.head(x)
+        return x
 
-# ------------------------------------------------------------
-# 3) label_to_text 로드 (라벨 -> 한국어 텍스트)
-# ------------------------------------------------------------
+# =========================
+# 3) label map / label_to_text 로드
+# =========================
+def norm_word(lb: str) -> str:
+    # WORD37 -> WORD00037, WORD0037 -> WORD00037 등 보정
+    if not lb:
+        return lb
+    if lb.startswith("WORD"):
+        tail = lb[4:]
+        if tail.isdigit():
+            return "WORD" + tail.zfill(5)
+    return lb
+
+def load_label_map() -> Dict[int, str]:
+    p = MODEL_DIR / "label_map.json"
+    raw = json.loads(p.read_text(encoding="utf-8"))
+    return {int(k): v for k, v in raw.items()}
+
 def load_label_to_text() -> Dict[str, str]:
     p = MODEL_DIR / "label_to_text.json"
     if not p.exists():
         return {}
-    try:
-        return json.loads(p.read_text(encoding="utf-8"))
-    except Exception:
-        return {}
-
-label_to_text = load_label_to_text()
-
-# ------------------------------------------------------------
-# 4) label_map 로드 (정수 인덱스 -> 라벨 문자열)
-#    train.py에서 저장한 idx_to_label 형태:
-#       {"0":"WORD0001","1":"WORD0002",...}
-# ------------------------------------------------------------
-def load_label_map() -> Dict[int, str]:
-    p = MODEL_DIR / "label_map.json"
-    if not p.exists():
-        raise FileNotFoundError(f"label_map.json not found: {p}")
-
-    raw = json.loads(p.read_text(encoding="utf-8"))
-    # json key는 문자열이므로 int로 변환
-    return {int(k): v for k, v in raw.items()}
+    return json.loads(p.read_text(encoding="utf-8"))
 
 idx_to_label = load_label_map()
 label_to_idx = {v: k for k, v in idx_to_label.items()}
+label_to_text = load_label_to_text()
 
-# ------------------------------------------------------------
-# 5) 모델 로드
-# ------------------------------------------------------------
+# =========================
+# 4) 모델 로드 (best_model_top5 우선)
+# =========================
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("device:", device)
 
-MODEL_PATH = MODEL_DIR / "best_model.pth" # ✅ 손+얼굴 학습 best 모델
+cand_paths = [
+    MODEL_DIR / "best_model_top5.pth",
+    MODEL_DIR / "best_model.pth",
+    MODEL_DIR / "best_model_top1.pth",
+    MODEL_DIR / "model.pth",
+]
+MODEL_PATH = next((p for p in cand_paths if p.exists()), None)
 print("MODEL_PATH =", MODEL_PATH)
-print("exists? =", MODEL_PATH.exists())
-if not MODEL_PATH.exists():
-    raise FileNotFoundError(f"model not found: {MODEL_PATH}")
+
+if MODEL_PATH is None:
+    raise FileNotFoundError(f"model not found. tried={cand_paths}")
 
 model = TCNClassifier(feat_dim=FEAT_DIM, num_classes=len(label_to_idx)).to(device)
 
-state = torch.load(MODEL_PATH, map_location="cpu", weights_only=True)
-state_dict = state.get("state_dict", state)
+try:
+    state = torch.load(MODEL_PATH, map_location="cpu", weights_only=True)
+except TypeError:
+    state = torch.load(MODEL_PATH, map_location="cpu")
 
+state_dict = state.get("state_dict", state)
 model_sd = model.state_dict()
 
-# (A) 흔한 키 이름 리맵: head.weight -> head.1.weight
+# head.weight -> head.1.weight 같은 케이스 보정(너 pasted에 있던 로직)
 if "head.weight" in state_dict and "head.1.weight" in model_sd:
     state_dict["head.1.weight"] = state_dict.pop("head.weight")
 if "head.bias" in state_dict and "head.1.bias" in model_sd:
     state_dict["head.1.bias"] = state_dict.pop("head.bias")
 
-# (B) shape 맞는 것만 로드 (나머지는 스킵)
 filtered = {}
 for k, v in state_dict.items():
     if k in model_sd and hasattr(v, "shape") and v.shape == model_sd[k].shape:
@@ -133,46 +127,31 @@ for k, v in state_dict.items():
 
 model_sd.update(filtered)
 missing, unexpected = model.load_state_dict(model_sd, strict=False)
-
 print("missing:", missing)
 print("unexpected:", unexpected)
 
 model.eval()
 
-# 6) session 상태 저장 (윈도우 투표용)
-# session_id -> {
-#   "buf": deque(maxlen=WIN_SIZE),   # 최근 예측 topK 저장
-#   "last_time": float,              # 마지막 요청 시간
-#   "cooldown_until": float          # 중복 확정 방지
-# }
+# =========================
+# 5) 세션(윈도우 voting)
+# =========================
 SESSION_STATE: Dict[str, Dict[str, Any]] = {}
 
 def cleanup_sessions():
-    """오래된 세션 삭제 (메모리 누수 방지)"""
     now = time.time()
-    dead = [sid for sid, st in SESSION_STATE.items()
-            if now - st["last_time"] > SESSION_TTL_SEC]
+    dead = [sid for sid, st in SESSION_STATE.items() if now - st["last_time"] > SESSION_TTL_SEC]
     for sid in dead:
         del SESSION_STATE[sid]
 
-# ------------------------------------------------------------
-# 7) 유틸: [{x,y,z}, ...] 형태 -> (N,3) np 배열로 변환
-# ------------------------------------------------------------
+# =========================
+# 6) frames -> (30,336)
+# =========================
 def points_dict_to_nx3(points: Any, n_points: int) -> np.ndarray:
-    """
-    points: 보통 프론트에서 보내는 [{"x":..,"y":..,"z":..}, ...] 리스트
-    n_points: HAND_POINTS(21) or FACE_POINTS(478)
-    """
     out = np.zeros((n_points, 3), dtype=np.float32)
-
-    # points가 리스트 아니거나 비어있으면 0으로 반환
     if not isinstance(points, list) or len(points) == 0:
         return out
-
-    # 첫 원소가 dict가 아니면 구조가 이상한 것 -> 0으로 반환
     if not isinstance(points[0], dict):
         return out
-
     m = min(len(points), n_points)
     for i in range(m):
         p = points[i]
@@ -181,66 +160,39 @@ def points_dict_to_nx3(points: Any, n_points: int) -> np.ndarray:
         out[i, 2] = float(p.get("z", 0.0))
     return out
 
-# ------------------------------------------------------------
-# 8) frames -> (30,1560) 만들기
-# ------------------------------------------------------------
 def make_tcn_input_from_frames(frames: List[Dict[str, Any]]):
-    """
-    frames: [{"hands":[hand0, hand1], "face":[...]} ...]
-      - hands: [ [ {x,y,z}*21 ], [ {x,y,z}*21 ] ] 형태
-      - face : [ {x,y,z}*478 ] 형태
-
-    리턴:
-      x: (30,1560)
-      frames_hand: 손이 들어온 프레임 수
-      frames_face: 얼굴이 들어온 프레임 수(손 있는 프레임 중 얼굴도 있는 수)
-    """
-
-    seq_hand = []
-    seq_face = []
-
-    frames_hand = 0
-    frames_face = 0
+    seq_hand, seq_face = [], []
+    frames_hand, frames_face = 0, 0
 
     for f in frames:
         if not isinstance(f, dict):
             continue
-
         hands = f.get("hands", None)
         face = f.get("face", None)
 
-        # 한 프레임의 손 (2,21,3)
         frame_hand = np.zeros((2, HAND_POINTS, 3), dtype=np.float32)
-
         if isinstance(hands, list):
-            # hands[0], hands[1] 두 손만 사용
             for hi in range(min(2, len(hands))):
-                hand_points = hands[hi]
-                frame_hand[hi] = points_dict_to_nx3(hand_points, HAND_POINTS)
+                frame_hand[hi] = points_dict_to_nx3(hands[hi], HAND_POINTS)
 
-        # 한 프레임의 얼굴 (478,3)
         frame_face = points_dict_to_nx3(face, FACE_POINTS)
 
         has_hand = (frame_hand.sum() != 0)
         has_face = (frame_face.sum() != 0)
 
-        # ✅ 핵심 정책: 손이 없으면 학습/추론에 넣지 않음
-        # (손이 있어야 수어 시작으로 판단)
+        # ✅ 손 없는 프레임은 버림
         if not has_hand:
             continue
 
         seq_hand.append(frame_hand)
         seq_face.append(frame_face)
-
         frames_hand += 1
         if has_face:
             frames_face += 1
 
-    # 손 프레임이 0개면 실패
     if frames_hand == 0:
         return None, 0, 0
 
-    # 길이 T 맞추기 (30)
     if frames_hand >= T:
         seq_hand = seq_hand[-T:]
         seq_face = seq_face[-T:]
@@ -249,30 +201,21 @@ def make_tcn_input_from_frames(frames: List[Dict[str, Any]]):
         seq_hand += [np.zeros((2, HAND_POINTS, 3), dtype=np.float32) for _ in range(pad)]
         seq_face += [np.zeros((FACE_POINTS, 3), dtype=np.float32) for _ in range(pad)]
 
-    # (30,2,21,3) -> (30,126)
-    x_hand = np.stack(seq_hand, axis=0).astype(np.float32)
-    hand_flat = x_hand.reshape(T, -1)
+    x_hand = np.stack(seq_hand, axis=0).reshape(T, -1).astype(np.float32)  # (30,126)
+    x_face = np.stack(seq_face, axis=0).astype(np.float32)                # (30,70,3)
 
-    # (30,478,3) -> (30,1434)
-    x_face = np.stack(seq_face, axis=0).astype(np.float32)
-
-    # 얼굴은 카메라 위치 변화에 민감하니까
-    # 각 프레임에서 0번 포인트를 기준(anchor)으로 x,y를 상대좌표화
-    anchor_xy = x_face[:, 0:1, :2]              # (30,1,2)
+    # 얼굴 anchor 상대좌표
+    anchor_xy = x_face[:, 0:1, :2]
     x_face[:, :, :2] = x_face[:, :, :2] - anchor_xy
+    x_face = x_face.reshape(T, -1).astype(np.float32)                     # (30,210)
 
-    face_flat = x_face.reshape(T, -1)
-
-    # concat -> (30,1560)
-    x = np.concatenate([hand_flat, face_flat], axis=1)
-
+    x = np.concatenate([x_hand, x_face], axis=1)                           # (30,336)
     return x, frames_hand, frames_face
 
-# ------------------------------------------------------------
-# 9) Request / Response 스키마
-# ------------------------------------------------------------
+# =========================
+# 7) Request/Response
+# =========================
 class PredictRequest(BaseModel):
-    # session_id가 없으면 기본값 default로 (프론트가 안 보내도 됨)
     session_id: Optional[str] = "default"
     frames: List[Any]
     forceFinal: Optional[bool] = False
@@ -283,176 +226,155 @@ class Candidate(BaseModel):
     prob: float
 
 class PredictResponse(BaseModel):
-    mode: str                 # "final" or "pending"
-    label: Optional[str]      # final이면 채움, pending이면 None
-    text: Optional[str]       # label_to_text 매핑 결과(없으면 None)
-    confidence: float         # top1 확률
-    streak: int               # 현재 연속 카운트(디버그용)
-    framesReceived: int  
-    candidates: List[Candidate]  # 후보 topK (프론트에서 3개 보여주기 가능)
+    mode: str
+    label: Optional[str]
+    text: Optional[str]
+    confidence: float
+    streak: int
+    framesReceived: int
+    candidates: List[Candidate]
 
-# ------------------------------------------------------------
-# 10) /predict (유일한 엔드포인트로 통일)
-# ------------------------------------------------------------
+# =========================
+# 8) health
+# =========================
+@app.get("/health")
+def health():
+    return {
+        "ok": True,
+        "modelPath": str(MODEL_PATH),
+        "numClasses": len(label_to_idx),
+        "hasLabelToText": bool(label_to_text),
+    }
+
+# =========================
+# 9) predict
+# =========================
 @app.post("/predict", response_model=PredictResponse)
 def predict(req: PredictRequest):
-    cleanup_sessions()
+    try:
+        cleanup_sessions()
 
-    sid = req.session_id or "default"
-    frames = req.frames or []
-    force_final = bool(req.forceFinal)
+        sid = req.session_id or "default"
+        frames = req.frames or []
+        force_final = bool(req.forceFinal)
 
-    made = make_tcn_input_from_frames(frames)
-    if made[0] is None:
-        return PredictResponse(
-            mode="pending",
-            label=None,
-            text=None,
-            confidence=0.0,
-            streak=0,
-            framesReceived=0,
-            candidates=[]
-        )
+        made = make_tcn_input_from_frames(frames)
+        if made[0] is None:
+            return PredictResponse(
+                mode="pending", label=None, text=None,
+                confidence=0.0, streak=0, framesReceived=0, candidates=[]
+            )
 
-    x, frames_hand, frames_face = made
-    xt = torch.from_numpy(x).unsqueeze(0).to(device)
+        x, frames_hand, frames_face = made
 
-    with torch.no_grad():
-        logits = model(xt)[0]
-        probs = torch.softmax(logits, dim=0)
+        x_t = torch.from_numpy(x).unsqueeze(0).to(device)  # (1,30,336)
+        with torch.no_grad():
+            logits = model(x_t)
+            probs = torch.softmax(logits, dim=1)[0]         # (C,)
 
-    confidence, pred_idx = torch.max(probs, dim=0)
-    confidence = float(confidence.item())
-    pred_label = idx_to_label[int(pred_idx.item())]
+        confidence, pred_idx = torch.max(probs, dim=0)
+        confidence = float(confidence.item())
+        pred_label = idx_to_label[int(pred_idx.item())]
 
-    k = min(TOPK_K, probs.numel())
-    topk = torch.topk(probs, k=k)
-    candidates = []
-    for p, idx in zip(topk.values.tolist(), topk.indices.tolist()):
-        lb = idx_to_label[int(idx)]
-        candidates.append(Candidate(
-            label=lb,
-            text=label_to_text.get(lb),
-            prob=float(p)
-        ))
+        # topK 후보
+        k = min(TOPK_K, probs.numel())
+        topk = torch.topk(probs, k=k)
+        candidates: List[Candidate] = []
+        for p, idx in zip(topk.values.tolist(), topk.indices.tolist()):
+            lb = idx_to_label[int(idx)]
+            candidates.append(Candidate(
+                label=lb,
+                text=label_to_text.get(norm_word(lb)) or label_to_text.get(lb),
+                prob=float(p)
+            ))
 
-    # ✅✅✅ 원샷(정지) 강제 확정: 실시간 streak/threshold 로직 건드리지 않음
-    if force_final:
-        return PredictResponse(
-            mode="final",
-            label=pred_label,
-            text=label_to_text.get(pred_label),
-            confidence=confidence,
-            streak=1,
-            framesReceived=frames_hand,
-            candidates=candidates
-        )
+        # 원샷 강제확정
+        if force_final:
+            return PredictResponse(
+                mode="final",
+                label=pred_label,
+                text=label_to_text.get(norm_word(pred_label)) or label_to_text.get(pred_label),
+                confidence=confidence,
+                streak=1,
+                framesReceived=frames_hand,
+                candidates=candidates
+            )
 
-    # ------------------------------------------------------------
-    # ✅✅✅ Window Voting (session별 버퍼)
-    # ------------------------------------------------------------
-    now = time.time()
-    st = SESSION_STATE.get(sid)
-    if st is None:
-        st = {
-            "buf": deque(maxlen=WIN_SIZE),
-            "last_time": now,
-            "cooldown_until": 0.0
-        }
-        SESSION_STATE[sid] = st
-    st["last_time"] = now
+        # session window voting
+        now = time.time()
+        st = SESSION_STATE.get(sid)
+        if st is None:
+            st = {"buf": deque(maxlen=WIN_SIZE), "last_time": now, "cooldown_until": 0.0}
+            SESSION_STATE[sid] = st
+        st["last_time"] = now
 
-    # (a) 확신이 너무 낮으면 이번 프레임은 버퍼에 넣지 않고 pending
-    #     (노이즈 프레임이 윈도우를 오염시키는 걸 방지)
-    if confidence < BASE_TH:
-        return PredictResponse(
-            mode="pending",
-            label=None,
-            text=None,
-            confidence=confidence,
-            streak=0,  # debug용 의미 없음
-            framesReceived=frames_hand,
-            candidates=candidates
-        )
+        if confidence < BASE_TH:
+            return PredictResponse(
+                mode="pending", label=None, text=None,
+                confidence=confidence, streak=0,
+                framesReceived=frames_hand, candidates=candidates
+            )
 
-    # (b) topK 후보를 버퍼에 저장
-    #     buf 원소 예: {"topk":[("WORD0001",0.3),("WORD0007",0.2)...], "t": now}
-    st["buf"].append({
-        "topk": [(c.label, float(c.prob)) for c in candidates],
-        "t": now
-    })
+        st["buf"].append({"topk": [(c.label, float(c.prob)) for c in candidates], "t": now})
 
-    # (c) cooldown이면 확정 금지
-    if now < st["cooldown_until"]:
-        return PredictResponse(
-            mode="pending",
-            label=None,
-            text=None,
-            confidence=confidence,
-            streak=len(st["buf"]),
-            framesReceived=frames_hand,
-            candidates=candidates
-        )
+        if now < st["cooldown_until"]:
+            return PredictResponse(
+                mode="pending", label=None, text=None,
+                confidence=confidence, streak=len(st["buf"]),
+                framesReceived=frames_hand, candidates=candidates
+            )
 
-    # (d) 윈도우 투표 점수 계산 (rank 가중치 * 확률)
-    scores = defaultdict(float)
-    for item in st["buf"]:
-        topk_list = item["topk"]
-        for r, (lb, pr) in enumerate(topk_list):
-            w = TOPK_WEIGHTS[r] if r < len(TOPK_WEIGHTS) else 1.0
-            scores[lb] += w * pr
+        scores = defaultdict(float)
+        for item in st["buf"]:
+            for r, (lb, pr) in enumerate(item["topk"]):
+                w = TOPK_WEIGHTS[r] if r < len(TOPK_WEIGHTS) else 1.0
+                scores[lb] += w * pr
 
-    if not scores:
-        return PredictResponse(
-            mode="pending",
-            label=None,
-            text=None,
-            confidence=confidence,
-            streak=len(st["buf"]),
-            framesReceived=frames_hand,
-            candidates=candidates
-        )
+        if not scores:
+            return PredictResponse(
+                mode="pending", label=None, text=None,
+                confidence=confidence, streak=len(st["buf"]),
+                framesReceived=frames_hand, candidates=candidates
+            )
 
-    winner = max(scores.items(), key=lambda x: x[1])[0]
-    total = float(sum(scores.values()))
-    vote_ratio = float(scores[winner] / total) if total > 0 else 0.0
+        winner = max(scores.items(), key=lambda x: x[1])[0]
+        total = float(sum(scores.values()))
+        vote_ratio = float(scores[winner] / total) if total > 0 else 0.0
 
-    # winner 평균 확률(윈도우 내에서 winner가 topK에 등장한 prob 평균)
-    probs_w = []
-    for item in st["buf"]:
-        pr = 0.0
-        for lb, p in item["topk"]:
-            if lb == winner:
-                pr = float(p)
-                break
-        probs_w.append(pr)
-    avg_prob = float(sum(probs_w) / max(1, len(probs_w)))
+        probs_w = []
+        for item in st["buf"]:
+            pr = 0.0
+            for lb, p in item["topk"]:
+                if lb == winner:
+                    pr = float(p)
+                    break
+            probs_w.append(pr)
+        avg_prob = float(sum(probs_w) / max(1, len(probs_w)))
 
-    # (e) 확정 조건
-    #   - vote_ratio 충분히 크고
-    #   - winner가 윈도우에서 평균적으로 어느 정도 확률이 나오면
-    if vote_ratio >= VOTE_MIN_RATIO and avg_prob >= MIN_AVG_PROB:
-        st["buf"].clear()
-        st["cooldown_until"] = now + COOLDOWN_SEC
+        if vote_ratio >= VOTE_MIN_RATIO and avg_prob >= MIN_AVG_PROB:
+            st["buf"].clear()
+            st["cooldown_until"] = now + COOLDOWN_SEC
+            return PredictResponse(
+                mode="final",
+                label=winner,
+                text=label_to_text.get(norm_word(winner)) or label_to_text.get(winner),
+                confidence=avg_prob,
+                streak=WIN_SIZE,
+                framesReceived=frames_hand,
+                candidates=candidates
+            )
 
         return PredictResponse(
-            mode="final",
-            label=winner,
-            text=label_to_text.get(winner),
-            confidence=avg_prob,         # final confidence는 avg_prob로 주는 게 더 안정적
-            streak=WIN_SIZE,             # debug용
-            framesReceived=frames_hand,
-            candidates=candidates
+            mode="pending", label=None, text=None,
+            confidence=confidence, streak=len(st["buf"]),
+            framesReceived=frames_hand, candidates=candidates
         )
 
-    # 아직 확정 못함
-    return PredictResponse(
-        mode="pending",
-        label=None,
-        text=None,
-        confidence=confidence,
-        streak=len(st["buf"]),
-        framesReceived=frames_hand,
-        candidates=candidates
-    )
-
+    except Exception as e:
+        # ✅ 파이썬이 여기서 뻗으면 스프링이 timeout으로 죽어버리니까,
+        # 무조건 응답을 "빨리" 줘서 원인 파악 가능하게 함.
+        print("[ERROR] /predict exception:", repr(e))
+        return PredictResponse(
+            mode="error", label=None, text=None,
+            confidence=0.0, streak=0, framesReceived=0, candidates=[]
+        )

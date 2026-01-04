@@ -23,7 +23,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
-
+import sys
+sys.stdout.reconfigure(encoding="utf-8")
+sys.stderr.reconfigure(encoding="utf-8")
 
 # ------------------------------------------------------------
 # 0) 재현성(같은 조건이면 결과 비슷하게)
@@ -120,10 +122,10 @@ class NpyDataset(Dataset):
                     anchor = face[:, 0:1, :2]      # (T,1,2)
                     face[:, :, :2] -= anchor       # x,y에 대해 기준점 상대좌표화
 
-                # (T, 478, 3) -> (T, 1434)
+                # (T, 70, 3) -> (T, 210)
                 face = face.reshape(T, -1)
 
-                # 최종 입력: (T, 126 + 1434) = (T, 1560)
+                # 최종 입력: (T, 126 + 210) = (T, 336)
                 x = np.concatenate([hand, face], axis=1).astype(np.float32)
             else:
                 # 얼굴 파일이 없으면 손만 사용 (데이터가 완벽히 안 맞아도 학습은 진행되게)

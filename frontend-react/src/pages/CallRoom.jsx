@@ -18,41 +18,59 @@ import axios from "axios";
  */
 export default function CallRoom() {
 
-  // 임시 샘플 프레임 제작
-  const makeSampleFrames = (n = 12) => {
-    // mediapipe 손 랜드마크는 21개라 가정 (일반적으로 21)
-    const makeHand21 = (dx = 0, dy = 0) =>
-      Array.from({ length: 21 }, (_, i) => ({
-        x: 0.3 + dx + i * 0.001,
-        y: 0.4 + dy + i * 0.001,
-        z: 0,
-      }));
+  // ============================================================
+  // ✅ [공통 유틸] AIHub 학습 포맷에 맞추기 위한 패딩/변환 함수들
+  // ============================================================
+  // 이유:
+  // - MediaPipe는 x,y가 0~1 정규화 좌표
+  // - AIHub(OpenPose)는 대개 픽셀 좌표 기반 + (x,y,conf) 형태
+  // - 그래서 프론트에서 (x*W, y*H)로 픽셀 스케일로 맞춰주면
+  //   학습 데이터 분포와 가까워져서 테스트/성능이 안정적임.
 
-    const baseT = Date.now();
+  const ZERO_HAND = Array.from({ length: 21 }, () => ({ x: 0, y: 0, z: 0 }));
+  const ZERO_FACE70 = Array.from({ length: 70 }, () => ({ x: 0, y: 0, z: 0 }));
 
-    return Array.from({ length: n }, (_, k) => ({
-      t: baseT + k * 100,
-      hands: [
-        makeHand21(k * 0.002, 0), // 0번(Left로 쓰든 Right로 쓰든) 랜덤 이동
-        [],                       // 다른 손은 비움
-      ],
-      face: [], // face는 일단 빈 배열로 테스트
-    }));
+  // MediaPipe landmark(0~1) -> 픽셀 + conf대용(z)
+  const toPxConf = (p, W, H) => ({
+    x: (p?.x ?? 0) * W,
+    y: (p?.y ?? 0) * H,
+    z: 1.0, // MediaPipe는 conf가 없어서 1.0로 고정(서버는 3값을 기대)
+  });
+
+  // ============================================================
+  // ✅ [핵심] FaceMesh(468/478) -> AIHub(OpenPose-ish) Face 70 매핑
+  // ============================================================
+  // 이유:
+  // - AIHub 얼굴은 "70개"로 학습했는데, MediaPipe는 468/478개임
+  // - slice(0,70)은 '의미/순서'가 AIHub 70과 안 맞을 확률이 큼
+  // - 그래서 dlib68 순서에 대응되는 대표 매핑 + iris center 2개를 써서
+  //   "AIHub가 기대하는 얼굴 점 의미"에 더 가깝게 만들어줌.
+
+  const MP_DLIB68 = [
+    162, 234, 93, 58, 172, 136, 149, 148, 152, 377, 378, 365, 397, 288, 323, 454, 389,
+    71, 63, 105, 66, 107, 336, 296, 334, 293, 300,
+    168, 197, 5, 4, 75, 97, 2, 326, 305, 33,
+    160, 158, 133, 153, 144, 362, 385, 387, 263, 373,
+    61, 39, 37, 0, 267, 269, 291, 405,
+    78, 191, 80, 81, 82, 13, 312, 311, 310, 415,
+    95, 88, 178, 87, 14, 317, 402, 318, 324, 308
+  ];
+
+  // refineLandmarks:true일 때 iris가 포함(478)되고, 468/473이 중심점으로 자주 쓰임
+  const MP_IRIS_CENTER_1 = 468;
+  const MP_IRIS_CENTER_2 = 473;
+
+  const faceMeshToAIHub70 = (faceLm, W, H) => {
+    // iris(473)까지 접근하려면 최소 474개는 있어야 안전
+    if (!Array.isArray(faceLm) || faceLm.length < 474) return ZERO_FACE70;
+
+    const out = MP_DLIB68.map((idx) => toPxConf(faceLm[idx], W, H));
+    out.push(toPxConf(faceLm[MP_IRIS_CENTER_1], W, H));
+    out.push(toPxConf(faceLm[MP_IRIS_CENTER_2], W, H));
+
+    return out.length === 70 ? out : ZERO_FACE70;
   };
 
-  // 테스트용 번역 샘플
-  const testTranslateSample = async () => {
-    try {
-      const frames = makeSampleFrames(12);
-      const res = await axios.post(`/api/translate`, { frames });
-      const word = res.data?.text ?? "(no text)";
-      const conf = Number(res.data?.confidence ?? 0);
-      setTranslatedText(`[SAMPLE] ${word} (conf=${conf.toFixed(2)})`);
-    } catch (e) {
-      console.error(e);
-      setTranslatedText("[SAMPLE] 요청 실패 (콘솔 확인)");
-    }
-  };
   const [translatedText, setTranslatedText] = useState("번역 대기중...");
   const handsRef = useRef(null);
   const faceMeshRef = useRef(null);
@@ -225,6 +243,7 @@ export default function CallRoom() {
       const faces = results.multiFaceLandmarks ?? [];
       latestFaceLandmarksRef.current = faces;
       setFaceDetected(faces.length > 0);
+      console.log("faceLm len:", (results.multiFaceLandmarks?.[0]?.length ?? 0));
     });
 
     handsRef.current = hands;
@@ -252,13 +271,22 @@ export default function CallRoom() {
       const faces = latestFaceLandmarksRef.current ?? [];
       const face0 = faces[0] ?? null;
 
-      const face = face0 ? face0.map((p) => ({ x: p.x, y: p.y, z: p.z })) : [];
+      // ✅ (중요) remote video의 실제 픽셀 크기
+      // 이유: MediaPipe는 0~1 정규화 좌표 → AIHub 분포에 맞추려면 픽셀화 필요
+      const W = videoEl.videoWidth || 1;
+      const H = videoEl.videoHeight || 1;
 
+      // 손 없으면 프레임 스킵(데이터 깔끔)
       const hasHands = (latest?.handsLm?.length ?? 0) > 0;
       if (!hasHands) return;
 
-      // 항상 [Left, Right] 순서 고정 (Camera랑 동일)
-      const handsFixed = [[], []]; // 0: Left, 1: Right (네 코드 기준으로 맞춤)
+      // ✅ face: AIHub 규격 70개로 "매핑" + 픽셀 변환
+      // 이유: 서버/모델이 face=70 기준으로 학습/추론하니까 입력 shape/의미를 맞춤
+      const face = face0 ? faceMeshToAIHub70(face0, W, H) : ZERO_FACE70;
+
+      // ✅ hands: 항상 [2][21]로 고정 + 픽셀 변환
+      // 이유: 프레임마다 손이 1개/2개로 왔다갔다 해도 shape를 고정해야 모델이 안정
+      const handsFixed = [ZERO_HAND, ZERO_HAND];
 
       const { handsLm, handed } = latest;
 
@@ -266,18 +294,23 @@ export default function CallRoom() {
         const label =
           handed?.[i]?.label ?? handed?.[i]?.classification?.[0]?.label ?? null;
 
-        // 여기서 Left/Right 뒤집는 건 Camera 코드와 동일하게 유지
-        // 만약 번역이 좌우 때문에 계속 틀리면 이 줄만 바꿔보면 됨
+        // Camera와 동일하게 좌/우 뒤집기 유지(거울/카메라 반전 고려)
+        // (나중에 좌우 때문에 계속 틀리면 이 줄만 바꿔서 비교)
         const idx = label === "Left" ? 1 : 0;
 
-        handsFixed[idx] = handsLm[i].map((p) => ({ x: p.x, y: p.y, z: p.z }));
+        const lm = handsLm[i];
+        if (Array.isArray(lm) && lm.length === 21) {
+          // ✅ 손도 픽셀 변환 + z=1.0(conf대용)로 맞춤
+          handsFixed[idx] = lm.map((p) => toPxConf(p, W, H));
+        }
       }
 
       bufferRef.current.push({ t: Date.now(), hands: handsFixed, face });
 
-      // rolling window 유지
+      // rolling window 유지 (최근 30프레임만)
       while (bufferRef.current.length > T) bufferRef.current.shift();
     };
+
 
     // 10fps로 최신 랜드마크 버퍼에 쌓음
     frameTimerRef.current = setInterval(pushFrame, 100);
@@ -294,17 +327,33 @@ export default function CallRoom() {
       if (translatingRef.current) return;
       if (bufferRef.current.length < 10) return; // 최소 프레임
 
+      // ✅ 서버로 보낼 프레임 만들기 (shape 고정)
+      // 이유:
+      // - 버퍼에 혹시 이상 프레임(손 길이 !=21, face 길이 !=70)이 섞이면
+      //   서버에서 shape mismatch로 터지거나, 모델 입력이 흔들림
       const framesForServer = bufferRef.current
-        .filter((f) => f.hands?.some((h) => h?.length > 0))
-        .map((f) => ({
-          t: f.t,
-          hands: (f.hands ?? [[], []]).map((hand) =>
-            (hand ?? []).map((p) => ({ x: p.x, y: p.y, z: p.z }))
-          ),
-          face: (f.face ?? []).map((p) => ({ x: p.x, y: p.y, z: p.z })),
-        }));
 
+        .filter((f) => f.hands?.some((h) => (h?.length ?? 0) > 0))
+        .map((f) => {
+          const hands = (f.hands ?? [[], []]).map((hand) =>
+            Array.isArray(hand) && hand.length === 21 ? hand : ZERO_HAND
+          );
+
+          const face =
+            Array.isArray(f.face) && f.face.length === 70 ? f.face : ZERO_FACE70;
+
+          return { t: f.t, hands, face };
+        });
+      if (framesForServer.length) {
+        console.log(
+          "SEND SHAPE",
+          framesForServer.length,
+          framesForServer[0].hands.map(h => h.length), // [21,21] 기대
+          framesForServer[0].face.length               // 70 기대
+        );
+      }
       if (framesForServer.length < 10) return;
+
 
       translatingRef.current = true;
       try {
@@ -754,12 +803,7 @@ export default function CallRoom() {
             >
               채팅 비우기
             </button>
-            <button
-              onClick={testTranslateSample}
-              className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              샘플 번역 테스트
-            </button>
+
 
             <button
               onClick={leaveRoom} // ✅ 네 코드에 있는 나가기 함수로

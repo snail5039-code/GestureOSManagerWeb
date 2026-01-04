@@ -280,6 +280,7 @@ def main():
     # ✅ 커맨드 옵션 받기
     # 예:
     # python predict_test.py --model_path best_model_face.pth --use_face 1
+    # use_face=1이면 입력 F는 336(=126+210)이어야 정상
     ap = argparse.ArgumentParser()
 
     ap.add_argument("--data_dir", type=str, default=r".\dataset_top50_split", help="split 데이터 폴더")
@@ -320,9 +321,19 @@ def main():
 
     # (3) 입력 차원 확인 후 모델 생성
     # - ds[0]은 (T,F)라서 F를 보고 모델을 맞춘다
+    if len(ds) == 0:
+         raise RuntimeError(f"val dataset is empty: {data_dir / 'val'} (split 먼저 만들었는지 확인)")
+
     x0, _ = ds[0]
     T, F = x0.shape
     print("sample shape:", (T, F))
+
+    # 참고 출력(헷갈림 방지)
+    if use_face:
+        print("expected F (hand+face70): 336")
+    else:
+        print("expected F (hand only): 126")
+
 
     model = TCNClassifier(F, num_classes=num_classes).to(device)
 

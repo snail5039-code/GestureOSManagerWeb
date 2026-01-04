@@ -4,7 +4,7 @@ from pathlib import Path        # 윈도우 경로/파일 탐색을 편하게 �
 
 # ✅ 1) morpheme JSON들이 들어있는 "루트 폴더" 경로
 # 여기 안에 17, 18 폴더가 있고, 그 안에 *_morpheme.json 파일들이 있음
-ROOT = Path(r"D:\aihub_word\morpheme\01_real_word_morpheme\morpheme")
+ROOT = Path(r"D:\aihub_download\sign_103\004.수어영상\1.Training\라벨링데이터\REAL\WORD\01_real_word_morpheme\morpheme")
 
 out = {}                        # ✅ 결과를 저장할 딕셔너리: label -> 한국어
 # 예: out["WORD00001"] = "고민"

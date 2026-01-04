@@ -107,3 +107,8 @@ ai-server/artifacts/
 ai-server/archive/
 ai-server/samples/
 backend-spring/.metadata/
+
+# ai-server 내부 data 통째로 제외 (가장 확실)
+ai-server/data/
+ai-server/data/**
+ai-server/logs/

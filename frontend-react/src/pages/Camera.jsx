@@ -1,519 +1,546 @@
-import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import axios from "axios";
 import { Hands } from "@mediapipe/hands";
 import { FaceMesh } from "@mediapipe/face_mesh";
-import { Camera as MPCamera } from "@mediapipe/camera_utils";
-import axios from "axios";
+
+// =========================
+// 설정
+// =========================
+const T = 30;                // 프레임 길이
+const SAVE_FPS_MS = 100;     // 10fps 저장
+const CDN = "https://cdn.jsdelivr.net/npm"; // mediapipe asset CDN
+
+// =========================
+// ZERO 텐서(패딩)
+// =========================
+const ZERO_PT = { x: 0, y: 0, z: 0 };
+const ZERO_HAND21 = Array.from({ length: 21 }, () => ({ ...ZERO_PT }));
+const ZERO_HAND = ZERO_HAND21; // alias
+const ZERO_FACE70 = Array.from({ length: 70 }, () => ({ ...ZERO_PT }));
 
 export default function Camera() {
+  // =========================
+  // Refs
+  // =========================
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
-  const [recording, setRecording] = useState(false);
-  const bufferRef = useRef([]); //녹화 중 쌓이는 프레임 리스트임
-  const latestLandmarksRef = useRef(null);
-  const handsRef = useRef(null); // 손 인식 엔진 저장 상자
-  const mpCameraRef = useRef(null); // 미디어 파이프 카메라 보관
-  const faceMeshRef = useRef(null); // 얼굴 인식 엔진 저장
-  const latestFaceLandmarksRef = useRef(null); // 최신 얼굴 랜드마크 저장
-  const [handDetected, setHandDetected] = useState(false); // 화면 표시용 손이 있나 없나 표시
-  const [handCount, setHandCount] = useState(0);
-  const [lrStatus, setLrStatus] = useState("없음");
+  const handsRef = useRef(null);
+  const faceRef = useRef(null);
 
-  const [error, setError] = useState("");
-  const [frameCount, setFrameCount] = useState(0);
-  const [savedPayload, setSavedPayload] = useState(null);
-  const [resultText, setResultText] = useState("");
-  const [resultLabel, setResultLabel] = useState("");
-  const [sentence, setSentence] = useState("");
-  const [lastWord, setLastWord] = useState("");
-  const [stableWord, setStableWord] = useState("");
-  const [stableCount, setStableCount] = useState(0);
+  const latestHandsRef = useRef({ handsLm: [], handed: [] });
+  const latestFacesRef = useRef([]);
+
+  const bufferRef = useRef([]);
+  const saveTimerRef = useRef(null);
+
+  // =========================
+  // UI State
+  // =========================
+  const [recording, setRecording] = useState(false);
+
+  const [handDetected, setHandDetected] = useState(false);
+  const [handCount, setHandCount] = useState(0);
+
   const [faceDetected, setFaceDetected] = useState(false);
   const [faceCount, setFaceCount] = useState(0);
 
-  useEffect(() => {
-    const start = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false,
-        });
+  const [frameCount, setFrameCount] = useState(0);
 
-        streamRef.current = stream; // 나중에 끄려고 저장해논거임
+  const [resultText, setResultText] = useState("");
+  const [resultLabel, setResultLabel] = useState("");
+  const [sentence, setSentence] = useState("");
+  const [error, setError] = useState("");
 
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream; //srcObject 카메라에서 받아온 영상 넣어주는거
+  const [previewMode, setPreviewMode] = useState("summary"); // summary | raw
+  const [previewJson, setPreviewJson] = useState("");
 
-          const hands = new Hands({
-            locateFile: (file) =>
-              `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`, //미디어 파일들 모델 가져올지
-          });
-          // 손 찾는 옵션들 우선은 1개 + 정확도임
-          hands.setOptions({
-            maxNumHands: 2,
-            modelComplexity: 1,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5,
-          });  
-          // 손 감지용
-          hands.onResults((results) => {
-            const handsLm = results.multiHandLandmarks ?? [];
-            const handed = results.multiHandedness ?? []; //손 좌우 정보 저장
-            const labels = handed
-              .map((h) => h?.label ?? h?.classification?.[0]?.label)
-              .filter(Boolean)
-              .map((l) => (l === "Left" ? "Right" : "Left"));
+  // ============================================================
+  // ✅ 얼굴 70개 = dlib68(68) + iris center 2개
+  //    (너 pasted.txt에 있던 MP_DLIB68 그대로 사용)
+  // ============================================================
+  const MP_DLIB68 = useMemo(
+    () => [
+      162, 234, 93, 58, 172, 136, 149, 148, 152, 377, 378, 365, 397, 288, 323,
+      454, 389,
+      71, 63, 105, 66, 107, 336, 296, 334, 293, 300,
+      168, 197, 5, 4, 75, 97, 2, 326, 305, 33,
+      160, 158, 133, 153, 144, 362, 385, 387, 263, 373,
+      61, 39, 37, 0, 267, 269, 291, 405,
+      78, 191, 80, 81, 82, 13, 312, 311, 310, 415,
+      95, 88, 178, 87, 14, 317, 402, 318, 324, 308,
+    ],
+    []
+  );
+  console.log("MP_DLIB68.length =", MP_DLIB68.length);
+  const MP_IRIS_CENTER_1 = 468;
+  const MP_IRIS_CENTER_2 = 473;
 
-            setLrStatus(labels.length ? labels.join(", ") : "없음");
+  // ============================================================
+  // ✅ 포인트 변환 (x,y는 픽셀 / z는 confidence처럼 사용)
+  //    - 값 있으면 z=1.0, 없으면 0
+  // ============================================================
+  const toPxConf = (p, W, H) => ({
+    x: (p?.x ?? 0) * W,
+    y: (p?.y ?? 0) * H,
+    z: (p?.z ?? 0) * W,   // ✅ 여기! 1.0 고정 금지
+  });
 
-            latestLandmarksRef.current = { handsLm, handed };
-            setHandDetected(handsLm.length > 0);
-            setHandCount(handsLm.length);
-          });
+  const faceMeshToAIHub70 = (faceLm, W, H) => {
+    if (!Array.isArray(faceLm) || faceLm.length < 468) return ZERO_FACE70;
 
-          const faceMesh = new FaceMesh({
-            locateFile: (file) =>
-              `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`,
-          });
+    // ✅ 혹시 MP_DLIB68 길이가 틀려도 앞 68개만 사용
+    const dlib68 = MP_DLIB68.slice(0, 68);
 
-          faceMesh.setOptions({
-            maxNumFaces: 1,
-            refineLandmarks: true,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5,
-          });
+    const out = dlib68.map((idx) => toPxConf(faceLm[idx], W, H)); // 68개
 
-          faceMesh.onResults((results) => {
-            const faces = results.multiFaceLandmarks ?? [];
-            latestFaceLandmarksRef.current = faces; //faces[0] 얼굴1개 랜드마크
+    const iris1 = faceLm[MP_IRIS_CENTER_1];
+    const iris2 = faceLm[MP_IRIS_CENTER_2];
 
-            setFaceDetected(faces.length > 0);
-            setFaceCount(faces.length);
-          });
+    out.push(iris1 ? toPxConf(iris1, W, H) : { x: 0, y: 0, z: 0 });
+    out.push(iris2 ? toPxConf(iris2, W, H) : { x: 0, y: 0, z: 0 });
 
-          faceMeshRef.current = faceMesh;
+    // ✅ 길이 강제 보정 (혹시라도 이상하면)
+    if (out.length < 70) {
+      while (out.length < 70) out.push({ x: 0, y: 0, z: 0 });
+    } else if (out.length > 70) {
+      out.length = 70;
+    }
 
-          // 감지한 손 찍은거 저장하고 보내는거!
-          const mpCam = new MPCamera(videoRef.current, {
-            onFrame: async () => {
-              const image = videoRef.current;
-              await hands.send({ image });
+    return out;
+  };
 
-              if (faceMeshRef.current) {
-                await faceMeshRef.current.send({ image });
-              }
-            },
-            width: 480,
-            height: 360,
-          });
-          mpCam.start();
 
-          handsRef.current = hands;
-          mpCameraRef.current = mpCam;
-        }
-      } catch (e) {
-        setError("카메라 권한이 없거나 접근 실패: " + (e.message ?? e));
+  // ============================================================
+  // ✅ Hands 정리 (2슬롯: Right=0, Left=1)
+  // ============================================================
+  const handsTo2Slots = (handsLm, handed, W, H) => {
+    const slots = [ZERO_HAND21.map(p => ({ ...p })), ZERO_HAND21.map(p => ({ ...p }))];
+
+    // 손이 없으면 그대로 0
+    if (!handsLm || handsLm.length === 0) return slots;
+
+    // ✅ 1) 손이 1개면 무조건 slot0에 고정
+    if (handsLm.length === 1) {
+      const lm = handsLm[0];
+      if (Array.isArray(lm) && lm.length === 21) {
+        slots[0] = lm.map((p) => toPxConf(p, W, H));
       }
-    };
+      return slots;
+    }
 
-    start();
+    // ✅ 2) 손이 2개 이상이면 "화면에서 x가 더 작은 손을 slot0"으로 고정
+    const scored = handsLm
+      .map((lm, i) => {
+        if (!Array.isArray(lm) || lm.length !== 21) return null;
+        const xs = lm.map(p => p?.x ?? 0);
+        const meanX = xs.reduce((a, b) => a + b, 0) / xs.length; // 0~1
+        return { i, meanX };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.meanX - b.meanX);
 
-    // 페이지 나갈 때 카메라 끄기(중요)
-    return () => {
-      if (mpCameraRef.current) mpCameraRef.current.stop();
-      if (handsRef.current) handsRef.current.close();
-      if (faceMeshRef.current) faceMeshRef.current.close(); // 끌때 페이스메시도 클로즈 해주기추가
+    const i0 = scored[0]?.i;
+    const i1 = scored[1]?.i;
 
+    if (i0 != null) slots[0] = handsLm[i0].map((p) => toPxConf(p, W, H));
+    if (i1 != null) slots[1] = handsLm[i1].map((p) => toPxConf(p, W, H));
+
+    return slots;
+  };
+
+
+  // ============================================================
+  // ✅ locateFile (mediapipe wasm/asset 로딩)
+  // ============================================================
+  const locateMP = (file) => {
+    if (file.includes("face_mesh")) return `${CDN}/@mediapipe/face_mesh/${file}`;
+    return `${CDN}/@mediapipe/hands/${file}`;
+  };
+
+  // ============================================================
+  // (1) 카메라 + mediapipe 초기화
+  // ============================================================
+  useEffect(() => {
+    let alive = true;
+
+    const startCamera = async () => {
+      // 기존 스트림 정리
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 640, height: 480 },
+        audio: false,
+      });
+
+      streamRef.current = stream;
+
+      const v = videoRef.current;
+      if (!v) return;
+
+      v.srcObject = stream;
+      v.muted = true;
+      v.playsInline = true;
+      v.autoplay = true;
+      await v.play();
+    };
+
+    const initMediapipe = async () => {
+      // Hands
+      const hands = new Hands({ locateFile: locateMP });
+      hands.setOptions({
+        maxNumHands: 2,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5,
+      });
+
+      hands.onResults((res) => {
+        const handsLm = res?.multiHandLandmarks ?? [];
+        const handed = res?.multiHandedness ?? [];
+
+        latestHandsRef.current = { handsLm, handed };
+
+        setHandDetected(handsLm.length > 0);
+        setHandCount(handsLm.length);
+      });
+
+      // FaceMesh
+      const face = new FaceMesh({ locateFile: locateMP });
+      face.setOptions({
+        maxNumFaces: 1,
+        refineLandmarks: true, // 478 환경
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5,
+      });
+
+      face.onResults((res) => {
+        const faces = res?.multiFaceLandmarks ?? [];
+        latestFacesRef.current = faces;
+
+        setFaceDetected(faces.length > 0);
+        setFaceCount(faces.length);
+
+        // ✅ 디버깅 로그(필요하면 켜라)
+        //if (faces[0]) {
+        //console.log("hasFace", true, "faceLmLen", faces[0].length);
+        //console.log("face0_468", faces[0][468]);
+        //}
+      });
+
+      handsRef.current = hands;
+      faceRef.current = face;
+    };
+
+    const loop = async () => {
+      if (!alive) return;
+
+      const v = videoRef.current;
+      if (v && v.readyState >= 2) {
+        try {
+          // 같은 프레임을 hands/face 둘 다 처리
+          await handsRef.current?.send({ image: v });
+          await faceRef.current?.send({ image: v });
+        } catch (e) {
+          // mediapipe 내부 에러는 일단 무시(스팸방지)
+        }
+      }
+
+      requestAnimationFrame(loop);
+    };
+
+    (async () => {
+      try {
+        await startCamera();
+        await initMediapipe();
+        loop();
+      } catch (e) {
+        setError("카메라/mediapipe 초기화 실패: " + (e?.message ?? e));
+      }
+    })();
+
+    return () => {
+      alive = false;
+      try {
+        handsRef.current?.close?.();
+        faceRef.current?.close?.();
+      } catch { }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
       }
     };
   }, []);
 
+  // ============================================================
+  // (2) 저장 루프: recording일 때만 10fps로 프레임 저장
+  // ============================================================
   useEffect(() => {
-    if (!recording) return;
-
-    const intervalId = setInterval(() => {
-      const latest = latestLandmarksRef.current;
-      const faces = latestFaceLandmarksRef.current ?? [];
-      const face0 = faces[0] ?? null; // 얼굴 1개만 쓸거면 0번만
-
-      const face = face0 ? face0.map((p) => ({ x: p.x, y: p.y, z: p.z })) : [];
-
-      const hasFace = face.length > 0;
-      const hasHands = (latest?.handsLm?.length ?? 0) > 0; // hasHands 변수 추가해버림
-
-      if (!hasHands) return;
-
-      // const { handsLm, handed } = latest;
-
-      // if (latest?.handsLm?.length) {
-      //   const {handsLm, handed} = latest;
-      // }
-      // 항상 [Left, Right] 순서로 고정
-      const handsFixed = [[], []]; // 1: Right, 0: Left
-
-      if (hasHands) {
-        const { handsLm, handed } = latest;
-
-        for (let i = 0; i < handsLm.length; i++) {
-          // mediapipe 버전에 따라 label 위치가 다를 수 있어서 안전하게 처리
-          const label =
-            handed?.[i]?.label ??
-            handed?.[i]?.classification?.[0]?.label ??
-            null;
-
-          const idx = label === "Left" ? 1 : 0;
-
-          // landmarks -> {x,y,z} 형태로 변환
-          handsFixed[idx] = handsLm[i].map((p) => ({ x: p.x, y: p.y, z: p.z }));
-        }
-      }
-
-      const frame = { t: Date.now(), hands: handsFixed, face }; // face 추가!!!
-      bufferRef.current.push(frame);
-      setFrameCount(bufferRef.current.length);
-    }, 100);
-
-    return () => clearInterval(intervalId);
-  }, [recording]);
-
-  const onStart = () => {
-    bufferRef.current = [];
-    setFrameCount(0);
-    setSavedPayload(null);
-    setRecording(true);
-  };
-
-  const onStop = async () => {
-    setRecording(false);
-
-    // ===== 1) 미리보기용 payload는 기존처럼 저장 =====
-    const payload = {
-      startedAt: bufferRef.current[0]?.t ?? null,
-      endedAt: bufferRef.current.at(-1)?.t ?? null,
-      fps: 10,
-      frames: bufferRef.current,
-    };
-    setSavedPayload(payload);
-
-    // ===== 2) 서버로 보낼 프레임 만들기 =====
-    const T = 30;
-
-    // ⚠️ 너는 recording 중에 이미 if(!hasHands) return; 해서 손 있는 프레임만 buffer에 쌓임 :contentReference[oaicite:1]{index=1}
-    // 그래도 안전하게 한 번 더 필터(혹시 나중에 조건 바뀔 수 있으니까)
-    const onlyHandFrames = bufferRef.current.filter((f) =>
-      f.hands?.some((h) => (h?.length ?? 0) > 0)
-    );
-
-    // 마지막 30프레임만 사용 (모델 입력 길이 고정)
-    const trimmed = onlyHandFrames.slice(-T);
-
-    // 30프레임 안 되면 보내지 말기 (pending 방지)
-    if (trimmed.length < T) {
-      setResultText(
-        `(프레임 부족: ${trimmed.length}/${T}) 손을 2~3초 더 유지하고 정지 눌러!`
-      );
-      setResultLabel("");
+    if (!recording) {
+      if (saveTimerRef.current) clearInterval(saveTimerRef.current);
+      saveTimerRef.current = null;
       return;
     }
 
-    // 패딩(손 21개, 얼굴 478개) — shape 깨지는 거 방지
-    const ZERO_HAND = Array.from({ length: 21 }, () => ({ x: 0, y: 0, z: 0 }));
-    const ZERO_FACE = Array.from({ length: 478 }, () => ({ x: 0, y: 0, z: 0 }));
+    saveTimerRef.current = setInterval(() => {
+      const v = videoRef.current;
+      const W = v?.videoWidth || 1;
+      const H = v?.videoHeight || 1;
 
-    const framesForServer = trimmed.map((f) => {
-      const hands = (f.hands ?? [[], []]).map((hand) =>
-        Array.isArray(hand) && hand.length === 21 ? hand : ZERO_HAND
-      );
+      // ✅ W/H 안잡히면 저장하지 마
+      if (W <= 1 || H <= 1) return;
 
-      const face =
-        Array.isArray(f.face) && f.face.length === 478 ? f.face : ZERO_FACE;
+      const { handsLm, handed } = latestHandsRef.current ?? { handsLm: [], handed: [] };
+      const faces = latestFacesRef.current ?? [];
+      const face0 = faces[0] ?? null;
 
-      return { t: f.t, hands, face };
-    });
+      const hasHands = (handsLm?.length ?? 0) > 0;
+      const hasFace = !!face0;
 
-    console.log(
-      "SEND CHECK",
-      framesForServer.length,
-      framesForServer[0]?.hands?.map((h) => h.length),
-      framesForServer[0]?.face?.length
-    );
-    // ===== 3) 서버 호출 =====
-    try {
-      const res = await axios.post("/api/translate", {
-        forceFinal: true,
-        frames: framesForServer,
-      });
+      // ✅ 손 + 얼굴 둘 다 잡힐 때만 저장 (학습 데이터와 동일 조건)
+      if (!hasHands || !hasFace) return;
 
-      const r = res.data;
-      const mode = (r?.mode ?? "final").toLowerCase();
-      console.log("서버 응답:", r);
+      const handsFixed = handsTo2Slots(handsLm, handed, W, H);
+      const face70 = faceMeshToAIHub70(face0, W, H);
 
-      // pending이면: 아직 확정 아니니까 표시만
-      if (mode === "pending") {
-        setResultText("(대기중...)");
-        setResultLabel("");
-        return;
+      // ✅ face70 진짜 0인지 체크 (x/y 기준)
+      const faceNonZero = face70.some((p) => p.x || p.y);
+      if (!faceNonZero) {
+        console.warn("FACE70 ALL ZERO", {
+          W,
+          H,
+          face0len: face0?.length,
+          sample: face70.slice(0, 3),
+        });
       }
 
-      // error면: 서버 에러
-      if (mode === "error") {
-        setResultText("(서버 에러)");
-        setResultLabel("");
-        return;
-      }
+      const frame = { t: Date.now(), hands: handsFixed, face: face70 };
 
-      // final이면: 확정 처리
-      setResultText(r.text ?? "");
-      setResultLabel(r.label ?? "");
+      bufferRef.current.push(frame);
+      setFrameCount(bufferRef.current.length);
 
-      // ===== 기존 안정화/누적 로직 그대로 =====
-      const word = r.text;
-      const conf = Number(r.confidence ?? 0);
+      // 프리뷰는 5프레임마다 업데이트(콘솔/렌더 스팸 방지)
+      if (bufferRef.current.length % 5 === 0) {
+        if (previewMode === "raw") {
+          setPreviewJson(JSON.stringify(frame, null, 2));
+        } else {
+          const nonZeroSlots =
+            frame.hands?.filter((h) => h?.some((p) => p.x || p.y)).length ?? 0;
 
-      if (!word || conf < 0.2) {
-        setStableWord("");
-        setStableCount(0);
-        return;
-      }
+          const hasFace2 = frame.face?.some((p) => p.x || p.y) ? 1 : 0;
 
-      if (word === stableWord) {
-        const next = stableCount + 1;
-        setStableCount(next);
-
-        if (next >= 2 && word !== lastWord) {
-          setSentence((prev) => (prev ? prev + " " + word : word));
-          setLastWord(word);
-
-          setStableWord("");
-          setStableCount(0);
+          setPreviewJson(
+            JSON.stringify(
+              {
+                t: frame.t,
+                handsSlots: nonZeroSlots,
+                face: hasFace2,
+                hands0_sample_5: frame.hands?.[0]?.slice(0, 5) ?? [],
+                hands1_sample_5: frame.hands?.[1]?.slice(0, 5) ?? [],
+                face_sample_5: frame.face?.slice(0, 5) ?? [],
+                hint: { hands: "2x21", face: "70", dims: "x,y,conf(z)" },
+              },
+              null,
+              2
+            )
+          );
         }
-      } else {
-        setStableWord(word);
-        setStableCount(1);
       }
-    } catch (e) {
-      console.error("전송 실패:", e);
+    }, SAVE_FPS_MS);
+
+    return () => {
+      if (saveTimerRef.current) clearInterval(saveTimerRef.current);
+      saveTimerRef.current = null;
+    };
+  }, [recording, previewMode]);
+
+  // ============================================================
+  // (3) Start/Stop
+  // ============================================================
+  const onStart = (e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    setError("");
+    setResultText("");
+    setResultLabel("");
+    bufferRef.current = [];
+    setFrameCount(0);
+    setRecording(true);
+  };
+
+  const onStop = async (e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+
+    setRecording(false);
+
+    if (bufferRef.current.length < T) {
+      setError(`프레임 부족: ${bufferRef.current.length}/${T} (손+얼굴 ✅일 때만 저장됨)`);
+      return;
+    }
+
+    const frames = bufferRef.current.slice(-T);
+
+    // ✅ 여기 추가!!
+    const hasHandFrame = frames.filter(
+      (f) =>
+      (f.hands?.[0]?.some((p) => p.x || p.y) ||
+        f.hands?.[1]?.some((p) => p.x || p.y))
+    ).length;
+
+    const hasFaceFrame = frames.filter((f) => f.face?.some((p) => p.x || p.y)).length;
+
+    if (hasHandFrame < Math.floor(T * 0.7)) {
+      setError(`손 인식이 부족해서 번역 중단 (${hasHandFrame}/${T})`);
+      return;
+    }
+    if (hasFaceFrame < Math.floor(T * 0.7)) {
+      setError(`얼굴 인식이 부족해서 번역 중단 (${hasFaceFrame}/${T})`);
+      return;
+    }
+    console.log("SEND frames =", frames.length, frames[0]);
+    try {
+      const res = await axios.post("/api/translate", { frames });
+      const { text, label } = res.data ?? {};
+      setResultText(text ?? "");
+      setResultLabel(label ?? "");
+      if (text) setSentence((prev) => (prev ? `${prev} ${text}` : text));
+    } catch (err) {
+      setError("서버 전송/번역 실패: " + (err?.message ?? err));
       setResultText("(전송 실패)");
       setResultLabel("");
     }
   };
-  // 테스트임!! 샘플!!
-  // const sendSample = async () => {
-  //   const sample = {
-  //     frames: [{
-  //       hands: [
-  //         Array.from({ length: 21 }, () => ({ x: 0.1, y: 0.1, z: 0.0})),
-  //         [],
-  //       ],
-  //       face: []
-  //     }]
-  //   };
 
-  //   try {
-  //     const res = await axios.post("/api/translate", sample);
-  //     console.log("샘플 응답:", res.data);
+  const onResetSentence = () => setSentence("");
 
-  //     setResultText(res.data.text);
-  //     setResultLabel(res.data.label ?? "");
-
-  //     // ✅ 여기서 너가 만든 안정화/누적 로직 그대로 실행되게 하면 됨
-  //     // (지금 onStop에 있는 "word/conf/stableCount" 블록을 여기로 복붙)
-  //   } catch (e) {
-  //     console.error("샘플 전송 실패:", e);
-  //   }
-  // };
-
+  // =========================
+  // UI
+  // =========================
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <div className="mx-auto max-w-6xl px-4 py-8">
-        {/* 상단 타이틀 */}
-        <div className="mb-6 flex items-end justify-between gap-3">
-          <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900">
-              웹캠
-            </h1>
-            <p className="mt-2 text-sm text-slate-600">
-              손 인식 → 프레임 저장 → 서버 번역
-            </p>
-          </div>
-
-          <p className="text-sm">
-            <Link
-              to="/home"
-              className="rounded-xl px-3 py-2 font-semibold text-slate-700 hover:bg-slate-100"
-            >
-              ← 메인으로
-            </Link>
-          </p>
+    <div style={{ padding: 16, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div>
+        <h2 style={{ margin: 0 }}>웹캠</h2>
+        <div style={{ fontSize: 13, opacity: 0.8, marginTop: 4 }}>
+          손/얼굴 인식 → 프레임 저장 → 서버 번역
         </div>
 
-        {error && (
-          <p className="mb-4 rounded-2xl bg-rose-50 p-4 text-sm font-semibold text-rose-800 ring-1 ring-rose-200">
-            에러: {error}
-          </p>
-        )}
-
-        <div className="grid gap-4 lg:grid-cols-2">
-          {/* 왼쪽: 카메라 */}
-          <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-            <div className="mb-3 flex items-center justify-between">
-              <div className="text-sm font-semibold text-slate-900">
-                카메라 화면
-              </div>
-              <span
-                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
-                  recording
-                    ? "bg-rose-50 text-rose-700 ring-1 ring-rose-200"
-                    : "bg-slate-50 text-slate-700 ring-1 ring-slate-200"
-                }`}
-              >
-                <span
-                  className={`h-2 w-2 rounded-full ${
-                    recording ? "bg-rose-500" : "bg-slate-400"
-                  }`}
-                />
-                상태: {recording ? "저장중..." : "대기중"}
-              </span>
-            </div>
-
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              className="w-full max-w-[480px] rounded-2xl bg-black shadow-sm ring-1 ring-slate-200"
-            />
-
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {/* <button
-                onClick={sendSample}
-                className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900 ring-1 ring-slate-200 hover:bg-slate-200 active:scale-[0.99]"
-              >
-                샘플 전송(웹캠 없이 테스트)
-              </button> */}
-
-              <button
-                onClick={onStart}
-                disabled={recording}
-                className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                시작(저장 시작)
-              </button>
-
-              <button
-                onClick={onStop}
-                disabled={!recording}
-                className="rounded-2xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 ring-1 ring-rose-200 hover:bg-rose-100 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                정지(저장 종료)
-              </button>
-            </div>
-
-            <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-              <div className="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
-                <p className="text-xs font-semibold text-slate-500">
-                  현재까지 저장된 프레임 수
-                </p>
-                <p className="mt-1 text-lg font-black text-slate-900">
-                  {frameCount}
-                </p>
-              </div>
-              <div className="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
-                <div className="mt-1 text-lg font-black text-slate-900">
-                  <p>
-                    손 감지:{" "}
-                    <span>{handDetected ? "✅ 감지됨" : "❌ 없음"}</span>
-                  </p>
-                </div>
-                <p className="text-sm">
-                  얼굴 감지:{" "}
-                  <span className="font-semibold">
-                    {faceDetected ? "✅ 감지됨" : "❌ 없음"}
-                  </span>
-                </p>
-                <p className="text-sm">
-                  얼굴 개수: <span className="font-semibold">{faceCount}</span>
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* 오른쪽: 결과 */}
-          <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-            <div className="mb-3 text-sm font-semibold text-slate-900">
-              번역 결과
-            </div>
-
-            <div className="space-y-2 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
-              <p className="text-sm">
-                손 감지:{" "}
-                <span className="font-semibold">
-                  {handDetected ? "✅ 감지됨" : "❌ 없음"}
-                </span>
-              </p>
-              <p className="text-sm">
-                손 개수: <span className="font-semibold">{handCount}</span>
-              </p>
-              <div className="text-sm">
-                손 라벨: <span className="font-semibold">{lrStatus}</span>
-              </div>
-              <p className="text-sm">
-                한국어 텍스트:{" "}
-                <span className="font-semibold">{resultText}</span>
-              </p>
-              <p className="text-sm">
-                WORD 라벨: <span className="font-semibold">{resultLabel}</span>
-              </p>
-              <p className="text-sm">
-                연속 한국어 번역 결과:{" "}
-                <span className="font-semibold">
-                  {sentence || "(비어 있음)"}
-                </span>
-              </p>
-
-              <button
-                onClick={() => {
-                  setSentence("");
-                  setLastWord("");
-                  setStableWord("");
-                  setStableCount(0);
-                }}
-                className="mt-2 w-full rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-900 ring-1 ring-slate-200 hover:bg-slate-100 active:scale-[0.99]"
-              >
-                문장 초기화
-              </button>
-            </div>
+        <div style={{ position: "relative", marginTop: 12 }}>
+          <video
+            ref={videoRef}
+            style={{ width: "100%", borderRadius: 12, background: "#111" }}
+            playsInline
+            muted
+            autoPlay
+          />
+          <div
+            style={{
+              position: "absolute",
+              left: 10,
+              top: 10,
+              background: "rgba(0,0,0,0.55)",
+              color: "white",
+              padding: "6px 8px",
+              borderRadius: 10,
+              fontSize: 13,
+              lineHeight: 1.5,
+            }}
+          >
+            <div>손: {handDetected ? "✅" : "❌"} ({handCount})</div>
+            <div>얼굴: {faceDetected ? "✅" : "❌"} ({faceCount})</div>
+            <div>프레임: {frameCount}</div>
           </div>
         </div>
 
-        {savedPayload && (
-          <div className="mt-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-            <h3 className="text-sm font-semibold text-slate-900">
-              정지 후 저장된 데이터(미리보기)
-            </h3>
-            <pre className="mt-3 max-h-72 overflow-auto rounded-2xl bg-slate-950 p-4 text-xs text-slate-100">
-              {JSON.stringify(
-                {
-                  ...savedPayload,
-                  frames: savedPayload.frames.slice(0, 5).map((f) => ({
-                    t: f.t,
-                    hands: f.hands,
+        <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+          <button
+            onClick={onStart}
+            disabled={recording}
+            style={{
+              flex: 1,
+              padding: "12px 10px",
+              borderRadius: 12,
+              border: "1px solid #ddd",
+              background: recording ? "#eee" : "#111827",
+              color: recording ? "#666" : "white",
+              fontWeight: 700,
+            }}
+          >
+            시작
+          </button>
+          <button
+            onClick={onStop}
+            disabled={!recording}
+            style={{
+              flex: 1,
+              padding: "12px 10px",
+              borderRadius: 12,
+              border: "1px solid #ddd",
+              background: !recording ? "#eee" : "#fee2e2",
+              color: !recording ? "#666" : "#991b1b",
+              fontWeight: 700,
+            }}
+          >
+            정지
+          </button>
+        </div>
 
-                    faceLen: f.face?.length ?? 0,
-                    faceSample: (f.face ?? []).slice(0, 10),
-                  })),
-                },
-                null,
-                2
-              )}
-            </pre>
-            <p className="mt-2 text-xs text-slate-500">
-              (frames는 너무 길어서 앞 5개만, face는 샘플 10개만)
-            </p>
+        {error ? (
+          <div style={{ marginTop: 10, color: "#b91c1c", fontSize: 13, whiteSpace: "pre-wrap" }}>
+            {error}
           </div>
-        )}
+        ) : null}
+      </div>
+
+      <div>
+        <h2 style={{ margin: 0 }}>번역 결과</h2>
+        <div style={{ marginTop: 12, padding: 12, border: "1px solid #eee", borderRadius: 12 }}>
+          <div style={{ fontSize: 13, opacity: 0.7 }}>서버 응답</div>
+          <div style={{ marginTop: 8 }}><b>WORD 라벨</b>: {resultLabel || "-"}</div>
+          <div style={{ marginTop: 6 }}><b>한국어 텍스트</b>: {resultText || "-"}</div>
+          <div style={{ marginTop: 6 }}><b>연속 문장</b>: {sentence || "-"}</div>
+
+          <button
+            onClick={onResetSentence}
+            style={{
+              marginTop: 10,
+              width: "100%",
+              padding: "10px 10px",
+              borderRadius: 12,
+              border: "1px solid #ddd",
+              background: "white",
+              fontWeight: 700,
+            }}
+          >
+            문장 초기화
+          </button>
+        </div>
+
+        <div style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "center" }}>
+          <b>프리뷰 모드</b>
+          <select value={previewMode} onChange={(e) => setPreviewMode(e.target.value)}>
+            <option value="summary">summary</option>
+            <option value="raw">raw</option>
+          </select>
+        </div>
+
+        <pre
+          style={{
+            marginTop: 10,
+            height: 360,
+            overflow: "auto",
+            background: "#0b1220",
+            color: "#dbeafe",
+            padding: 12,
+            borderRadius: 12,
+            fontSize: 12,
+          }}
+        >
+          {previewJson || "(대기중... 시작을 눌러봐)"}
+        </pre>
       </div>
     </div>
   );
