@@ -6,34 +6,32 @@ import { BOARD_TYPES } from "./BoardTypes";
 import { api } from "../../api/client";
 
 export default function Board() {
+  const [cPage, setCPage] = useState(1);
   const [boardId, setBoardId] = useState(2);
   const [boards, setBoards] = useState([]);
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [searchType, setSearchType] = useState("title");
+
+  const [pageInfo, setPageInfo] = useState({
+    totalPagesCnt: 1,
+    begin: 1,
+    end: 1,
+  });
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
+  const nav = useNavigate();
+
   const hhmm = (v) => {
-  if (!v) return "-";
-  const s = String(v);
-
-  // 1) ISO: 2025-12-29T16:12:09
-  if (s.includes("T")) return s.split("T")[1].slice(0, 5);
-
-  // 2) 공백형: 2025-12-29 16:12:09
-  const m1 = s.match(/\b(\d{2}:\d{2})(?::\d{2})?\b/);
-  if (m1) return m1[1];
-
-  // 3) Date로 파싱 가능한 값이면
-  const d = new Date(s);
-  if (!Number.isNaN(d.getTime())) {
-    const hh = String(d.getHours()).padStart(2, "0");
-    const mm = String(d.getMinutes()).padStart(2, "0");
-    return `${hh}:${mm}`;
-  }
+    if (!v) return "-";
+    const s = String(v);
+    if (s.includes("T")) return s.split("T")[1].slice(0, 5);
+    const d = new Date(s);
+    if (!Number.isNaN(d.getTime())) {
+      return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    }
     return "-";
   };
-
-
-  const nav = useNavigate();
 
   const title = useMemo(
     () => BOARD_TYPES.find((b) => b.id === boardId)?.name ?? "게시판",
@@ -45,12 +43,24 @@ export default function Board() {
       setLoading(true);
       setErrorMsg("");
 
-      const res = await api.get("/boards", { params: { boardId } });
-      setBoards(res.data);
+      const res = await api.get("/boards", {
+        params: { boardId, cPage, searchType, searchKeyword }
+      });
+
+      // 서버에서 보정해서 내려준 cPage로 상태 동기화
+      if (res.data.cPage !== cPage) {
+        setCPage(res.data.cPage);
+      }
+
+      setBoards(res.data.articles || []);
+      setPageInfo({
+        totalPagesCnt: res.data.totalPagesCnt,
+        begin: res.data.begin,
+        end: res.data.end,
+      });
     } catch (e) {
       console.error(e);
-      if (e?.response?.status === 401) setErrorMsg("로그인이 필요합니다.");
-      else setErrorMsg("목록 불러오기 실패. / 백엔드, DB 확인");
+      setErrorMsg("목록 로드 실패");
     } finally {
       setLoading(false);
     }
@@ -58,16 +68,18 @@ export default function Board() {
 
   useEffect(() => {
     fetchBoards();
-  }, [boardId]);
+  }, [boardId, cPage]);
 
-  // 백이 필터링 안 해줘도 프론트에서 한번 더 필터링 (안전장치)
-  const visibleBoards = useMemo(() => {
-    return (boards ?? []).filter((b) => {
-      const bid = b.boardId ?? b.boardTypeId; // 백 필드명에 맞춰
-      return Number(bid) === Number(boardId) || bid == null; 
-      // bid가 아예 없으면 일단 그대로 보여주게 처리
-    });
-  }, [boards, boardId]);
+  const handleSearch = () => setCPage(1);
+
+  // ✅ 중요: 서버가 준 begin ~ end 만큼만 정확히 생성
+  const pageNumbers = useMemo(() => {
+    const pages = [];
+    for (let i = pageInfo.begin; i <= pageInfo.end; i++) {
+      pages.push(i);
+    }
+    return pages.length > 0 ? pages : [1];
+  }, [pageInfo]);
 
   return (
     <>
@@ -76,42 +88,59 @@ export default function Board() {
       <div className="max-w-4xl mx-auto p-6">
         <BoardWrite boardId={boardId} onSuccess={fetchBoards} />
 
-        {errorMsg && (
-          <div className="mt-6 border rounded-xl p-4 bg-red-50 text-red-700">
-            {errorMsg}
-          </div>
-        )}
+        <div className="flex gap-2 mb-4 justify-end">
+          <select className="border p-2 rounded" value={searchType} onChange={(e) => setSearchType(e.target.value)}>
+            <option value="title">제목</option>
+            <option value="content">내용</option>
+            <option value="title,content">제목+내용</option>
+          </select>
+          <input
+            type="text"
+            className="border p-2 rounded"
+            placeholder="검색어 입력"
+            value={searchKeyword}
+            onChange={(e) => setSearchKeyword(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          />
+          <button className="bg-indigo-600 text-white px-4 py-2 rounded" onClick={handleSearch}>검색</button>
+        </div>
 
-        <ul className="border rounded-2xl divide-y mt-6 bg-white">
+        <ul className="border rounded-2xl divide-y bg-white">
           {loading ? (
-            <li className="p-10 text-center text-gray-500">불러오는 중...</li>
-          ) : visibleBoards.length === 0 ? (
-            <li className="p-10 text-center text-gray-500">아직 글이 없음</li>
+            <li className="p-10 text-center">불러오는 중...</li>
+          ) : boards.length === 0 ? (
+            <li className="p-10 text-center text-gray-400">아직 글이 없음</li>
           ) : (
-            visibleBoards.map((board) => (
-              <li
-                key={board.id}
-                className="p-4 hover:bg-gray-50 cursor-pointer"
-                onClick={() => nav(`/board/${board.id}`)}
-              >
-                <div className="font-medium">{board.title}</div>
-
-                <div className="text-sm text-gray-500 flex flex-wrap gap-4 mt-1">
-                  {/* 게시판명 표시(선택) */}
-                  <span>게시판: {title}</span>
-
-                  {/* 작성자 표시 */}
-                  <span>
-                     작성자: {board?.writerName ?? board.writerName ?? "알 수 없음"}
-                  </span>
-
-                  <span>작성일: {hhmm(board.regDate ?? board.createdAt)}</span>
-                  <span>수정일: {hhmm(board.updateDate ?? board.updatedAt)}</span>
+            boards.map((b) => (
+              <li key={b.id} className="p-4 hover:bg-gray-50 cursor-pointer" onClick={() => nav(`/board/${b.id}`)}>
+                <div className="font-medium">{b.title}</div>
+                <div className="text-sm text-gray-500 flex gap-4 mt-1">
+                  <span>작성자: {b.writerName || "익명"}</span>
+                  <span>작성일: {hhmm(b.regDate)}</span>
                 </div>
               </li>
             ))
           )}
         </ul>
+
+        {/* 페이지네이션 */}
+        <div className="flex justify-center mt-6 gap-2">
+          <button className="px-3 py-1 border rounded disabled:opacity-30" onClick={() => setCPage(1)} disabled={cPage === 1}>&lt;&lt;</button>
+          <button className="px-3 py-1 border rounded disabled:opacity-30" onClick={() => setCPage(Math.max(1, cPage - 1))} disabled={cPage === 1}>&lt;</button>
+
+          {pageNumbers.map((p) => (
+            <button
+              key={p}
+              className={`px-3 py-1 border rounded ${cPage === p ? "bg-indigo-600 text-white" : "hover:bg-gray-100"}`}
+              onClick={() => setCPage(p)}
+            >
+              {p}
+            </button>
+          ))}
+
+          <button className="px-3 py-1 border rounded disabled:opacity-30" onClick={() => setCPage(Math.min(pageInfo.totalPagesCnt, cPage + 1))} disabled={cPage >= pageInfo.totalPagesCnt}>&gt;</button>
+          <button className="px-3 py-1 border rounded disabled:opacity-30" onClick={() => setCPage(pageInfo.totalPagesCnt)} disabled={cPage >= pageInfo.totalPagesCnt}>&gt;&gt;</button>
+        </div>
       </div>
     </>
   );

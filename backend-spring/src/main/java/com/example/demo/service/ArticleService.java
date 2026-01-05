@@ -82,4 +82,13 @@ public class ArticleService {
 		} 
 
 	}
+	
+	public int getArticlesCnt(int boardId, String searchType, String searchKeyword) {
+		return articleDao.getArticlesCnt(boardId, searchType, searchKeyword);
+	}
+
+	public List<Article> showList(int boardId, int limitFrom, int itemsInAPage, String searchType,
+			String searchKeyword) {
+		return articleDao.getArticles(boardId, itemsInAPage, limitFrom, searchType, searchKeyword);
+	}
 }

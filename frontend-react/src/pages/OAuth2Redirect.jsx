@@ -11,18 +11,24 @@ export default function OAuth2Redirect() {
     const run = async () => {
       let accessToken = params.get("accessToken");
 
-      // 만약 쿼리 스트링에 accessToken이 없다면, 해시에서 찾기
+      // 1. 쿼리 스트링 또는 해시에서 토큰 추출
       if (!accessToken && window.location.hash) {
         const hashParams = new URLSearchParams(window.location.hash.replace("#", ""));
         accessToken = hashParams.get("accessToken");
       }
 
       if (!accessToken) {
-        nav("/login", { replace: true });  // 토큰이 없다면 로그인 페이지로 리디렉션
+        console.error("토큰이 없어 로그인 페이지로 리다이렉트합니다.");
+        nav("/login", { replace: true });
         return;
       }
 
-      setAccessToken(accessToken);  // 토큰을 localStorage에 저장
+      // 2. AuthProvider를 통해 토큰 저장
+      // (이때 내부적으로 localStorage.setItem("accessToken", ...)이 실행되어야 함)
+      await setAccessToken(accessToken); 
+
+      // 3. 메인으로 이동
+      // 만약 여기서 계속 뱅글뱅글 돈다면 nav 대신 window.location.href = "/" 를 써야 합니다.
       nav("/", { replace: true });
     };
 

@@ -114,6 +114,33 @@ public class MemberController {
         response.addCookie(cookie);
         return Map.of("message", "로그아웃 완료");
     }
+ // [추가] 7. 아이디 찾기
+    @PostMapping("/findLoginId")
+    public Map<String, Object> findLoginId(@RequestBody Map<String, String> body) {
+        String name = body.get("name");
+        String email = body.get("email");
+        if (name == null || email == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이름과 이메일을 입력해주세요.");
+        }
+
+        memberService.findLoginIdByNameAndEmail(name.trim(), email.trim());
+        return Map.of("message", "입력하신 이메일로 아이디를 전송했습니다.");
+    }
+
+    // [추가] 8. 비밀번호 찾기 (임시 발급)
+    @PostMapping("/findLoginPw")
+    public Map<String, Object> findLoginPw(@RequestBody Map<String, String> body) {
+        String loginId = body.get("loginId");
+        String email = body.get("email");
+        if (loginId == null || email == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "아이디와 이메일을 입력해주세요.");
+        }
+
+        memberService.resetPasswordWithEmail(loginId.trim(), email.trim());
+        return Map.of("message", "입력하신 이메일로 임시 비밀번호를 전송했습니다.");
+    }
+
+    
 
     // [공통 로직] 토큰 생성 및 리프레시 토큰 쿠키 저장
     private Map<String, Object> generateTokens(Member member, HttpServletResponse response) {

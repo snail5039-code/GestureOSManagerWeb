@@ -1,116 +1,115 @@
-# =========================
-# Spring Boot secrets / env-specific configs
-# =========================
+# =================================================================
+# 🔑 Secrets & Configs (절대 커밋 금지)
+# =================================================================
+# Spring Boot secrets
+**/src/main/resources/application-api.yml
 backend-spring/src/main/resources/application-api.yml
 
-# =========================
-# OS / IDE / Editor
-# =========================
+# =================================================================
+# 💻 OS / IDE / Editors
+# =================================================================
+# General OS
 .DS_Store
 Thumbs.db
 Desktop.ini
 
-# Eclipse / Spring tooling
-/.metadata/
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# VS Code
+.vscode/
+
+# Eclipse / STS / NetBeans
+.metadata/
 .recommenders/
 .settings/
 .project
 .classpath
+.factorypath
+.apt_generated
+.springBeans
+.sts4-cache
+/nbproject/private/
+/nbbuild/
+/.nb-gradle/
+backend-spring/.metadata/
 
-# IntelliJ
-.idea/
-*.iml
-out/
+# =================================================================
+# 📦 Dependencies & Build Artifacts
+# =================================================================
+# Node / Frontend
+node_modules/
+frontend-react/node_modules/
+dist/
+frontend-react/dist/
 
-# VSCode
-.vscode/
+# Java / Maven / Gradle
+target/
+build/
+bin/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+!**/src/main/**/build/
+!**/src/test/**/build/
 
-# =========================
-# Logs / Temp
-# =========================
-*.log
-*.tmp
-*.temp
-*.bak
-*.swp
-
-# =========================
-# Python
-# =========================
-# venv
-.venv/
+# Python / venv
 venv/
+.venv/
 ai-server/.venv/
-
-# cache / build
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 *.pdb
 *.egg-info/
-build/
-dist/
 
-# Jupyter
-.ipynb_checkpoints/
-
-# =========================
-# Node / Frontend
-# =========================
-node_modules/
-dist/
-frontend-react/dist/
-frontend-react/node_modules/
-
-# =========================
-# AI datasets (BIG) - DO NOT COMMIT
-# =========================
-# raw / split / npy / derived datasets
-ai-server/dataset_raw/
-ai-server/dataset_raw_all/
-ai-server/dataset_raw_small/
-ai-server/dataset_raw_tiny/
-
-ai-server/dataset_split/
-ai-server/dataset_split_tiny/
-ai-server/dataset_split_small/
-ai-server/dataset_split_word16_sen10/
-
+# =================================================================
+# 📊 AI Datasets & Runs (BIG DATA)
+# =================================================================
+# Data directories
+ai-server/dataset_raw*/
+ai-server/dataset_split*/
 ai-server/dataset_npy/
-ai-server/data_npy/
-ai-server/data_npy_word/
-ai-server/data_npy_word_top*/
-ai-server/dataset_top*_split/
-ai-server/dataset_split_word/
+ai-server/data_npy*/
+ai-server/dataset_top*/
+ai-server/archive/
+ai-server/samples/
 
-# ignore all npy anywhere
+# Specific binary data
 *.npy
 
-# =========================
-# AI runs / artifacts (optional)
-# =========================
+# Training Artifacts
 ai-server/runs/
 ai-server/wandb/
 ai-server/logs/
 ai-server/artifacts/
 
-# =========================
-# Model weights
-# =========================
-# ignore all weights by default
+# =================================================================
+# 🤖 Model Weights
+# =================================================================
+# Ignore all weights by default
 *.pth
 *.pt
 *.onnx
 
-# ✅ BUT: allow only the serving model in current/
+# ✅ EXCEPT: allow only the serving model in current/
 !ai-server/current/*.pth
 !ai-server/current/*.pt
 !ai-server/current/label_map.json
 
-
-ai-server/archive/
-ai-server/samples/
-backend-spring/.metadata/
-
-node_modules/
+# =================================================================
+# 🪵 Logs / Temp / Local Cache
+# =================================================================
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+data/
+HELP.md
+.ipynb_checkpoints/

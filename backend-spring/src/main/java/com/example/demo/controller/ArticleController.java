@@ -51,11 +51,56 @@ public class ArticleController {
     }
 
     @GetMapping("/boards")
-    public List<Article> list(@RequestParam Integer boardId) {
-    	
-    	return this.articleService.articleList(boardId);
-    }
+    public Map<String, Object> list(
+            @RequestParam(defaultValue = "1") int boardId,
+            @RequestParam(defaultValue = "1") int cPage,
+            @RequestParam(defaultValue = "") String searchKeyword,
+            @RequestParam(defaultValue = "title") String searchType) {
 
+        int itemsInAPage = 10;
+
+        // 1. 디버깅 로그 (콘솔에서 articlesCnt가 9가 맞는지 꼭 확인하세요!)
+        int articlesCnt = this.articleService.getArticlesCnt(boardId, searchType, searchKeyword.trim());
+        System.out.println("디버깅 - boardId: " + boardId + ", 검색된 게시글 수: " + articlesCnt);
+
+        // 2. 전체 페이지 수 계산 (나누기 시 반드시 double 형변환 확인)
+        int totalPagesCnt = (int) Math.ceil((double) articlesCnt / itemsInAPage);
+        if (totalPagesCnt < 1) totalPagesCnt = 1;
+
+        // 3. 현재 페이지가 전체 페이지보다 크면 마지막 페이지로 강제 조정
+        if (cPage > totalPagesCnt) {
+            cPage = totalPagesCnt;
+        }
+        if (cPage < 1) cPage = 1;
+
+        int limitFrom = (cPage - 1) * itemsInAPage;
+
+        // 4. 페이지 블록 계산 (1~10 단위)
+        int pageBlockSize = 10;
+        int begin = ((cPage - 1) / pageBlockSize) * pageBlockSize + 1;
+        int end = begin + pageBlockSize - 1;
+
+        // ✅ 이 부분이 핵심: end는 반드시 totalPagesCnt를 넘을 수 없음
+        if (end > totalPagesCnt) {
+            end = totalPagesCnt;
+        }
+
+        // 5. 실제 리스트 가져오기
+        List<Article> articles = this.articleService.showList(boardId, limitFrom, itemsInAPage, searchType,
+                searchKeyword.trim());
+
+        // 최종 데이터 확인 로그
+        System.out.println("디버깅 - 결과: cPage=" + cPage + ", begin=" + begin + ", end=" + end + ", totalPages=" + totalPagesCnt);
+
+        return Map.of(
+                "articles", articles,
+                "articlesCnt", articlesCnt,
+                "totalPagesCnt", totalPagesCnt,
+                "cPage", cPage,
+                "begin", begin,
+                "end", end,
+                "boardId", boardId);
+    }
     @GetMapping("/boards/{id}")
     public Article detail(@PathVariable int id) {
     	

@@ -68,4 +68,28 @@ public interface MemberDao {
         order by id asc
     """)
     List<Country> countries();
+    
+ // 8. 아이디 찾기 (이름 + 이메일)
+    @Select("""
+                SELECT loginid
+                FROM member
+                WHERE name = #{name} AND email = #{email}
+            """)
+    String findLoginIdByNameAndEmail(@Param("name") String name, @Param("email") String email);
+
+    // 9. 비밀번호 찾기 검증용 (아이디 + 이메일로 회원 조회)
+    @Select("""
+                SELECT *
+                FROM member
+                WHERE loginid = #{loginId} AND email = #{email}
+            """)
+    Member findByLoginIdAndEmail(@Param("loginId") String loginId, @Param("email") String email);
+
+    // 10. 비밀번호 재설정 (임시 비밀번호 발급용)
+    @org.apache.ibatis.annotations.Update("""
+                UPDATE member
+                SET loginpw = #{tempPw}, updatedate = NOW()
+                WHERE id = #{id}
+            """)
+    void updatePassword(@Param("id") Integer id, @Param("tempPw") String tempPw);
 }

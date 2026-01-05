@@ -7,6 +7,24 @@ spring:
     username: sltuser
     password: sltpass
     driver-class-name: org.postgresql.Driver
+  sql:
+    init:
+      mode: always
+      encoding: UTF-8
+
+    # 이메일 설정 (Gmail SMTP 예시)
+    # application-api.yml에 정의된 MMB 값들을 매핑
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+       mail:
+         smtp:
+          auth: ${MAIL_SMTP_AUTH:true}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS:true}
 
   security:
     oauth2:

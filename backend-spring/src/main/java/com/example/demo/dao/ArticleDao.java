@@ -60,5 +60,52 @@ public interface ArticleDao {
 			""")
 	int articleDelete(int id);
 	
+	@Select("""
+			<script>
+			SELECT COUNT(*)
+			FROM article a
+			WHERE a.boardId = #{boardId}
+			<if test="searchKeyword != null and searchKeyword != ''">
+				<choose>
+					<when test="searchType == 'title'">
+						AND a.title LIKE CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<when test="searchType == 'content'">
+						AND a.content LIKE CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<when test="searchType == 'title,content'">
+						AND (a.title LIKE CONCAT('%', #{searchKeyword}, '%') OR a.content LIKE CONCAT('%', #{searchKeyword}, '%'))
+					</when>
+				</choose>
+			</if>
+			</script>
+			""")
+	int getArticlesCnt(int boardId, String searchType, String searchKeyword);
+
+	@Select("""
+			<script>
+			SELECT a.*, m.loginId AS writerName
+			FROM article a
+			JOIN member m ON a.memberId = m.id
+			WHERE a.boardId = #{boardId}
+			<if test="searchKeyword != null and searchKeyword != ''">
+				<choose>
+					<when test="searchType == 'title'">
+						AND a.title LIKE CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<when test="searchType == 'content'">
+						AND a.content LIKE CONCAT('%', #{searchKeyword}, '%')
+					</when>
+					<when test="searchType == 'title,content'">
+						AND (a.title LIKE CONCAT('%', #{searchKeyword}, '%') OR a.content LIKE CONCAT('%', #{searchKeyword}, '%'))
+					</when>
+				</choose>
+			</if>
+			ORDER BY a.id DESC
+			LIMIT #{limit} OFFSET #{offset}
+			</script>
+			""")
+	List<Article> getArticles(int boardId, int limit, int offset, String searchType, String searchKeyword);
+
 
 }

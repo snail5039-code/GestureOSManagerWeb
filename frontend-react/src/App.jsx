@@ -11,6 +11,8 @@ import BoardModify from "./pages/board/BoardModify.jsx";
 import Join from "./pages/member/Join.jsx";
 import Login from "./pages/member/Login.jsx";
 import Logout from "./pages/member/Logout.jsx";
+import FindLoginId from "./pages/member/FindLoginId.jsx";
+import FindLoginPw from "./pages/member/FindLoginPw.jsx";
 
 import { useAuth } from "./auth/AuthProvider";
 import Layout from "./components/layout/Layout.jsx";
@@ -43,6 +45,8 @@ export default function App() {
         <Route path="/join" element={<Join />} />
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
+        <Route path="/findLoginId" element={<FindLoginId />} />
+        <Route path="/findLoginPw" element={<FindLoginPw />} />
 
         <Route path="/oauth2/success" element={<OAuth2Redirect />} />
 
