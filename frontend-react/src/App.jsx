@@ -5,6 +5,7 @@ import Camera from "./pages/Camera.jsx";
 import TranslationLogPanel from "./components/TranslationLogPanel.jsx";
 import CallRoom from "./pages/CallRoom.jsx";
 import CallLobby from "./pages/CallLobby.jsx";
+import TranslatorCam from "./pages/TranslatorCam.jsx";
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
       <Route path="/translationLogPanel" element={<TranslationLogPanel />} />
       <Route path="/call/:roomId" element={<CallRoom />} />
       <Route path="/callLobby" element={<CallLobby />} /> 
+      <Route path="translator" element={<TranslatorCam />}/>
     </Routes>
   );
 }

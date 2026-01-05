@@ -64,6 +64,15 @@ export default function Home() {
                 <span className="text-slate-400">→</span>
               </Link>
             </li>
+            <li>
+              <Link to="/translator"
+                className="flex items-center justify-between rounded-2xl bg-slate-900 px-4 py-4 text-white hover:bg-slate-800"
+              >
+                <span className="font-semibold">손 번역(TranslatorCam)</span>
+                <span className="text-white/70">→</span>
+              </Link>
+            </li>
+
           </ul>
 
           <div className="mt-4 text-xs text-slate-500">

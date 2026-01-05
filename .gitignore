@@ -112,3 +112,22 @@ backend-spring/.metadata/
 ai-server/data/
 ai-server/data/**
 ai-server/logs/
+
+# --- Python venv (torch/numpy 등 site-packages 포함) ---
+ai-server/.venv*/
+.venv*/
+venv/
+env/
+
+# --- Python caches ---
+__pycache__/
+*.py[cod]
+
+# --- Spring/Java build outputs ---
+backend-spring/bin/
+backend-spring/target/
+backend-spring/build/
+*.class
+
+# --- (선택) venv export 파일을 커밋 안 할 거면 ---
+ai-server/requirements.venv*.txt
