@@ -13,6 +13,7 @@ import Login from "./pages/member/Login.jsx";
 import Logout from "./pages/member/Logout.jsx";
 import FindLoginId from "./pages/member/FindLoginId.jsx";
 import FindLoginPw from "./pages/member/FindLoginPw.jsx";
+import MyPage from "./pages/member/MyPage.jsx";
 
 import { useAuth } from "./auth/AuthProvider";
 import Layout from "./components/layout/Layout.jsx";
@@ -39,6 +40,9 @@ export default function App() {
           <Route path="/board" element={<Board />} />
           <Route path="/board/:id" element={<BoardDetail />} />
           <Route path="/board/:id/modify" element={<BoardModify />} />
+
+          {/* 마이페이지 */}
+          <Route path="/mypage" element={<MyPage />} />
         </Route>
 
         {/* 헤더 빼고 싶은 페이지는 Layout 밖으로 */}

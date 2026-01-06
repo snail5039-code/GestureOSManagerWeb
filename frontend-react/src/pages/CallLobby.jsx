@@ -25,7 +25,7 @@ export default function CallLobby() {
         <div className="text-xs text-slate-500">실시간 영상 통화</div>
         <h1 className="mt-1 text-3xl font-bold text-slate-900">로비</h1>
         <p className="mt-2 text-sm text-slate-600">
-          방을 새로 만들거나, 방 코드를 입력해서 입장해.
+          방을 새로 만들거나, 방 코드를 입력해서 입장해주세요.
         </p>
       </div>
 
@@ -67,7 +67,7 @@ export default function CallLobby() {
           <div className="flex flex-col gap-2">
             <div className="text-sm font-semibold text-slate-900">방 코드로 입장</div>
             <p className="text-sm text-slate-600">
-              상대가 준 방 코드를 입력하고 Enter 또는 입장 버튼을 눌러.
+              상대가 준 방 코드를 입력하고 Enter 또는 입장 버튼을 눌러주세요.
             </p>
 
             <div className="mt-2 flex gap-2">
@@ -89,7 +89,7 @@ export default function CallLobby() {
             </div>
 
             <div className="mt-2 text-xs text-slate-500">
-              팁: 같은 방 코드를 입력한 사람들끼리 연결돼.
+              팁: 같은 방 코드를 입력한 사람들끼리 연결돼요.
             </div>
           </div>
         </div>

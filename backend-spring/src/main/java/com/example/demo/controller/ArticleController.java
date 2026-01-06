@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,32 +20,31 @@ import org.springframework.web.server.ResponseStatusException;
 import com.example.demo.dto.Article;
 import com.example.demo.service.ArticleService;
 
-import jakarta.servlet.http.HttpSession;
-
-
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api")
 public class ArticleController {
 
     private final ArticleService articleService;
+
     public ArticleController(ArticleService articleService) {
         this.articleService = articleService;
     }
 
     @PostMapping("/boards")
     public Map<String, Object> write(@RequestBody Article article, Authentication auth) {
-    	
-    	if (auth == null) {
-    		throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인 필요");
-    	}
-    	
-    	Integer loginMemberId = (Integer) auth.getPrincipal();
-    	
-    	if (article.getBoardId() == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "boardId is required");
-    	
-    	article.setMemberId(loginMemberId);
-        articleService.write(article);
+
+        if (auth == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인 필요");
+        }
+
+        Integer loginMemberId = (Integer) auth.getPrincipal();
+
+        if (article.getBoardId() == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "boardId is required");
+
+        article.setMemberId(loginMemberId);
+        articleService.write(article, loginMemberId);
         return Map.of("message", "작성완료");
     }
 
@@ -65,13 +63,15 @@ public class ArticleController {
 
         // 2. 전체 페이지 수 계산 (나누기 시 반드시 double 형변환 확인)
         int totalPagesCnt = (int) Math.ceil((double) articlesCnt / itemsInAPage);
-        if (totalPagesCnt < 1) totalPagesCnt = 1;
+        if (totalPagesCnt < 1)
+            totalPagesCnt = 1;
 
         // 3. 현재 페이지가 전체 페이지보다 크면 마지막 페이지로 강제 조정
         if (cPage > totalPagesCnt) {
             cPage = totalPagesCnt;
         }
-        if (cPage < 1) cPage = 1;
+        if (cPage < 1)
+            cPage = 1;
 
         int limitFrom = (cPage - 1) * itemsInAPage;
 
@@ -90,7 +90,8 @@ public class ArticleController {
                 searchKeyword.trim());
 
         // 최종 데이터 확인 로그
-        System.out.println("디버깅 - 결과: cPage=" + cPage + ", begin=" + begin + ", end=" + end + ", totalPages=" + totalPagesCnt);
+        System.out.println(
+                "디버깅 - 결과: cPage=" + cPage + ", begin=" + begin + ", end=" + end + ", totalPages=" + totalPagesCnt);
 
         return Map.of(
                 "articles", articles,
@@ -101,10 +102,17 @@ public class ArticleController {
                 "end", end,
                 "boardId", boardId);
     }
+
     @GetMapping("/boards/{id}")
-    public Article detail(@PathVariable int id) {
-    	
-        return articleService.articleDetail(id);
+    public Article detail(@PathVariable int id, Authentication auth) {
+
+        Integer loginMemberId = null;
+
+        if (auth != null) {
+            loginMemberId = (Integer) auth.getPrincipal();
+        }
+
+        return articleService.articleDetail(id, loginMemberId);
     }
 
     @PutMapping("/boards/{id}")
@@ -121,7 +129,6 @@ public class ArticleController {
 
         return Map.of("message", "수정완료");
     }
-
 
     @DeleteMapping("/boards/{id}")
     public Map<String, Object> delete(@PathVariable int id, Authentication auth) {

@@ -4,8 +4,10 @@ import BoardHeader from "../../components/layout/BoardHeader";
 import BoardWrite from "./BoardWrite";
 import { BOARD_TYPES } from "./BoardTypes";
 import { api } from "../../api/client";
+import { useAuth } from "../../auth/AuthProvider";
 
 export default function Board() {
+  const { user } = useAuth();
   const [cPage, setCPage] = useState(1);
   const [boardId, setBoardId] = useState(2);
   const [boards, setBoards] = useState([]);
@@ -37,6 +39,14 @@ export default function Board() {
     () => BOARD_TYPES.find((b) => b.id === boardId)?.name ?? "게시판",
     [boardId]
   );
+
+  // 공지사항(boardId=1)일 때 관리자만 글 작성 가능
+  const canWrite = useMemo(() => {
+    if (boardId === 1) {
+      return user?.role === 'ADMIN';
+    }
+    return true; // 다른 게시판은 모두 작성 가능
+  }, [boardId, user]);
 
   const fetchBoards = async () => {
     try {
@@ -86,7 +96,13 @@ export default function Board() {
       <BoardHeader boardId={boardId} setBoardId={setBoardId} title={title} />
 
       <div className="max-w-4xl mx-auto p-6">
-        <BoardWrite boardId={boardId} onSuccess={fetchBoards} />
+        {canWrite ? (
+          <BoardWrite boardId={boardId} onSuccess={fetchBoards} />
+        ) : (
+          <div className="border rounded-2xl p-5 mt-6 bg-gray-50 text-center text-gray-600">
+            공지사항은 관리자만 작성할 수 있습니다.
+          </div>
+        )}
 
         <div className="flex gap-2 mb-4 justify-end">
           <select className="border p-2 rounded" value={searchType} onChange={(e) => setSearchType(e.target.value)}>

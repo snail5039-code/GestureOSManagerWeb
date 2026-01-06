@@ -26,7 +26,7 @@ export default function BoardModify() {
     } catch (e) {
       console.error(e);
       if (e?.response?.status === 401) alert("로그인이 필요합니다.");
-      else alert("수정 실패. 백엔드 확인");
+      else alert("작성자나 관리자가 아니면 수정할 수 없습니다.");
     } finally {
       setLoading(false);
     }

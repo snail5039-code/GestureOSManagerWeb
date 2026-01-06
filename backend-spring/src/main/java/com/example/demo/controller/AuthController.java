@@ -25,15 +25,17 @@ public class AuthController {
     private final RefreshTokenDao refreshTokenDao;
     private final JwtTokenProvider jwtTokenProvider;
     private final MemberService memberService;
-    
-    public AuthController(RefreshTokenDao refreshTokenDao, JwtTokenProvider jwtTokenProvider, MemberService memberService) {
+
+    public AuthController(RefreshTokenDao refreshTokenDao, JwtTokenProvider jwtTokenProvider,
+            MemberService memberService) {
         this.refreshTokenDao = refreshTokenDao;
         this.jwtTokenProvider = jwtTokenProvider;
         this.memberService = memberService;
     }
 
     @PostMapping("/api/auth/token")
-    public Map<String, Object> issueAccessToken(@CookieValue(value = "refreshToken", required = false) String refreshToken) {
+    public Map<String, Object> issueAccessToken(
+            @CookieValue(value = "refreshToken", required = false) String refreshToken) {
         // Refresh Token 유효성 확인
         if (refreshToken == null || refreshToken.isBlank()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No refresh token");
@@ -50,7 +52,7 @@ public class AuthController {
         // DB에서 저장된 Refresh Token 가져오기
         RefreshToken saved = this.refreshTokenDao.findByMemberId(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token not found"));
-        
+
         // 저장된 Refresh Token과 일치하는지 확인
         if (!refreshToken.equals(saved.getToken())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token mismatch");
@@ -60,15 +62,19 @@ public class AuthController {
         Member m = this.memberService.findById(id);
 
         // Access Token 생성
-        String accessToken = jwtTokenProvider.createAccessToken(m.getId(), m.getLoginId()); // 두 번째 선언은 제거
+        String role = m.getRole();
+        if (role != null && !role.startsWith("ROLE_")) {
+            role = "ROLE_" + role;
+        }
+        String accessToken = jwtTokenProvider.createAccessToken(m.getId(), m.getLoginId(), role);
 
         return Map.of("accessToken", accessToken, "memberId", m.getId());
     }
+
     @PostMapping("/api/auth/logout")
     public void logout(
             @CookieValue(value = "refreshToken", required = false) String refreshToken,
-            HttpServletResponse response
-    ) {
+            HttpServletResponse response) {
         // 1. DB에서 refreshToken 제거
         if (refreshToken != null && !refreshToken.isBlank()) {
             refreshTokenDao.deleteByToken(refreshToken);
@@ -82,5 +88,5 @@ public class AuthController {
         cookie.setMaxAge(0); // 즉시 만료
         response.addCookie(cookie);
     }
-    
+
 }

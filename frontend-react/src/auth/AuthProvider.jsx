@@ -11,17 +11,17 @@ export default function AuthProvider({ children }) {
   const getToken = () => localStorage.getItem("accessToken");
 
   const logout = async () => {
-  try {
-    await api.post("/auth/logout", null, {
-      withCredentials: true, // ⭐ 쿠키 보내기
-    });
-  } catch (e) {
-    console.warn("logout api failed", e);
-  } finally {
-    localStorage.removeItem("accessToken");
-    setUser(null);
-  }
-};
+    try {
+      await api.post("/auth/logout", null, {
+        withCredentials: true, // ⭐ 쿠키 보내기
+      });
+    } catch (e) {
+      console.warn("logout api failed", e);
+    } finally {
+      localStorage.removeItem("accessToken");
+      setUser(null);
+    }
+  };
 
 
   // 인터셉터 1회 장착
@@ -40,7 +40,7 @@ export default function AuthProvider({ children }) {
       }
       try {
         const res = await api.get("/members/me");
-        setUser(res.data);
+        setUser(res.data.user);
       } catch (e) {
         await logout();
       } finally {
@@ -55,7 +55,7 @@ export default function AuthProvider({ children }) {
   const loginWithToken = async (token) => {
     localStorage.setItem("accessToken", token);
     const res = await api.get("/members/me"); // 토큰으로 내 정보 가져오기
-    setUser(res.data);
+    setUser(res.data.user);
   };
 
   const value = useMemo(

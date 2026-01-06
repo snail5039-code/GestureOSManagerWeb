@@ -1,12 +1,14 @@
 package com.example.demo.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.demo.dto.Member;
+import com.example.demo.dto.MyPageData;
 import com.example.demo.info.GoogleUserInfo;
 import com.example.demo.info.KakaoUserInfo;
 import com.example.demo.info.NaverUserInfo;
@@ -31,7 +33,8 @@ public class MemberController {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenDao refreshTokenDao;
 
-    public MemberController(MemberService memberService, JwtTokenProvider jwtTokenProvider, RefreshTokenDao refreshTokenDao) {
+    public MemberController(MemberService memberService, JwtTokenProvider jwtTokenProvider,
+            RefreshTokenDao refreshTokenDao) {
         this.memberService = memberService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.refreshTokenDao = refreshTokenDao;
@@ -69,10 +72,11 @@ public class MemberController {
     // 4. 소셜 로그인 후처리 (Security SuccessHandler에서 넘어오는 로직 대비)
     // 이 메서드는 프론트에서 소셜 로그인 성공 후 유저 정보를 다시 확인할 때 사용 가능합니다.
     @GetMapping("/oauth2/login")
-    public Map<String, Object> oauthLogin(@AuthenticationPrincipal OAuth2User principal, 
-                                          @RequestParam("provider") String provider,
-                                          HttpServletResponse response) {
-        if (principal == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+    public Map<String, Object> oauthLogin(@AuthenticationPrincipal OAuth2User principal,
+            @RequestParam("provider") String provider,
+            HttpServletResponse response) {
+        if (principal == null)
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
 
         Map<String, Object> attributes = principal.getAttributes();
         OAuth2UserInfo info = switch (provider.toLowerCase()) {
@@ -86,8 +90,7 @@ public class MemberController {
                 provider.toUpperCase(),
                 info.getEmail(),
                 info.getName(),
-                info.getProviderKey()
-        );
+                info.getProviderKey());
 
         System.out.println(provider);
         System.out.println(principal);
@@ -100,7 +103,13 @@ public class MemberController {
         if (principal == null || principal.toString().equals("anonymousUser")) {
             return Map.of("logined", false);
         }
-        // principal이 OAuth2User인지 일반 유저인지에 따라 적절한 데이터 반환
+
+        // principal이 memberId(Integer)인 경우 DB에서 최신 정보 조회
+        if (principal instanceof Integer) {
+            Member member = memberService.findById((Integer) principal);
+            return Map.of("logined", true, "user", member);
+        }
+
         return Map.of("logined", true, "user", principal);
     }
 
@@ -114,7 +123,8 @@ public class MemberController {
         response.addCookie(cookie);
         return Map.of("message", "로그아웃 완료");
     }
- // [추가] 7. 아이디 찾기
+
+    // [추가] 7. 아이디 찾기
     @PostMapping("/findLoginId")
     public Map<String, Object> findLoginId(@RequestBody Map<String, String> body) {
         String name = body.get("name");
@@ -140,11 +150,15 @@ public class MemberController {
         return Map.of("message", "입력하신 이메일로 임시 비밀번호를 전송했습니다.");
     }
 
-    
-
     // [공통 로직] 토큰 생성 및 리프레시 토큰 쿠키 저장
     private Map<String, Object> generateTokens(Member member, HttpServletResponse response) {
-        String accessToken = jwtTokenProvider.createAccessToken(member.getId(), member.getEmail());
+        // DB에 저장된 실제 role 사용 (ROLE_ 접두사 필요 여부 확인)
+        String role = member.getRole();
+        if (role != null && !role.startsWith("ROLE_")) {
+            role = "ROLE_" + role;
+        }
+
+        String accessToken = jwtTokenProvider.createAccessToken(member.getId(), member.getEmail(), role);
         String refreshToken = jwtTokenProvider.createRefreshToken(member.getId());
 
         // DB에 리프레시 토큰 저장
@@ -158,9 +172,47 @@ public class MemberController {
         response.addCookie(cookie);
 
         return Map.of(
-            "accessToken", accessToken, 
-            "memberId", member.getId(), 
-            "name", member.getName()
-        );
+                "accessToken", accessToken,
+                "memberId", member.getId(),
+                "name", member.getName(),
+                "role", member.getRole());
     }
+    
+    @GetMapping("mypage")
+    public MyPageData getMyPage(Authentication auth) {
+        if (auth == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인 필요");
+        }
+        Integer memberId = (Integer) auth.getPrincipal();
+        return memberService.getMyPageData(memberId);
+    }
+
+    @PutMapping("/modify/{id}")
+    public Map<String, Object> modify(@PathVariable int id, @RequestBody Member member, Authentication auth) {
+
+        if (auth == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+
+        Integer loginMemberId = (Integer) auth.getPrincipal(); // JwtTokenProvider가 principal을 Integer로 넣는 전제
+        member.setId(id);
+
+        this.memberService.memberModify(member, id);
+
+        return Map.of("message", "수정완료");
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public Map<String, Object> delete(@PathVariable int id, Authentication auth) {
+
+        if (auth == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
+
+        Integer loginMemberId = (Integer) auth.getPrincipal();
+        memberService.memberDelete(id);
+
+        return Map.of("message", "삭제완료");
+    }
+    
 }

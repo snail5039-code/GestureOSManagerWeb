@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 
-const FindLoginId = () => {
+export default function FindLoginId() {
     const navigate = useNavigate();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -149,5 +149,3 @@ const FindLoginId = () => {
         </div>
     );
 };
-
-export default FindLoginId;

@@ -1,11 +1,15 @@
 package com.example.demo.dao;
 
 import java.util.List;
+
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
+
 import com.example.demo.dto.Country;
 import com.example.demo.dto.Member;
 
@@ -92,4 +96,22 @@ public interface MemberDao {
                 WHERE id = #{id}
             """)
     void updatePassword(@Param("id") Integer id, @Param("tempPw") String tempPw);
+    
+    @Update("""
+    			update member 
+    			set loginPw = #{loginPw}
+    				, updateDate = now();
+    				, name = #{name}
+    				, email = #{email}
+    				, countryId = #{countryId}
+    			where id = #{id}
+    			 
+    		""")
+	void memberModify(Member member, int id);
+    
+    @Delete("""
+    		delete from member
+    		where id = #{id}
+    		""")
+	void memberDelete(int id);
 }

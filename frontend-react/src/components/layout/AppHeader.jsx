@@ -26,6 +26,7 @@ export default function AppHeader() {
               {user?.loginId ?? user?.name ?? "사용자"} 님
             </span>
             <Link to="/board" className="px-3 py-1 rounded-lg border">글 작성</Link>
+            <Link to="/mypage" className="px-3 py-1 rounded-lg border">마이페이지</Link>
             <button onClick={onLogout} className="px-3 py-1 rounded-lg bg-black text-white">
               로그아웃
             </button>

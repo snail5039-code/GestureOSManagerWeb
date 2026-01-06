@@ -1,7 +1,15 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useEffect, useState, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../../api/client";
-import { BOARD_TYPES } from "./BoardTypes"; 
+import LikeButton from "../../components/common/LikeButton";
+import CommentSection from "../../components/comment/CommentSection";
+
+const BOARD_TYPES = [
+  { id: 1, name: "공지사항" },
+  { id: 2, name: "자유게시판" },
+  { id: 3, name: "질문게시판" },
+  { id: 4, name: "오류사항 접수" }
+];
 
 export default function BoardDetail() {
   const { id } = useParams();
@@ -60,28 +68,59 @@ export default function BoardDetail() {
           <span>수정일: {article.updateDate}</span>
         </div>
 
-        <div className="mt-6 whitespace-pre-wrap">{article.content}</div>
+        {/* 본문 내용 */}
+        <div className="mt-6 p-4 bg-gray-50 rounded-xl min-h-[200px] whitespace-pre-wrap">
+          {article.content}
+        </div>
 
-        <button className="mt-6 px-4 py-2 rounded-xl border" onClick={() => nav("/board")}>
-          목록
-        </button>
-        <button className="mt-6 px-4 py-2 rounded-xl border" onClick={() => nav(`/board/${id}/modify`)}>
-          수정
-        </button>
-        <button
-          className="mt-6 px-4 py-2 rounded-xl border"
-          onClick={async () => {
-            try {
-             if (!confirm("정말 삭제?")) return;
-               await api.delete(`/boards/${id}`);
-               nav("/board");
-            } catch (e) {
-            console.error(e);
-            alert(e?.response?.data?.message || "삭제 실패");
-            }
-          }}>
-         삭제
-        </button>
+        {/* 좋아요 버튼 */}
+        <div className="mt-6 flex justify-center">
+          <LikeButton
+            targetId={id}
+            targetType="article"
+            initialLiked={article.isLiked}
+            initialCount={article.likeCount}
+          />
+        </div>
+
+        {/* 하단 버튼 영역 */}
+        <div className="mt-6 flex gap-2">
+          <button
+            className="px-4 py-2 rounded-xl border"
+            onClick={() => nav("/board")}
+          >
+            목록
+          </button>
+
+          {article.canModify && (
+            <button
+              className="px-4 py-2 rounded-xl border"
+              onClick={() => nav(`/board/${id}/modify`)}
+            >
+              수정
+            </button>
+          )}
+
+          {article.canDelete && (
+            <button
+              className="px-4 py-2 rounded-xl border"
+              onClick={async () => {
+                if (!confirm("삭제하시겠습니까?")) return;
+                try {
+                  await api.delete(`/boards/${id}`);
+                  nav("/board");
+                } catch (e) {
+                  alert(e?.response?.data?.message || "삭제 실패");
+                }
+              }}
+            >
+              삭제
+            </button>
+          )}
+        </div>
+
+        {/* 댓글 섹션 추가 */}
+        <CommentSection relTypeCode="article" relId={id} />
       </div>
     </div>
   );

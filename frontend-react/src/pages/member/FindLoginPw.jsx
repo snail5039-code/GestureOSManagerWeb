@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 
-const FindLoginPw = () => {
+export default function FindLoginPw() {
     const navigate = useNavigate();
     const [loginId, setLoginId] = useState('');
     const [email, setEmail] = useState('');
@@ -149,5 +149,3 @@ const FindLoginPw = () => {
         </div>
     );
 };
-
-export default FindLoginPw;

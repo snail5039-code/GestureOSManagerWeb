@@ -10,8 +10,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.mail.javamail.MimeMessageHelper;
 
 import com.example.demo.dao.MemberDao;
+import com.example.demo.dao.ArticleDao;
+import com.example.demo.dao.CommentDao;
+import com.example.demo.dao.ReactionDao;
 import com.example.demo.dto.Country;
 import com.example.demo.dto.Member;
+import com.example.demo.dto.MyPageData;
 
 import jakarta.mail.internet.MimeMessage;
 
@@ -20,13 +24,46 @@ public class MemberService {
 
     private final MemberDao memberDao;
     private final org.springframework.mail.javamail.JavaMailSender mailSender;
+    private final ArticleDao articleDao;
+    private final CommentDao commentDao;
+    private final ReactionDao reactionDao;
 
     @org.springframework.beans.factory.annotation.Value("${spring.mail.username}")
     private String mailFrom;
 
-    public MemberService(MemberDao memberDao, org.springframework.mail.javamail.JavaMailSender mailSender) {
+    public MemberService(MemberDao memberDao,
+            org.springframework.mail.javamail.JavaMailSender mailSender,
+            ArticleDao articleDao,
+            CommentDao commentDao,
+            ReactionDao reactionDao) {
         this.memberDao = memberDao;
         this.mailSender = mailSender;
+        this.articleDao = articleDao;
+        this.commentDao = commentDao;
+        this.reactionDao = reactionDao;
+    }
+
+    public MyPageData getMyPageData(int memberId) {
+        Member member = memberDao.findById(memberId);
+        if (member == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
+        }
+
+        MyPageData data = new MyPageData();
+        data.setMember(member);
+
+        // 통계
+        int articleCount = articleDao.countByMemberId(memberId);
+        int commentCount = commentDao.countByMemberId(memberId);
+        int likeCount = reactionDao.countArticleReactionsByMemberId(memberId);
+        data.setStats(new MyPageData.Stats(articleCount, commentCount, likeCount));
+
+        // 목록
+        data.setMyArticles(articleDao.selectByMemberId(memberId));
+        data.setMyComments(commentDao.selectByMemberId(memberId));
+        data.setLikedArticles(articleDao.selectLikedByMemberId(memberId));
+
+        return data;
     }
 
     // 회원 가입
@@ -115,7 +152,7 @@ public class MemberService {
         return memberDao.findByProviderAndKey(provider, providerKey);
     }
 
- // 아이디 찾기
+    // 아이디 찾기
     public void findLoginIdByNameAndEmail(String name, String email) {
         String loginId = memberDao.findLoginIdByNameAndEmail(name, email);
 
@@ -149,14 +186,14 @@ public class MemberService {
     private void sendLoginIdEmail(String to, String loginId) {
         String subject = "[SLT Project] 아이디 안내";
         String body = """
-            <html>
-              <body>
-                <h3>아이디 안내</h3>
-                <p>회원님의 아이디는 <b>%s</b> 입니다.</p>
-                <a href="http://localhost:5173/login">로그인 하러가기</a>
-              </body>
-            </html>
-        """.formatted(loginId);
+                    <html>
+                      <body>
+                        <h3>아이디 안내</h3>
+                        <p>회원님의 아이디는 <b>%s</b> 입니다.</p>
+                        <a href="http://localhost:5173/login">로그인 하러가기</a>
+                      </body>
+                    </html>
+                """.formatted(loginId);
 
         sendEmail(to, subject, body);
     }
@@ -164,15 +201,15 @@ public class MemberService {
     private void sendTempPasswordEmail(String to, String tempPw) {
         String subject = "[SLT Project] 임시 비밀번호 안내";
         String body = """
-            <html>
-              <body>
-                <h3>임시 비밀번호 안내</h3>
-                <p>임시 비밀번호는 <b>%s</b> 입니다.</p>
-                <p>로그인 후 즉시 비밀번호를 변경해주세요.</p>
-                <a href="http://localhost:5173/login">로그인 하러가기</a>
-              </body>
-            </html>
-        """.formatted(tempPw);
+                    <html>
+                      <body>
+                        <h3>임시 비밀번호 안내</h3>
+                        <p>임시 비밀번호는 <b>%s</b> 입니다.</p>
+                        <p>로그인 후 즉시 비밀번호를 변경해주세요.</p>
+                        <a href="http://localhost:5173/login">로그인 하러가기</a>
+                      </body>
+                    </html>
+                """.formatted(tempPw);
 
         sendEmail(to, subject, body);
     }
@@ -190,9 +227,21 @@ public class MemberService {
             mailSender.send(message);
         } catch (Exception e) {
             throw new ResponseStatusException(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "메일 발송 중 오류가 발생했습니다."
-            );
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "메일 발송 중 오류가 발생했습니다.");
         }
     }
+
+	public void memberModify(Member member, int id) {
+		this.memberDao.memberModify(member, id);
+		
+	}
+
+	public void memberDelete(int id) {
+		this.memberDao.memberDelete(id);
+		
+	}
+
+
+
 }

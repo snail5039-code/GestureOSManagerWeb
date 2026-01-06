@@ -12,21 +12,20 @@ import com.example.demo.dto.Article;
 
 @Mapper
 public interface ArticleDao {
-	
+
 	@Insert("""
-	        INSERT INTO article (regDate, updateDate, title, content, boardId, memberId)
-	        VALUES (NOW(), NOW(), #{title}, #{content}, #{boardId}, #{memberId})
-	        """)
+			INSERT INTO article (regDate, updateDate, title, content, boardId, memberId)
+			VALUES (NOW(), NOW(), #{title}, #{content}, #{boardId}, #{memberId})
+			""")
 	int write(Article article);
-	
-	
-	 @Select("""
-		     SELECT a.*, m.loginId AS writerName
-		        FROM article a
-		        JOIN member m ON a.memberId = m.id
-		        WHERE a.boardId = #{boardId}
-		        ORDER BY a.id DESC
-		    """)
+
+	@Select("""
+			 SELECT a.*, m.loginId AS writerName
+			    FROM article a
+			    JOIN member m ON a.memberId = m.id
+			    WHERE a.boardId = #{boardId}
+			    ORDER BY a.id DESC
+			""")
 	List<Article> articleListByBoardId(int boardId);
 
 	@Select("""
@@ -37,12 +36,12 @@ public interface ArticleDao {
 			""")
 	List<Article> articleList(); // 이거 일단 보류
 
-	 @Select("""
-		     SELECT a.*, m.loginId AS writerName
-				FROM article a
-			    JOIN member m ON a.memberId = m.id
-			    WHERE a.id = #{id}
-		     """)
+	@Select("""
+			   SELECT a.*, m.loginId AS writerName
+			FROM article a
+			   JOIN member m ON a.memberId = m.id
+			   WHERE a.id = #{id}
+			   """)
 	Article articleDetail(int id);
 
 	@Update("""
@@ -59,7 +58,7 @@ public interface ArticleDao {
 			WHERE id = #{id}
 			""")
 	int articleDelete(int id);
-	
+
 	@Select("""
 			<script>
 			SELECT COUNT(*)
@@ -107,5 +106,26 @@ public interface ArticleDao {
 			""")
 	List<Article> getArticles(int boardId, int limit, int offset, String searchType, String searchKeyword);
 
+	@Select("""
+			SELECT a.*, m.loginId AS writerName
+			FROM article a
+			JOIN member m ON a.memberId = m.id
+			WHERE a.memberId = #{memberId}
+			ORDER BY a.id DESC
+			""")
+	List<Article> selectByMemberId(int memberId);
 
+	@Select("""
+			SELECT a.*, m.loginId AS writerName
+			FROM article a
+			JOIN member m ON a.memberId = m.id
+			JOIN reaction r ON a.id = r.relId
+			WHERE r.memberId = #{memberId}
+			  AND r.relTypeCode = 'article'
+			ORDER BY r.regDate DESC
+			""")
+	List<Article> selectLikedByMemberId(int memberId);
+
+	@Select("SELECT COUNT(*) FROM article WHERE memberId = #{memberId}")
+	int countByMemberId(int memberId);
 }

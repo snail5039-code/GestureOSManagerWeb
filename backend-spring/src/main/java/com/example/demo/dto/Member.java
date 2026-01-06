@@ -32,4 +32,6 @@ public class Member {
 	private String provider;
 	private String providerKey;
 	
+	private String role;
+	
 }

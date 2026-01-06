@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Article {
-	
+
 	private Integer id;
 	private String title;
 	private String content;
@@ -17,4 +17,8 @@ public class Article {
 	private Integer boardId;
 	private Integer memberId;
 	private String writerName;
+	private Boolean canModify;
+	private Boolean canDelete;
+	private Integer likeCount;
+	private Boolean isLiked;
 }

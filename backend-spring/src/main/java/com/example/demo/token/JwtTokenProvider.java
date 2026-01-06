@@ -35,14 +35,14 @@ public class JwtTokenProvider {
     }
 
     // ✅ Access Token (짧게)
-    public String createAccessToken(Integer memberId, String loginId) {
+    public String createAccessToken(Integer memberId, String loginId, String role) {
         Date now = new Date();
         Date exp = Date.from(Instant.now().plus(accessExpMinutes, ChronoUnit.MINUTES));
 
         return Jwts.builder()
-        		.subject(String.valueOf(memberId))
+                .subject(String.valueOf(memberId))
                 .claim("loginId", loginId)
-                .claim("role", "ROLE_USER")
+                .claim("role", role)
                 .claim("typ", "access")
                 .issuedAt(now)
                 .expiration(exp)

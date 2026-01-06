@@ -33,18 +33,19 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private String frontendRedirectUri;
 
     public OAuth2SuccessHandler(MemberService memberService,
-                               JwtTokenProvider jwtTokenProvider,
-                               RefreshTokenDao refreshTokenDao) {
+            JwtTokenProvider jwtTokenProvider,
+            RefreshTokenDao refreshTokenDao) {
         this.memberService = memberService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.refreshTokenDao = refreshTokenDao;
     }
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+            Authentication authentication)
             throws IOException {
         OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) authentication;
-        String provider = token.getAuthorizedClientRegistrationId(); 
+        String provider = token.getAuthorizedClientRegistrationId();
         OAuth2User principal = (OAuth2User) token.getPrincipal();
 
         OAuth2UserInfo info = toUserInfo(provider, principal.getAttributes());
@@ -54,8 +55,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 provider.toUpperCase(),
                 info.getEmail(),
                 info.getName(),
-                info.getProviderKey()
-        );
+                info.getProviderKey());
 
         // 1. 리프레시 토큰 처리 (쿠키)
         String refreshToken = jwtTokenProvider.createRefreshToken(m.getId());
@@ -63,13 +63,17 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         Cookie cookie = new Cookie("refreshToken", refreshToken);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);  
-        cookie.setPath("/"); 
-        cookie.setMaxAge(60 * 60 * 24 * 7); 
+        cookie.setSecure(false);
+        cookie.setPath("/");
+        cookie.setMaxAge(60 * 60 * 24 * 7);
         response.addCookie(cookie);
 
         // 2. 액세스 토큰 생성
-        String accessToken = jwtTokenProvider.createAccessToken(m.getId(), info.getEmail());
+        String role = m.getRole();
+        if (role != null && !role.startsWith("ROLE_")) {
+            role = "ROLE_" + role;
+        }
+        String accessToken = jwtTokenProvider.createAccessToken(m.getId(), info.getEmail(), role);
 
         // 3. 프론트엔드로 리다이렉트 할 때 액세스 토큰을 쿼리 스트링으로 전달
         String redirectUrl = frontendRedirectUri + "?accessToken=" + accessToken + "&memberId=" + m.getId();
@@ -77,7 +81,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         // 리디렉션을 보내기 전에 주소가 제대로 세팅되었는지 확인
         System.out.println("Redirect URL: " + redirectUrl);
 
-        response.sendRedirect(redirectUrl);  // 리디렉션 URL로 이동
+        response.sendRedirect(redirectUrl); // 리디렉션 URL로 이동
     }
 
     @SuppressWarnings("unchecked")
@@ -87,12 +91,11 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
             case "kakao" -> new KakaoUserInfo(attributes);
             case "naver" -> {
                 Object resp = attributes.get("response");
-                if (resp instanceof Map map) yield new NaverUserInfo((Map<String, Object>) map);
+                if (resp instanceof Map map)
+                    yield new NaverUserInfo((Map<String, Object>) map);
                 throw new IllegalArgumentException("Invalid naver response");
             }
             default -> throw new IllegalArgumentException("Unsupported provider: " + provider);
         };
     }
 }
-
-
