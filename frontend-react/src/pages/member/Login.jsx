@@ -4,12 +4,14 @@ import { api } from "../../api/client";
 import { useAuth } from "../../auth/AuthProvider";
 import { useModal } from "../../context/ModalContext";
 import SocialLoginButtons from "./SocialLoginButtons";
+import { useTranslation } from "react-i18next";
 
 export default function Login() {
   const [loginId, setLoginId] = useState("");
   const [loginPw, setLoginPw] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const { t } = useTranslation(["member", "common"]);
   const { loginWithToken } = useAuth();
   const { showModal } = useModal();
   const nav = useNavigate();
@@ -22,8 +24,8 @@ export default function Login() {
 
     if (!i || !p) {
       showModal({
-        title: "입력 오류",
-        message: "아이디와 비밀번호를 모두 입력해 주세요.",
+        title: t("member:login.modal.inputError"),
+        message: t("member:login.modal.needBoth"),
         type: "warning"
       });
       return;
@@ -37,20 +39,23 @@ export default function Login() {
       if (!token) throw new Error("NO_TOKEN");
 
       await loginWithToken(token);
+
       showModal({
-        title: "로그인 성공",
-        message: `${res.data.name || i}님 환영합니다.`,
+        title: t("member:login.modal.successTitle"),
+        message: t("member:login.modal.successWelcome", { name: res.data.name || i }),
         type: "success",
         onClose: () => nav("/home", { replace: true })
       });
     } catch (err) {
       console.error("LOGIN_ERR:", err);
-      const errorMsg = err?.response?.status === 401
-        ? "아이디 또는 비밀번호가 올바르지 않습니다."
-        : (err?.response?.data?.message || "로그인 중 오류가 발생했습니다.");
+
+      const errorMsg =
+        err?.response?.status === 401
+          ? t("member:login.modal.fail401")
+          : (err?.response?.data?.message || t("member:login.modal.failDefault"));
 
       showModal({
-        title: "로그인 실패",
+        title: t("member:login.modal.failTitle"),
         message: errorMsg,
         type: "error"
       });
@@ -66,32 +71,40 @@ export default function Login() {
           <div className="rounded-[2.5rem] border border-[var(--border)] bg-[var(--surface)] p-10 shadow-[0_20px_45px_rgba(6,12,26,0.55)]">
             <div className="mb-8">
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-3 py-1 text-xs text-[var(--muted)]">
-                Secure Access
+                {t("member:login.badge")}
               </div>
-              <h1 className="text-3xl tracking-tight text-white">로그인</h1>
-              <p className="mt-2 text-sm text-[var(--muted)]">대시보드와 모션 가이드로 이동합니다.</p>
+              <h1 className="text-3xl tracking-tight text-white">
+                {t("member:login.title")}
+              </h1>
+              <p className="mt-2 text-sm text-[var(--muted)]">
+                {t("member:login.subtitle")}
+              </p>
             </div>
 
             <form className="space-y-6" onSubmit={onSubmit}>
               <div>
-                <label className="block text-xs text-[var(--muted)]">아이디</label>
+                <label className="block text-xs text-[var(--muted)]">
+                  {t("member:login.field.loginId")}
+                </label>
                 <input
                   className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]"
                   value={loginId}
                   onChange={(e) => setLoginId(e.target.value)}
-                  placeholder="아이디를 입력하세요"
+                  placeholder={t("member:login.placeholder.loginId")}
                   disabled={loading}
                   autoFocus
                 />
               </div>
 
               <div>
-                <label className="block text-xs text-[var(--muted)]">비밀번호</label>
+                <label className="block text-xs text-[var(--muted)]">
+                  {t("member:login.field.password")}
+                </label>
                 <input
                   className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]"
                   value={loginPw}
                   onChange={(e) => setLoginPw(e.target.value)}
-                  placeholder="비밀번호를 입력하세요"
+                  placeholder={t("member:login.placeholder.password")}
                   type="password"
                   disabled={loading}
                 />
@@ -99,11 +112,15 @@ export default function Login() {
 
               <div className="flex items-center justify-between text-xs text-[var(--muted)]">
                 <div className="flex gap-3">
-                  <Link to="/findLoginId" className="hover:text-white transition-colors">아이디 찾기</Link>
-                  <Link to="/findLoginPw" className="hover:text-white transition-colors">비밀번호 찾기</Link>
+                  <Link to="/findLoginId" className="hover:text-white transition-colors">
+                    {t("member:login.link.findId")}
+                  </Link>
+                  <Link to="/findLoginPw" className="hover:text-white transition-colors">
+                    {t("member:login.link.findPw")}
+                  </Link>
                 </div>
                 <Link to="/join" className="text-[var(--accent)] hover:text-white transition-colors">
-                  회원가입
+                  {t("member:login.link.join")}
                 </Link>
               </div>
 
@@ -112,19 +129,23 @@ export default function Login() {
                 disabled={loading}
                 className="w-full rounded-2xl bg-[var(--accent)] py-3 text-sm text-white shadow-[0_16px_30px_rgba(59,130,246,0.35)] hover:bg-[var(--accent-strong)] transition-all disabled:opacity-60"
               >
-                {loading ? "로그인 중..." : "로그인"}
+                {loading ? t("member:login.btn.submitting") : t("member:login.btn.submit")}
               </button>
             </form>
           </div>
 
           <div className="rounded-[2.5rem] border border-[var(--border)] bg-[var(--surface)] p-10 shadow-[0_20px_45px_rgba(6,12,26,0.55)]">
             <div className="mb-6">
-              <h2 className="text-lg text-white">소셜 로그인</h2>
-              <p className="mt-2 text-sm text-[var(--muted)]">Google, Kakao, Naver로 바로 시작하세요.</p>
+              <h2 className="text-lg text-white">{t("member:social.title")}</h2>
+              <p className="mt-2 text-sm text-[var(--muted)]">
+                {t("member:social.subtitle")}
+              </p>
             </div>
+
             <SocialLoginButtons />
+
             <div className="mt-8 rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-4 text-xs text-[var(--muted)]">
-              계정 연동 후에는 자동으로 대시보드로 이동합니다.
+              {t("member:social.hint")}
             </div>
           </div>
         </div>

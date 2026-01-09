@@ -1,5 +1,8 @@
 {
-  "brand": "SLT PROJECT",
+  "sidebar": {
+    "subtitle": "제스처 컨트롤",
+    "title": "매니저"
+  },
   "nav": {
     "home": "홈",
     "about": "소개",
@@ -7,9 +10,8 @@
     "motionGuide": "모션 가이드",
     "download": "다운로드"
   },
-  "auth": {
-    "login": "로그인",
-    "join": "회원가입",
-    "logout": "로그아웃"
+  "status": {
+    "signedIn": "로그인됨",
+    "guest": "게스트 모드"
   }
 }

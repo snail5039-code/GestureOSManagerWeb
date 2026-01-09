@@ -47,15 +47,20 @@ public class HelpController {
     @PostMapping("/chat")
     public ChatResponse chat(@RequestBody ChatRequest req) {
 
-        String category = req != null && req.context != null ? nz(req.context.category) : "";
-        String message  = req != null ? nz(req.message) : "";
-        String lastQ    = req != null && req.context != null ? nz(req.context.lastQuestionType) : "";
+        String category = (req != null && req.context != null) ? nz(req.context.category) : "";
+        String lang     = (req != null && req.context != null) ? nz(req.context.lang) : "ko";
+        String message  = (req != null) ? nz(req.message) : "";
+        String lastQ    = (req != null && req.context != null) ? nz(req.context.lastQuestionType) : "";
 
         String msgRaw = message == null ? "" : message.trim();
 
         // 1) 빈 입력
         if (msgRaw.isBlank()) {
-            return mk("cards", "응, 무슨 일이야?", List.of(), "ASK_PROBLEM_TYPE");
+            return mk("cards", t(lang,
+                    "응, 무슨 일이야?",
+                    "Okay, what’s up?",
+                    "うん、どうした？"
+            ), List.of(), "ASK_PROBLEM_TYPE");
         }
 
         // 2) 안전 필터(최소)
@@ -63,17 +68,21 @@ public class HelpController {
         if (containsAny(low, "자살", "죽고", "죽을", "목숨", "끝내고", "마포대교")) {
             return mk(
                     "cards",
-                    "지금은 네 안전이 제일 중요해. 혼자 버티지 말고 주변 도움을 꼭 받아.",
+                    t(lang,
+                            "지금은 네 안전이 제일 중요해. 혼자 버티지 말고 주변 도움을 꼭 받아.",
+                            "Your safety matters most right now. Please reach out to someone nearby for help.",
+                            "今は安全が一番大事。ひとりで抱えず、周りの助けを必ず頼って。"
+                    ),
                     List.of(),
                     "SAFETY_CHECK"
             );
         }
 
-        // 3) AI에게 전부 판단 맡김 (히스토리 포함)
+        // 3) AI에게 판단 맡김 (lang 포함)
         OpenAiService.DialogPlan plan;
         try {
             List<ChatRequest.HistoryItem> hist = (req != null ? req.history : null);
-            plan = openAi.dialogPlan(msgRaw, category, lastQ, hist, 5);
+            plan = openAi.dialogPlan(msgRaw, category, lastQ, lang, hist, 5);
         } catch (Exception e) {
             plan = null;
         }
@@ -81,7 +90,11 @@ public class HelpController {
         if (plan == null || plan.text == null || plan.text.isBlank()) {
             return mk(
                     "cards",
-                    "잠깐 오류가 있었어. 방금 말한 걸 한 번만 더 보내줘!",
+                    t(lang,
+                            "잠깐 오류가 있었어. 방금 말한 걸 한 번만 더 보내줘!",
+                            "Something glitched. Send that one more time!",
+                            "ちょっと不具合。さっきの内容をもう一回送って！"
+                    ),
                     List.of(),
                     "ASK_PROBLEM_TYPE"
             );
@@ -93,26 +106,19 @@ public class HelpController {
                 : plan.nextQuestionType;
 
         // 4) 잡담/짜증이면 카드 없이 자연스럽게
-        //    (stateEnded=true도 여기서 카드 끊는 용도로 같이 사용)
         if (plan.stateEnded || "CHITCHAT".equals(intent) || "FRUSTRATION".equals(intent)) {
-            return mk(
-                    "cards",
-                    plan.text,
-                    List.of(),
-                    nextQ
-            );
+            return mk("cards", plan.text, List.of(), nextQ);
         }
 
-        // 5) 문제/환경힌트면 카드 추천
-        var rr = service.recommend(category, msgRaw, 3);
+        // ✅ 5) 문제/환경힌트면 카드 추천: AI가 추론한 category 우선 반영
+        String catForRec = (plan.category == null || plan.category.isBlank())
+                ? category
+                : plan.category;
+
+        var rr = service.recommend(catForRec, msgRaw, 3);
         var ids = rr.cards.stream().map(c -> c.id).toList();
 
-        return mk(
-                "cards",
-                plan.text,
-                ids,
-                nextQ
-        );
+        return mk("cards", plan.text, ids, nextQ);
     }
 
     private static String nz(String s) { return s == null ? "" : s; }
@@ -130,5 +136,13 @@ public class HelpController {
         r.matched = matched;
         r.nextQuestionType = nextQ;
         return r;
+    }
+
+    private static String t(String lang, String ko, String en, String ja) {
+        return switch ((lang == null ? "ko" : lang).toLowerCase()) {
+            case "en" -> en;
+            case "ja" -> ja;
+            default -> ko;
+        };
     }
 }

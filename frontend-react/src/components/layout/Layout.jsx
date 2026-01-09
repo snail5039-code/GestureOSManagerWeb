@@ -1,17 +1,19 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import AppHeader from "./AppHeader";
 import ChatWidget from "../help/ChatWidget";
 import { useAuth } from "../../auth/AuthProvider";
 
 export default function Layout() {
   const { isAuthed } = useAuth();
+  const { t } = useTranslation(["layout"]); // ✅ layout 네임스페이스
 
   const navItems = [
-    { to: "/", label: "Home" },
-    { to: "/about", label: "About" },
-    { to: "/board", label: "Board" },
-    { to: "/motionGuide", label: "Motion Guide" },
-    { to: "/download", label: "Download" },
+    { to: "/", key: "home" },
+    { to: "/about", key: "about" },
+    { to: "/board", key: "board" },
+    { to: "/motionGuide", key: "motionGuide" },
+    { to: "/download", key: "download" },
   ];
 
   return (
@@ -21,13 +23,27 @@ export default function Layout() {
           <div className="px-6 py-6">
             <div className="flex items-center gap-3 rounded-2xl bg-[var(--surface)] px-4 py-3 shadow-[0_10px_30px_rgba(6,12,26,0.55)]">
               <div className="h-10 w-10 rounded-xl bg-[var(--accent)]/20 text-[var(--accent)] flex items-center justify-center">
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.4} d="M12 6v12m6-6H6" />
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.4}
+                    d="M12 6v12m6-6H6"
+                  />
                 </svg>
               </div>
               <div>
-                <div className="text-sm text-[var(--muted)]">Gesture Control</div>
-                <div className="text-lg tracking-tight">Manager</div>
+                <div className="text-sm text-[var(--muted)]">
+                  {t("layout:sidebar.subtitle")}
+                </div>
+                <div className="text-lg tracking-tight">
+                  {t("layout:sidebar.title")}
+                </div>
               </div>
             </div>
           </div>
@@ -46,13 +62,13 @@ export default function Layout() {
                 }
               >
                 <span className="h-2 w-2 rounded-full bg-[var(--accent)]/70"></span>
-                <span className="text-sm">{item.label}</span>
+                <span className="text-sm">{t(`layout:nav.${item.key}`)}</span>
               </NavLink>
             ))}
           </nav>
 
           <div className="px-6 pb-6 pt-2 text-xs text-[var(--muted)]">
-            {isAuthed ? "Signed in" : "Guest mode"}
+            {isAuthed ? t("layout:status.signedIn") : t("layout:status.guest")}
           </div>
         </aside>
 
@@ -63,6 +79,7 @@ export default function Layout() {
           </main>
         </div>
       </div>
+
       <ChatWidget />
     </div>
   );

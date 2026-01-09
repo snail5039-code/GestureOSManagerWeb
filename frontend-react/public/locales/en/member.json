@@ -1,0 +1,205 @@
+{
+  "join": {
+    "title": "Sign up",
+    "subtitle": "Please enter your information to get started.",
+    "field": {
+      "loginId": "ID",
+      "password": "Password",
+      "password2": "Confirm password",
+      "name": "Name",
+      "nickname": "Nickname",
+      "emailVerify": "Email verification",
+      "country": "Country"
+    },
+    "placeholder": {
+      "loginId": "Enter your ID",
+      "password": "Password",
+      "password2": "Confirm password",
+      "name": "Enter your name",
+      "nickname": "Choose a nickname",
+      "email": "example@email.com",
+      "code": "6-digit code",
+      "country": "Select your country"
+    },
+    "pw": {
+      "match": "Passwords match.",
+      "mismatch": "Passwords do not match."
+    },
+    "btn": {
+      "sendCode": "Send code",
+      "sending": "Sending..",
+      "verify": "Verify",
+      "verifying": "Verifying..",
+      "submit": "Complete sign up",
+      "submitting": "Signing up.."
+    },
+    "hint": {
+      "already": "Already have an account?",
+      "loginLink": "Go to login"
+    },
+    "msg": {
+      "loginId": {
+        "taken": "This ID is already taken.",
+        "available": "This ID is available.",
+        "error": "Failed to check ID."
+      },
+      "nickname": {
+        "taken": "This nickname is already taken.",
+        "available": "This nickname is available.",
+        "error": "Failed to check nickname."
+      },
+      "email": {
+        "sent": "Verification code has been sent.",
+        "verified": "Email verified."
+      }
+    },
+    "modal": {
+      "inputError": "Input error",
+      "sendOkTitle": "Sent",
+      "sendOkBody": "A verification code has been sent. Please check your email.",
+      "verifyOkTitle": "Verified",
+      "verifyOkBody": "Email verification completed.",
+      "joinOkTitle": "Success",
+      "joinOkBody": "Sign up completed. Redirecting to login.",
+      "sendFailTitle": "Send failed",
+      "verifyFailTitle": "Verification failed",
+      "joinFailTitle": "Sign up failed",
+      "joinFailBody": "An error occurred during sign up.",
+      "need": {
+        "loginId": "Please enter your ID.",
+        "loginIdCheck": "Please check ID availability.",
+        "password": "Please enter your password.",
+        "passwordMismatch": "Passwords do not match.",
+        "name": "Please enter your name.",
+        "email": "Please enter your email.",
+        "emailVerify": "Email verification is required.",
+        "nickname": "Please enter your nickname.",
+        "nicknameCheck": "Please check nickname availability.",
+        "country": "Please select your country.",
+        "code": "Please enter the verification code."
+      }
+    }
+  },
+
+  "login": {
+    "badge": "Secure Access",
+    "title": "Login",
+    "subtitle": "Go to the dashboard and motion guide.",
+    "field": {
+      "loginId": "ID",
+      "password": "Password"
+    },
+    "placeholder": {
+      "loginId": "Enter your ID",
+      "password": "Enter your password"
+    },
+    "btn": {
+      "submit": "Login",
+      "submitting": "Logging in..."
+    },
+    "link": {
+      "findId": "Find ID",
+      "findPw": "Find password",
+      "join": "Sign up"
+    },
+    "modal": {
+      "inputError": "Input error",
+      "needBoth": "Please enter both ID and password.",
+      "successTitle": "Login success",
+      "successWelcome": "Welcome, {{name}}.",
+      "failTitle": "Login failed",
+      "fail401": "Invalid ID or password.",
+      "failDefault": "An error occurred during login."
+    }
+  },
+
+  "social": {
+    "title": "Social login",
+    "subtitle": "Start quickly with Google, Kakao, or Naver.",
+    "provider": {
+      "google": "Google",
+      "kakao": "Kakao",
+      "naver": "Naver"
+    },
+    "continue": "Continue",
+    "hint": "After linking your account, you will be redirected to the dashboard."
+  },
+
+  "findLoginId": {
+    "title": "Find ID",
+    "subtitle": "Enter the name and email you used when signing up.",
+    "field": {
+      "name": "Name",
+      "email": "Email"
+    },
+    "placeholder": {
+      "name": "Enter your name",
+      "email": "example@email.com"
+    },
+    "btn": {
+      "submit": "Find ID",
+      "loading": "Searching...",
+      "back": "Go back"
+    },
+    "link": {
+      "findPw": "Find password",
+      "login": "Login"
+    },
+    "modal": {
+      "inputError": "Input error",
+      "needName": "Please enter your name.",
+      "needEmail": "Please enter your email.",
+      "successTitle": "ID found",
+      "failTitle": "Failed",
+      "failDefault": "An error occurred while finding your ID.",
+      "successMessage": "{{message}}\nYour ID is [ {{loginId}} ]."
+    }
+  },
+
+  "findLoginPw": {
+    "title": "Find Password",
+    "subtitle": "Enter account info to receive a temporary password.",
+    "field": {
+      "loginId": "ID",
+      "email": "Email"
+    },
+    "placeholder": {
+      "loginId": "Enter your ID",
+      "email": "example@email.com"
+    },
+    "btn": {
+      "submit": "Find Password",
+      "loading": "Processing...",
+      "back": "Go back"
+    },
+    "link": {
+      "findId": "Find ID",
+      "login": "Login"
+    },
+    "modal": {
+      "inputError": "Input error",
+      "needLoginId": "Please enter your ID.",
+      "needEmail": "Please enter your email.",
+      "successTitle": "Success",
+      "failTitle": "Failed",
+      "failDefault": "An error occurred while finding your password."
+    }
+  },
+
+  "oauth": {
+    "processing": "Signing you in...",
+    "socialProcessing": "Processing social login...",
+    "noToken": "No token found. Redirecting to login."
+  },
+
+  "logout": {
+    "loading": "Logging out..."
+  },
+  
+  "country": {
+    "1": "Korea",
+    "2": "United States",
+    "3": "Japan"
+  }
+  
+}

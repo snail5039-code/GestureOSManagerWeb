@@ -1,0 +1,204 @@
+{
+  "join": {
+    "title": "회원가입",
+    "subtitle": "새로운 시작을 위해 정보를 입력해 주세요.",
+    "field": {
+      "loginId": "아이디",
+      "password": "비밀번호",
+      "password2": "비밀번호 확인",
+      "name": "이름",
+      "nickname": "닉네임",
+      "emailVerify": "이메일 인증",
+      "country": "국적"
+    },
+    "placeholder": {
+      "loginId": "아이디를 입력하세요",
+      "password": "비밀번호",
+      "password2": "비밀번호 확인",
+      "name": "이름을 입력하세요",
+      "nickname": "사용할 닉네임",
+      "email": "example@email.com",
+      "code": "인증코드 6자리",
+      "country": "국적을 선택하세요"
+    },
+    "pw": {
+      "match": "비밀번호가 일치합니다.",
+      "mismatch": "비밀번호가 일치하지 않습니다."
+    },
+    "btn": {
+      "sendCode": "코드 발송",
+      "sending": "발송 중..",
+      "verify": "인증하기",
+      "verifying": "확인 중..",
+      "submit": "회원가입 완료",
+      "submitting": "가입 처리 중.."
+    },
+    "hint": {
+      "already": "이미 계정이 있으신가요?",
+      "loginLink": "로그인하기"
+    },
+    "msg": {
+      "loginId": {
+        "taken": "이미 사용 중인 아이디입니다.",
+        "available": "사용 가능한 아이디입니다.",
+        "error": "아이디 확인 중 오류 발생"
+      },
+      "nickname": {
+        "taken": "이미 사용 중인 닉네임입니다.",
+        "available": "사용 가능한 닉네임입니다.",
+        "error": "닉네임 확인 중 오류 발생"
+      },
+      "email": {
+        "sent": "인증 코드가 발송되었습니다.",
+        "verified": "이메일 인증 완료"
+      }
+    },
+    "modal": {
+      "inputError": "입력 오류",
+      "sendOkTitle": "발송 완료",
+      "sendOkBody": "인증 코드가 발송되었습니다. 이메일을 확인해 주세요.",
+      "verifyOkTitle": "인증 완료",
+      "verifyOkBody": "이메일 인증이 완료되었습니다.",
+      "joinOkTitle": "가입 성공",
+      "joinOkBody": "회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.",
+      "sendFailTitle": "발송 실패",
+      "verifyFailTitle": "인증 실패",
+      "joinFailTitle": "가입 실패",
+      "joinFailBody": "회원가입 중 오류가 발생했습니다.",
+      "need": {
+        "loginId": "아이디를 입력해 주세요.",
+        "loginIdCheck": "아이디 중복 확인이 필요합니다.",
+        "password": "비밀번호를 입력해 주세요.",
+        "passwordMismatch": "비밀번호가 일치하지 않습니다.",
+        "name": "이름을 입력해 주세요.",
+        "email": "이메일을 입력해 주세요.",
+        "emailVerify": "이메일 인증이 필요합니다.",
+        "nickname": "닉네임을 입력해 주세요.",
+        "nicknameCheck": "닉네임 중복 확인이 필요합니다.",
+        "country": "국적을 선택해 주세요.",
+        "code": "인증 코드를 입력해 주세요."
+      }
+    }
+  },
+
+  "login": {
+    "badge": "Secure Access",
+    "title": "로그인",
+    "subtitle": "대시보드와 모션 가이드로 이동합니다.",
+    "field": {
+      "loginId": "아이디",
+      "password": "비밀번호"
+    },
+    "placeholder": {
+      "loginId": "아이디를 입력하세요",
+      "password": "비밀번호를 입력하세요"
+    },
+    "btn": {
+      "submit": "로그인",
+      "submitting": "로그인 중..."
+    },
+    "link": {
+      "findId": "아이디 찾기",
+      "findPw": "비밀번호 찾기",
+      "join": "회원가입"
+    },
+    "modal": {
+      "inputError": "입력 오류",
+      "needBoth": "아이디와 비밀번호를 모두 입력해 주세요.",
+      "successTitle": "로그인 성공",
+      "successWelcome": "{{name}}님 환영합니다.",
+      "failTitle": "로그인 실패",
+      "fail401": "아이디 또는 비밀번호가 올바르지 않습니다.",
+      "failDefault": "로그인 중 오류가 발생했습니다."
+    }
+  },
+
+  "social": {
+    "title": "소셜 로그인",
+    "subtitle": "Google, Kakao, Naver로 바로 시작하세요.",
+    "provider": {
+      "google": "Google",
+      "kakao": "Kakao",
+      "naver": "Naver"
+    },
+    "continue": "계속하기",
+    "hint": "계정 연동 후에는 자동으로 대시보드로 이동합니다."
+  },
+
+  "findLoginId": {
+    "title": "아이디 찾기",
+    "subtitle": "가입 시 등록한 이름과 이메일을 입력해 주세요",
+    "field": {
+      "name": "이름",
+      "email": "이메일"
+    },
+    "placeholder": {
+      "name": "이름을 입력하세요",
+      "email": "example@email.com"
+    },
+    "btn": {
+      "submit": "아이디 찾기",
+      "loading": "찾는 중...",
+      "back": "뒤로 가기"
+    },
+    "link": {
+      "findPw": "비밀번호 찾기",
+      "login": "로그인"
+    },
+    "modal": {
+      "inputError": "입력 오류",
+      "needName": "이름을 입력해주세요.",
+      "needEmail": "이메일을 입력해주세요.",
+      "successTitle": "아이디 찾기 성공",
+      "failTitle": "찾기 실패",
+      "failDefault": "아이디 찾기 중 오류가 발생했습니다.",
+      "successMessage": "{{message}}\n찾으시는 아이디는 [ {{loginId}} ] 입니다."
+    }
+  },
+
+  "findLoginPw": {
+    "title": "비밀번호 찾기",
+    "subtitle": "임시 비밀번호를 발급받을 계정 정보를 입력해 주세요",
+    "field": {
+      "loginId": "아이디",
+      "email": "이메일"
+    },
+    "placeholder": {
+      "loginId": "아이디를 입력하세요",
+      "email": "example@email.com"
+    },
+    "btn": {
+      "submit": "비밀번호 찾기",
+      "loading": "처리 중...",
+      "back": "뒤로 가기"
+    },
+    "link": {
+      "findId": "아이디 찾기",
+      "login": "로그인"
+    },
+    "modal": {
+      "inputError": "입력 오류",
+      "needLoginId": "아이디를 입력해주세요.",
+      "needEmail": "이메일을 입력해주세요.",
+      "successTitle": "비밀번호 찾기 성공",
+      "failTitle": "찾기 실패",
+      "failDefault": "비밀번호 찾기 중 오류가 발생했습니다."
+    }
+  },
+
+  "oauth": {
+    "processing": "로그인 처리 중...",
+    "socialProcessing": "소셜 로그인 처리 중...",
+    "noToken": "토큰이 없어 로그인 페이지로 리다이렉트합니다."
+  },
+
+  "logout": {
+    "loading": "로그아웃 중..."
+  },
+
+  "country": {
+    "1": "한국",
+    "2": "미국",
+    "3": "일본"
+  }
+}

@@ -1,5 +1,8 @@
 {
-  "brand": "SLT PROJECT",
+  "sidebar": {
+    "subtitle": "Gesture Control",
+    "title": "Manager"
+  },
   "nav": {
     "home": "Home",
     "about": "About",
@@ -7,9 +10,8 @@
     "motionGuide": "Motion Guide",
     "download": "Download"
   },
-  "auth": {
-    "login": "Login",
-    "join": "Sign up",
-    "logout": "Logout"
+  "status": {
+    "signedIn": "Signed in",
+    "guest": "Guest mode"
   }
 }

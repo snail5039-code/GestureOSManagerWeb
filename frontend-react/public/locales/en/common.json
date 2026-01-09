@@ -1,4 +1,6 @@
 {
-  "ok": "OK",
-  "cancel": "Cancel"
+  "app": {
+    "ok": "OK",
+    "cancel": "Cancel"
+  }
 }

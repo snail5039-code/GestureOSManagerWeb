@@ -1,4 +1,3 @@
-// src/i18n/index.js
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import HttpBackend from "i18next-http-backend";
@@ -12,17 +11,15 @@ i18n
     fallbackLng: "ko",
     supportedLngs: ["ko", "en", "ja"],
 
-    // namespace들
-    ns: ["common", "header", "board"],
+    // Join/Logout용 member 추가
+    ns: ["common", "header", "board", "member", "layout"],
     defaultNS: "common",
 
-    // public/locales/... 에서 불러옴
     backend: {
       loadPath: "/locales/{{lng}}/{{ns}}.json",
     },
 
     detection: {
-      // useLangMenu에서 localStorage에 lng 저장하니까 키 맞춰줌
       order: ["localStorage", "navigator"],
       caches: ["localStorage"],
       lookupLocalStorage: "lng",

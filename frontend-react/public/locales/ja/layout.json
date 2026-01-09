@@ -1,5 +1,8 @@
 {
-  "brand": "SLT PROJECT",
+  "sidebar": {
+    "subtitle": "ジェスチャー操作",
+    "title": "マネージャー"
+  },
   "nav": {
     "home": "ホーム",
     "about": "紹介",
@@ -7,9 +10,8 @@
     "motionGuide": "モーションガイド",
     "download": "ダウンロード"
   },
-  "auth": {
-    "login": "ログイン",
-    "join": "会員登録",
-    "logout": "ログアウト"
+  "status": {
+    "signedIn": "ログイン中",
+    "guest": "ゲストモード"
   }
 }

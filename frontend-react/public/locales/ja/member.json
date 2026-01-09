@@ -1,0 +1,204 @@
+{
+  "join": {
+    "title": "新規登録",
+    "subtitle": "開始するために情報を入力してください。",
+    "field": {
+      "loginId": "ID",
+      "password": "パスワード",
+      "password2": "パスワード確認",
+      "name": "名前",
+      "nickname": "ニックネーム",
+      "emailVerify": "メール認証",
+      "country": "国籍"
+    },
+    "placeholder": {
+      "loginId": "IDを入力してください",
+      "password": "パスワード",
+      "password2": "パスワード確認",
+      "name": "名前を入力してください",
+      "nickname": "ニックネーム",
+      "email": "example@email.com",
+      "code": "6桁のコード",
+      "country": "国籍を選択してください"
+    },
+    "pw": {
+      "match": "パスワードが一致しました。",
+      "mismatch": "パスワードが一致しません。"
+    },
+    "btn": {
+      "sendCode": "コード送信",
+      "sending": "送信中..",
+      "verify": "認証する",
+      "verifying": "確認中..",
+      "submit": "登録完了",
+      "submitting": "登録中.."
+    },
+    "hint": {
+      "already": "すでにアカウントをお持ちですか？",
+      "loginLink": "ログインへ"
+    },
+    "msg": {
+      "loginId": {
+        "taken": "このIDはすでに使用されています。",
+        "available": "このIDは使用可能です。",
+        "error": "ID確認中にエラーが発生しました。"
+      },
+      "nickname": {
+        "taken": "このニックネームはすでに使用されています。",
+        "available": "このニックネームは使用可能です。",
+        "error": "ニックネーム確認中にエラーが発生しました。"
+      },
+      "email": {
+        "sent": "認証コードを送信しました。",
+        "verified": "メール認証が完了しました。"
+      }
+    },
+    "modal": {
+      "inputError": "入力エラー",
+      "sendOkTitle": "送信完了",
+      "sendOkBody": "認証コードを送信しました。メールをご確認ください。",
+      "verifyOkTitle": "認証完了",
+      "verifyOkBody": "メール認証が完了しました。",
+      "joinOkTitle": "登録成功",
+      "joinOkBody": "登録が完了しました。ログインページへ移動します。",
+      "sendFailTitle": "送信失敗",
+      "verifyFailTitle": "認証失敗",
+      "joinFailTitle": "登録失敗",
+      "joinFailBody": "登録中にエラーが発生しました。",
+      "need": {
+        "loginId": "IDを入力してください。",
+        "loginIdCheck": "ID重複確認が必要です。",
+        "password": "パスワードを入力してください。",
+        "passwordMismatch": "パスワードが一致しません。",
+        "name": "名前を入力してください。",
+        "email": "メールを入力してください。",
+        "emailVerify": "メール認証が必要です。",
+        "nickname": "ニックネームを入力してください。",
+        "nicknameCheck": "ニックネーム重複確認が必要です。",
+        "country": "国籍を選択してください。",
+        "code": "認証コードを入力してください。"
+      }
+    }
+  },
+
+  "login": {
+    "badge": "Secure Access",
+    "title": "ログイン",
+    "subtitle": "ダッシュボードとモーションガイドへ移動します。",
+    "field": {
+      "loginId": "ID",
+      "password": "パスワード"
+    },
+    "placeholder": {
+      "loginId": "IDを入力してください",
+      "password": "パスワードを入力してください"
+    },
+    "btn": {
+      "submit": "ログイン",
+      "submitting": "ログイン中..."
+    },
+    "link": {
+      "findId": "IDを探す",
+      "findPw": "パスワードを探す",
+      "join": "新規登録"
+    },
+    "modal": {
+      "inputError": "入力エラー",
+      "needBoth": "IDとパスワードを両方入力してください。",
+      "successTitle": "ログイン成功",
+      "successWelcome": "{{name}}さん、ようこそ。",
+      "failTitle": "ログイン失敗",
+      "fail401": "IDまたはパスワードが正しくありません。",
+      "failDefault": "ログイン中にエラーが発生しました。"
+    }
+  },
+
+  "social": {
+    "title": "ソーシャルログイン",
+    "subtitle": "Google / Kakao / Naver ですぐ始めましょう。",
+    "provider": {
+      "google": "Google",
+      "kakao": "Kakao",
+      "naver": "Naver"
+    },
+    "continue": "続行",
+    "hint": "連携後、自動的にダッシュボードへ移動します。"
+  },
+
+  "findLoginId": {
+    "title": "IDを探す",
+    "subtitle": "登録時の名前とメールアドレスを入力してください。",
+    "field": {
+      "name": "名前",
+      "email": "メール"
+    },
+    "placeholder": {
+      "name": "名前を入力してください",
+      "email": "example@email.com"
+    },
+    "btn": {
+      "submit": "IDを探す",
+      "loading": "検索中...",
+      "back": "戻る"
+    },
+    "link": {
+      "findPw": "パスワードを探す",
+      "login": "ログイン"
+    },
+    "modal": {
+      "inputError": "入力エラー",
+      "needName": "名前を入力してください。",
+      "needEmail": "メールを入力してください。",
+      "successTitle": "成功",
+      "failTitle": "失敗",
+      "failDefault": "ID検索中にエラーが発生しました。",
+      "successMessage": "{{message}}\nIDは [ {{loginId}} ] です。"
+    }
+  },
+
+  "findLoginPw": {
+    "title": "パスワードを探す",
+    "subtitle": "仮パスワード発行のため、アカウント情報を入力してください。",
+    "field": {
+      "loginId": "ID",
+      "email": "メール"
+    },
+    "placeholder": {
+      "loginId": "IDを入力してください",
+      "email": "example@email.com"
+    },
+    "btn": {
+      "submit": "パスワードを探す",
+      "loading": "処理中...",
+      "back": "戻る"
+    },
+    "link": {
+      "findId": "IDを探す",
+      "login": "ログイン"
+    },
+    "modal": {
+      "inputError": "入力エラー",
+      "needLoginId": "IDを入力してください。",
+      "needEmail": "メールを入力してください。",
+      "successTitle": "成功",
+      "failTitle": "失敗",
+      "failDefault": "パスワード検索中にエラーが発生しました。"
+    }
+  },
+
+  "oauth": {
+    "processing": "ログイン処理中...",
+    "socialProcessing": "ソーシャルログイン処理中...",
+    "noToken": "トークンがありません。ログインへ移動します。"
+  },
+
+  "logout": {
+    "loading": "ログアウト中..."
+  },
+
+  "country": {
+    "1": "韓国",
+    "2": "アメリカ",
+    "3": "日本"
+  }
+}

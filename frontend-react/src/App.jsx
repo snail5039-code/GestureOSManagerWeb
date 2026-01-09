@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home.jsx";
 import Test from "./pages/Test.jsx";
-import TranslationLogPanel from "./components/TranslationLogPanel.jsx";
+// import TranslationLogPanel from "./components/TranslationLogPanel.jsx";
 import MotionGuide from "./pages/MotionGuide.jsx";
 import About from "./pages/About.jsx";
 import Download from "./pages/Download.jsx";
@@ -36,7 +36,7 @@ export default function App() {
         <Route path="/motionGuide" element={<MotionGuide />} />
         <Route path="/about" element={<About />} />
         <Route path="/download" element={<Download />} />
-        <Route path="/translationLogPanel" element={<TranslationLogPanel />} />
+        {/* <Route path="/translationLogPanel" element={<TranslationLogPanel />} /> */}
 
         {/* 게시판 */}
         <Route path="/board" element={<Board />} />

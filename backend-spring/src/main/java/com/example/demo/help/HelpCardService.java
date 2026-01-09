@@ -22,10 +22,9 @@ public class HelpCardService {
     private final ObjectMapper om;
     private final OpenAiService openAi;
 
-    // 캐시 파일 경로 (classpath 말고 파일시스템!)
     private final Path vectorCachePath;
+    private final boolean buildEmbeddingsOnStartup;
 
-    // cardId -> embedding vector
     private final Map<String, float[]> vectors = new HashMap<>();
 
     private List<HelpCard> cards = new ArrayList<>();
@@ -34,11 +33,13 @@ public class HelpCardService {
     public HelpCardService(
             ObjectMapper om,
             OpenAiService openAi,
-            @Value("${app.help.vector-cache-path:./data/help-vectors.json}") String vectorCachePath
+            @Value("${app.help.vector-cache-path:./data/help-vectors.json}") String vectorCachePath,
+            @Value("${app.help.build-embeddings-on-startup:false}") boolean buildEmbeddingsOnStartup
     ) {
         this.om = om;
         this.openAi = openAi;
         this.vectorCachePath = Paths.get(vectorCachePath);
+        this.buildEmbeddingsOnStartup = buildEmbeddingsOnStartup;
     }
 
     @PostConstruct
@@ -55,21 +56,39 @@ public class HelpCardService {
                         .collect(Collectors.toMap(c -> c.id, c -> c, (a, b) -> a));
             }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load help-cards.json", e);
+            throw new RuntimeException("Failed to load help/help-cards.json", e);
         }
 
-        // 2) 벡터 캐시 파일 로드
+        // 2) 벡터 캐시 로드(있으면 재사용)
         HelpVectorCache cache = readVectorCacheSafe();
-
-        // 3) 카드별 hash 비교해서 재사용/재생성
-        vectors.clear();
-
-        // 캐시의 vector map (id -> entry)
         Map<String, HelpVectorCache.Entry> cached = (cache != null && cache.vectors != null)
                 ? cache.vectors
                 : new HashMap<>();
 
+        vectors.clear();
+
         int reused = 0;
+        for (HelpCard c : cards) {
+            if (c == null || c.id == null) continue;
+
+            HelpVectorCache.Entry hit = cached.get(c.id);
+            if (hit != null && hit.vector != null && hit.vector.length > 0) {
+                vectors.put(c.id, hit.vector);
+                reused++;
+            }
+        }
+
+        // ✅ 여기서부터 “새 임베딩 생성”은 옵션 + 키 있을 때만
+        if (!buildEmbeddingsOnStartup) {
+            System.out.println("[HelpCardService] embeddings: startup build disabled. reused=" + reused + " totalVectors=" + vectors.size());
+            return;
+        }
+        if (!openAi.isApiKeyReady()) {
+            System.out.println("[HelpCardService] embeddings: no api key. reused=" + reused + " totalVectors=" + vectors.size());
+            return;
+        }
+
+        // 3) 카드별 hash 비교해서 변경된 것만 생성
         int created = 0;
 
         for (HelpCard c : cards) {
@@ -80,12 +99,11 @@ public class HelpCardService {
 
             HelpVectorCache.Entry hit = cached.get(c.id);
             if (hit != null && hash.equals(hit.hash) && hit.vector != null && hit.vector.length > 0) {
+                // 이미 위에서 vectors에 넣었을 수도 있지만 안전하게
                 vectors.put(c.id, hit.vector);
-                reused++;
                 continue;
             }
 
-            // 없거나 변경됨 -> 새로 임베딩 생성(실패해도 서버는 떠야 하니까 스킵)
             try {
                 float[] vec = openAi.embedOne(embedText);
                 if (vec != null && vec.length > 0) {
@@ -94,21 +112,21 @@ public class HelpCardService {
                     created++;
                 }
             } catch (Exception ex) {
-                // TODO: logger.warn("embedding failed for cardId={}", c.id, ex);
+                // 실패해도 서버는 떠야 함
+                System.out.println("[HelpCardService] embedding failed cardId=" + c.id + " msg=" + ex.getClass().getSimpleName());
             }
         }
 
-        // 4) 캐시 저장 (메타 포함)
+        // 4) 캐시 저장
         HelpVectorCache out = new HelpVectorCache();
         out.version = (file != null ? file.version : "unknown");
         out.updatedAt = (file != null ? file.updatedAt : null);
-        out.embeddingModel = "openai"; // 원하면 openAi에서 모델명 노출해서 넣어도 됨
+        out.embeddingModel = "openai";
         out.vectors = cached;
 
         writeVectorCacheSafe(out);
 
-        // 원하면 디버그 로그
-        // System.out.println("[HelpCardService] vectors reused=" + reused + " created=" + created + " total=" + vectors.size());
+        System.out.println("[HelpCardService] embeddings: reused=" + reused + " created=" + created + " totalVectors=" + vectors.size());
     }
 
     public List<String> categories() {
@@ -146,7 +164,7 @@ public class HelpCardService {
         }
 
         // 임베딩 캐시가 없으면 token 폴백
-        if (vectors.isEmpty()) {
+        if (vectors.isEmpty() || !openAi.isApiKeyReady()) {
             List<HelpCard> fb = recommendByTokens(cat, msg, limit);
             return new RecommendResult(fb, 0.0, false);
         }
@@ -216,32 +234,20 @@ public class HelpCardService {
         ScoredD(HelpCard c, double s) { this.card = c; this.sim = s; }
     }
 
-    // ----------------------------
-    // 내부 로직 (검색/폴백/토큰)
-    // ----------------------------
-
     private boolean matches(HelpCard c, String qq) {
         String t = normalize(c.title);
         if (!t.isBlank() && t.contains(qq)) return true;
 
-        if (c.symptoms != null) {
-            for (String s : c.symptoms) if (normalize(s).contains(qq)) return true;
-        }
-        if (c.tags != null) {
-            for (String s : c.tags) if (normalize(s).contains(qq)) return true;
-        }
+        if (c.symptoms != null) for (String s : c.symptoms) if (normalize(s).contains(qq)) return true;
+        if (c.tags != null) for (String s : c.tags) if (normalize(s).contains(qq)) return true;
         return false;
     }
 
     private List<HelpCard> fallback(String cat, int limit) {
         List<String> ids;
-        if ("call".equals(cat)) {
-            ids = List.of("call-010", "call-001", "call-007");
-        } else if ("error".equals(cat)) {
-            ids = List.of("err-001", "err-003", "err-008");
-        } else {
-            ids = List.of("cam-001", "cam-004", "cam-005");
-        }
+        if ("call".equals(cat)) ids = List.of("call-010", "call-001", "call-007");
+        else if ("error".equals(cat)) ids = List.of("err-001", "err-003", "err-008");
+        else ids = List.of("cam-001", "cam-004", "cam-005");
 
         List<HelpCard> res = new ArrayList<>();
         for (String id : ids) {
@@ -261,7 +267,6 @@ public class HelpCardService {
         return res;
     }
 
-    // 폴백용 token 추천(남겨두는 걸 권장)
     private List<HelpCard> recommendByTokens(String cat, String msgNorm, int limit) {
         String msg = normalize(msgNorm);
         List<Scored> scored = new ArrayList<>();
@@ -332,7 +337,6 @@ public class HelpCardService {
         Scored(HelpCard c, int s) { this.card = c; this.score = s; }
     }
 
-    // 카드 1장을 “검색용 텍스트”로 합치기(임베딩 입력)
     private String toEmbeddingText(HelpCard c) {
         StringBuilder sb = new StringBuilder();
         sb.append("id: ").append(n(c.id)).append("\n");
@@ -357,13 +361,11 @@ public class HelpCardService {
         return sb.toString();
     }
 
-    private String n(String s) {
-        return s == null ? "" : s;
-    }
+    private String n(String s) { return s == null ? "" : s; }
 
     public static class RecommendResult {
         public final List<HelpCard> cards;
-        public final double maxSim; // top1 similarity
+        public final double maxSim;
         public final boolean usedEmbeddings;
         public RecommendResult(List<HelpCard> cards, double maxSim, boolean usedEmbeddings) {
             this.cards = cards;
@@ -371,10 +373,6 @@ public class HelpCardService {
             this.usedEmbeddings = usedEmbeddings;
         }
     }
-
-    // ----------------------------
-    // 벡터 캐시 I/O + hash
-    // ----------------------------
 
     private static class HelpVectorCache {
         public String version;
@@ -400,7 +398,6 @@ public class HelpCardService {
             String json = Files.readString(vectorCachePath, StandardCharsets.UTF_8);
             return om.readValue(json, HelpVectorCache.class);
         } catch (Exception e) {
-            // 캐시가 깨졌으면 그냥 무시하고 재생성
             return null;
         }
     }
@@ -414,7 +411,7 @@ public class HelpCardService {
             Files.writeString(vectorCachePath, json, StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (Exception e) {
-            // 캐시 저장 실패해도 서버는 떠야 함
+            // ignore
         }
     }
 
