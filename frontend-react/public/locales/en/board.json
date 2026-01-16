@@ -1,8 +1,110 @@
 {
-  "menu": {
-    "notice": "Notice",
-    "free": "Free",
-    "qna": "Q&A",
-    "error": "Error"
+  "sort": "Sort",
+  "sortOptions": {
+    "latest": "Newest",
+    "views": "Most viewed",
+    "comments": "Most commented"
+  },
+  "list": "List",
+  "pageSize": {
+    "10": "10 per page",
+    "20": "20 per page",
+    "30": "30 per page"
+  },
+  "table": {
+    "no": "No.",
+    "title": "Title",
+    "writer": "Author",
+    "date": "Date",
+    "views": "Views"
+  },
+  "loading": "Loading...",
+  "empty": "No posts yet.",
+  "anonymous": "Anonymous",
+  "search": {
+    "type": {
+      "title": "Title",
+      "content": "Content",
+      "titleContent": "Title + Content"
+    },
+    "placeholder": "Enter a keyword",
+    "button": "Search"
+  },
+  "write": "Write",
+  "backToList": "Back to list",
+  "viewsLabel": "Views",
+  "board": {
+    "default": "Board",
+    "types": {
+      "notice": "Notice",
+      "free": "Free Board",
+      "qna": "Q&A",
+      "error": "Issue Reports"
+    }
+  },
+  "modal": {
+    "errorTitle": "Error",
+    "loadFail": "Failed to load posts.",
+    "notFound": "This post has been deleted or does not exist.",
+    "detailFail": "Failed to load the post.",
+    "deleteTitle": "Delete post",
+    "deleteConfirm": "Are you sure you want to delete this post?",
+    "deleteAction": "Delete",
+    "deleteSuccessTitle": "Deleted",
+    "deleteSuccessMsg": "The post has been deleted.",
+    "deleteFailTitle": "Delete failed",
+    "deleteFailMsg": "An error occurred while deleting.",
+    "inputErrorTitle": "Input error",
+    "inputErrorMsg": "Please enter both a title and content.",
+    "modifySuccessTitle": "Updated",
+    "modifySuccessMsg": "The post has been updated.",
+    "modifyFailTitle": "Update failed",
+    "modifyFailMsg": "An error occurred while updating the post.",
+    "writeSuccessTitle": "Posted",
+    "writeSuccessMsg": "Your post has been published.",
+    "writeFailTitle": "Post failed",
+    "writeFailMsg": "An error occurred while publishing."
+  },
+  "modify": {
+    "title": "Edit post",
+    "desc": "Update your post and save changes.",
+    "labelTitle": "Title",
+    "labelContent": "Content",
+    "placeholderTitle": "Enter a title",
+    "placeholderContent": "Enter content",
+    "cancel": "Cancel",
+    "back": "Back",
+    "save": "Save changes",
+    "saving": "Saving..."
+  },
+  "writePage": {
+    "title": "Write a new post",
+    "desc": "Share your thoughts.",
+    "labelTitle": "Title",
+    "labelContent": "Content",
+    "placeholderTitle": "Enter a title",
+    "placeholderContent": "Enter content",
+    "cancel": "Cancel",
+    "back": "Back",
+    "submit": "Publish",
+    "submitting": "Publishing..."
+  },
+  "comment": {
+    "count": "Comments {{count}}",
+    "loading": "Loading comments...",
+    "empty": "Be the first to comment!",
+    "reply": "Reply",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "save": "Save",
+    "confirmDelete": "Do you want to delete this comment?",
+    "editFail": "Update failed",
+    "deleteFail": "Delete failed",
+    "placeholderComment": "Write a comment...",
+    "placeholderReply": "Write a reply...",
+    "submitComment": "Post Comment",
+    "submitReply": "Post Reply",
+    "submitting": "Posting..."
   }
 }

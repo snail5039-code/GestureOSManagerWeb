@@ -10,14 +10,10 @@ i18n
   .init({
     fallbackLng: "ko",
     supportedLngs: ["ko", "en", "ja"],
-
-    // Join/Logout용 member 추가
-    ns: ["common", "header", "board", "member", "layout"],
+    ns: ["common", "header", "board", "member", "layout", "chat"],
     defaultNS: "common",
 
-    backend: {
-      loadPath: "/locales/{{lng}}/{{ns}}.json",
-    },
+    backend: { loadPath: "/locales/{{lng}}/{{ns}}.json" },
 
     detection: {
       order: ["localStorage", "navigator"],
@@ -26,7 +22,11 @@ i18n
     },
 
     interpolation: { escapeValue: false },
-    react: { useSuspense: false },
+
+    react: {
+      useSuspense: false,
+    },
+
     debug: true,
   });
 

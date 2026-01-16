@@ -1,6 +1,8 @@
 ﻿import React from "react";
+import { useTranslation } from "react-i18next";
 
 export default function Modal({ show, onClose, title, message, type = "info", children }) {
+    const { t } = useTranslation("common");
     if (!show) return null;
 
     const typeStyles = {
@@ -46,7 +48,7 @@ export default function Modal({ show, onClose, title, message, type = "info", ch
                             onClick={onClose}
                             className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black hover:bg-slate-800 transition-all shadow-lg"
                         >
-                            확인
+                            {t("common.ok")}
                                                 
                         </button>
                     )}

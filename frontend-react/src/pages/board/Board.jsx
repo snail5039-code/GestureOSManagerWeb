@@ -4,11 +4,12 @@ import { api } from "../../api/client";
 import { useModal } from "../../context/ModalContext";
 import { useAuth } from "../../auth/AuthProvider";
 import { BOARD_TYPES } from "./BoardTypes";
+import { useTranslation } from "react-i18next";
 
 const SORT_OPTIONS = [
-  { value: "latest", label: "최신순" },
-  { value: "views", label: "조회순" },
-  { value: "comments", label: "댓글순" }
+  { value: "latest", key: "latest" },
+  { value: "views", key: "views" },
+  { value: "comments", key: "comments" }
 ];
 
 const getStoredBoardId = () => {
@@ -51,6 +52,7 @@ const getStoredPage = (id) => {
 };
 
 export default function Board() {
+  const { t } = useTranslation("board");
   const { showModal } = useModal();
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -120,14 +122,7 @@ export default function Board() {
     try {
       setLoading(true);
       const res = await api.get("/boards", {
-        params: {
-          boardId,
-          cPage,
-          searchType,
-          searchKeyword,
-          pageSize,
-          sortType
-        }
+        params: { boardId, cPage, searchType, searchKeyword, pageSize, sortType }
       });
 
       const totalPagesCnt = res.data.totalPagesCnt ?? 1;
@@ -137,12 +132,10 @@ export default function Board() {
       setBoards(res.data.articles || []);
       setPageInfo({ totalPagesCnt, begin, end });
 
-      if (cPage > totalPagesCnt) {
-        setCPage(totalPagesCnt);
-      }
+      if (cPage > totalPagesCnt) setCPage(totalPagesCnt);
     } catch (e) {
       console.error(e);
-      showModal({ title: "오류", message: "게시글을 불러오는 중 오류가 발생했습니다.", type: "error" });
+      showModal({ title: t("modal.errorTitle"), message: t("modal.loadFail"), type: "error" });
     } finally {
       setLoading(false);
     }
@@ -175,21 +168,26 @@ export default function Board() {
 
   const pageNumbers = useMemo(() => {
     const pages = [];
-    for (let i = pageInfo.begin; i <= pageInfo.end; i++) {
-      pages.push(i);
-    }
+    for (let i = pageInfo.begin; i <= pageInfo.end; i++) pages.push(i);
     return pages.length > 0 ? pages : [1];
   }, [pageInfo]);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "-";
     const date = new Date(dateStr);
-    return date.toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" });
+    // 로케일은 브라우저 기본으로 두는 게 자연스러움
+    return date.toLocaleDateString(undefined, { year: "numeric", month: "2-digit", day: "2-digit" });
   };
 
   const role = typeof user?.role === "string" ? user.role : "";
   const isAdmin = role.toLowerCase().includes("admin") || role.includes("관리자");
   const canWrite = boardId !== 1 || isAdmin;
+
+  const boardLabel = (id) => {
+    const key = BOARD_TYPES.find((b) => b.id === id)?.key;
+    if (!key) return t("board.default");
+    return t(`board.types.${key}`);
+  };
 
   return (
     <div className="min-h-screen text-[var(--text)]">
@@ -198,7 +196,7 @@ export default function Board() {
           <div className="flex items-center gap-4">
             <div className="relative group">
               <button className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-6 py-3 text-sm text-white transition-all hover:border-[var(--accent)]">
-                {BOARD_TYPES.find((b) => b.id === boardId)?.name}
+                {boardLabel(boardId)}
                 <svg className="h-5 w-5 text-[var(--muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -210,7 +208,7 @@ export default function Board() {
                     onClick={() => handleBoardChange(type.id)}
                     className="w-full rounded-lg px-4 py-2 text-left text-sm text-[var(--muted)] hover:bg-[rgba(59,130,246,0.15)] hover:text-white transition-all"
                   >
-                    {type.name}
+                    {boardLabel(type.id)}
                   </button>
                 ))}
               </div>
@@ -218,7 +216,7 @@ export default function Board() {
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-xs text-[var(--muted)]">정렬</span>
+            <span className="text-xs text-[var(--muted)]">{t("sort")}</span>
             <select
               value={sortType}
               onChange={(e) => {
@@ -228,11 +226,11 @@ export default function Board() {
               className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-xs text-white outline-none focus:ring-2 focus:ring-[var(--accent)] transition-all"
             >
               {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                <option key={opt.value} value={opt.value}>{t(`sortOptions.${opt.key}`)}</option>
               ))}
             </select>
 
-            <span className="text-xs text-[var(--muted)]">목록</span>
+            <span className="text-xs text-[var(--muted)]">{t("list")}</span>
             <select
               value={pageSize}
               onChange={(e) => {
@@ -241,9 +239,9 @@ export default function Board() {
               }}
               className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-xs text-white outline-none focus:ring-2 focus:ring-[var(--accent)] transition-all"
             >
-              <option value={10}>10개씩 보기</option>
-              <option value={20}>20개씩 보기</option>
-              <option value={30}>30개씩 보기</option>
+              <option value={10}>{t("pageSize.10")}</option>
+              <option value={20}>{t("pageSize.20")}</option>
+              <option value={30}>{t("pageSize.30")}</option>
             </select>
           </div>
         </div>
@@ -252,18 +250,18 @@ export default function Board() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-[var(--border)] bg-[rgba(9,14,26,0.8)]">
-                <th className="w-20 px-8 py-4 text-[10px] uppercase tracking-[0.3em] text-slate-200 whitespace-nowrap">번호</th>
-                <th className="px-8 py-4 text-[10px] uppercase tracking-[0.3em] text-slate-200">제목</th>
-                <th className="w-36 px-8 py-4 text-[10px] uppercase tracking-[0.3em] text-slate-200 whitespace-nowrap">작성자</th>
-                <th className="w-36 px-8 py-4 text-[10px] uppercase tracking-[0.3em] text-slate-200 whitespace-nowrap">작성일</th>
-                <th className="w-24 px-8 py-4 text-center text-[10px] uppercase tracking-[0.3em] text-slate-200 whitespace-nowrap">조회수</th>
+                <th className="w-20 px-8 py-4 text-[10px] uppercase tracking-[0.3em] text-slate-200 whitespace-nowrap">{t("table.no")}</th>
+                <th className="px-8 py-4 text-[10px] uppercase tracking-[0.3em] text-slate-200">{t("table.title")}</th>
+                <th className="w-36 px-8 py-4 text-[10px] uppercase tracking-[0.3em] text-slate-200 whitespace-nowrap">{t("table.writer")}</th>
+                <th className="w-36 px-8 py-4 text-[10px] uppercase tracking-[0.3em] text-slate-200 whitespace-nowrap">{t("table.date")}</th>
+                <th className="w-24 px-8 py-4 text-center text-[10px] uppercase tracking-[0.3em] text-slate-200 whitespace-nowrap">{t("table.views")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border)]">
               {loading ? (
-                <tr><td colSpan={5} className="px-8 py-20 text-center text-sm text-slate-300">불러오는 중...</td></tr>
+                <tr><td colSpan={5} className="px-8 py-20 text-center text-sm text-slate-300">{t("loading")}</td></tr>
               ) : boards.length === 0 ? (
-                <tr><td colSpan={5} className="px-8 py-20 text-center text-sm text-slate-300">등록된 게시글이 없습니다.</td></tr>
+                <tr><td colSpan={5} className="px-8 py-20 text-center text-sm text-slate-300">{t("empty")}</td></tr>
               ) : (
                 boards.map((b) => (
                   <tr
@@ -282,7 +280,7 @@ export default function Board() {
                         )}
                       </div>
                     </td>
-                    <td className="px-8 py-5 text-sm text-slate-300 whitespace-nowrap">{b.writerName || "익명"}</td>
+                    <td className="px-8 py-5 text-sm text-slate-300 whitespace-nowrap">{b.writerName || t("anonymous")}</td>
                     <td className="px-8 py-5 text-sm text-slate-300 whitespace-nowrap">{formatDate(b.regDate)}</td>
                     <td className="px-8 py-5 text-center text-sm text-slate-300 whitespace-nowrap">{b.hit || 0}</td>
                   </tr>
@@ -355,14 +353,14 @@ export default function Board() {
                   onChange={(e) => setSearchType(e.target.value)}
                   className="bg-transparent pl-4 pr-2 py-2 text-xs text-[var(--muted)] outline-none"
                 >
-                  <option value="title">제목</option>
-                  <option value="content">내용</option>
-                  <option value="title,content">제목+내용</option>
+                  <option value="title">{t("search.type.title")}</option>
+                  <option value="content">{t("search.type.content")}</option>
+                  <option value="title,content">{t("search.type.titleContent")}</option>
                 </select>
                 <div className="h-4 w-[1px] bg-[var(--border)]"></div>
                 <input
                   type="text"
-                  placeholder="검색어를 입력하세요"
+                  placeholder={t("search.placeholder")}
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -372,7 +370,7 @@ export default function Board() {
                   onClick={handleSearch}
                   className="rounded-lg bg-[var(--accent)] px-6 py-2 text-xs text-white hover:bg-[var(--accent-strong)] transition-all active:scale-95"
                 >
-                  검색
+                  {t("search.button")}
                 </button>
               </div>
             </div>
@@ -385,7 +383,7 @@ export default function Board() {
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
                 </svg>
-                글쓰기
+                {t("write")}
               </button>
             )}
           </div>

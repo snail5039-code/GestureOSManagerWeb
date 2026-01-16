@@ -1,16 +1,25 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+﻿// src/components/ChatWidget.jsx
+import { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import "./ChatWidget.css";
+import { useTranslation } from "react-i18next";
 
 const CHIPS_MIN_HEIGHT = 56;
 const CHIPS_MAX_HEIGHT = 260;
 const CHIPS_DEFAULT_HEIGHT = 140;
 
 export default function ChatWidget() {
+  const { t, i18n, ready } = useTranslation("chat");
+
   const [open, setOpen] = useState(true);
   const [isChipsCollapsed, setIsChipsCollapsed] = useState(false);
   const [chipsHeight, setChipsHeight] = useState(CHIPS_DEFAULT_HEIGHT);
-  const dragState = useRef({ startY: 0, startHeight: CHIPS_DEFAULT_HEIGHT, dragging: false });
+  const dragState = useRef({
+    startY: 0,
+    startHeight: CHIPS_DEFAULT_HEIGHT,
+    dragging: false,
+  });
+
   const dockDragRef = useRef({ startY: 0, startTop: 140, dragging: false });
   const [dockTop, setDockTop] = useState(140);
 
@@ -19,15 +28,26 @@ export default function ChatWidget() {
 
   const [input, setInput] = useState("");
   const [cards, setCards] = useState([]);
-  const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      type: "text",
-      text: "궁금한 내용을 입력해 주세요. 예: 카메라, 통화 오류"
-    }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [selectedCard, setSelectedCard] = useState(null);
 
+  const lang = i18n.language || "ko";
+
+  // ✅ i18n 준비되면 첫 메시지 1번만 넣기
+  useEffect(() => {
+    if (!ready) return;
+    setMessages([{ role: "assistant", type: "text", text: t("hello") }]);
+  }, [ready, t]);
+
+  // ✅ (중요) 언어 바뀌면 "챗 리셋"해서 첫 인사도 해당 언어로 다시 시작
+  useEffect(() => {
+    if (!ready) return;
+    setSelectedCard(null);
+    setInput("");
+    setMessages([{ role: "assistant", type: "text", text: t("hello") }]);
+  }, [lang, ready, t]);
+
+  // ✅ Chips 영역 드래그 리사이즈
   useEffect(() => {
     const handleMove = (event) => {
       if (!dragState.current.dragging) return;
@@ -53,6 +73,7 @@ export default function ChatWidget() {
     };
   }, []);
 
+  // ✅ Dock 드래그
   useEffect(() => {
     const handleMove = (event) => {
       if (!dockDragRef.current.dragging) return;
@@ -88,6 +109,7 @@ export default function ChatWidget() {
     dockDragRef.current.startTop = dockTop;
   };
 
+  // ✅ categories 로드
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -95,11 +117,7 @@ export default function ChatWidget() {
         const res = await axios.get("/api/help/categories");
         if (!alive) return;
 
-        const arr = (res.data || []).map((key) => ({
-          key,
-          label: key,
-        }));
-
+        const arr = (res.data || []).map((key) => ({ key, label: key }));
         setCategories(arr);
 
         if (arr.length && !arr.find((c) => c.key === category)) {
@@ -107,54 +125,68 @@ export default function ChatWidget() {
         }
       } catch {
         if (!alive) return;
-        const fallback = [
+        setCategories([
           { key: "camera", label: "camera" },
           { key: "error", label: "error" },
           { key: "call", label: "call" },
-        ];
-        setCategories(fallback);
+        ]);
       }
     })();
 
     return () => (alive = false);
   }, [category]);
 
+  // ✅ cards 로드 (서버에서 lang별 카드 내려받기)
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        const res = await axios.get(`/api/help/cards?category=${category}`);
+        const res = await axios.get(
+          `/api/help/cards?category=${encodeURIComponent(category)}&lang=${encodeURIComponent(lang)}`
+        );
         if (!alive) return;
         setCards(res.data || []);
+        console.log("[ChatWidget] category =", category, "lang =", lang);
       } catch {
         if (!alive) return;
         setCards([]);
       }
     })();
     return () => (alive = false);
-  }, [category]);
+  }, [category, lang]);
 
   const quickChips = useMemo(() => {
     const arr = [];
     for (const c of cards) {
-      if (c.symptoms?.length) arr.push(...c.symptoms);
-      if (c.title) arr.push(c.title);
+      if (c?.symptoms?.length) arr.push(...c.symptoms);
+      if (c?.title) arr.push(c.title);
       if (arr.length >= 10) break;
     }
     return [...new Set(arr)].slice(0, 8);
   }, [cards]);
 
-  const send = async (text) => {
-    const t = (text || "").trim();
-    if (!t) return;
+  // ✅ history 생성 (최근 8개 정도만)
+  const buildHistory = (msgs) =>
+    (msgs || [])
+      .filter((m) => m?.type === "text" && (m.role === "user" || m.role === "assistant"))
+      .slice(-8)
+      .map((m) => ({ role: m.role, text: String(m.text || "") }));
 
-    setMessages((m) => [...m, { role: "user", type: "text", text: t }]);
+  const send = async (text) => {
+    const msg = (text || "").trim();
+    if (!msg) return;
+
+    setMessages((m) => [...m, { role: "user", type: "text", text: msg }]);
     setInput("");
+
+    // NOTE: state 업데이트 타이밍 때문에, history는 "보내기 직전까지의 메시지" 기준으로 만들기
+    const prevHistory = buildHistory(messages);
 
     try {
       const res = await axios.post("/api/help/chat", {
-        message: t,
-        context: { category },
+        message: msg,
+        context: { category, lang },
+        history: prevHistory,
       });
 
       const data = res.data || {};
@@ -162,20 +194,22 @@ export default function ChatWidget() {
 
       setMessages((m) => [
         ...m,
-        { role: "assistant", type: "text", text: data.text || "관련 해결 방법을 찾아봤어요." },
+        { role: "assistant", type: "text", text: data.text || t("fallback") },
         { role: "assistant", type: "cards", matched },
       ]);
     } catch (e) {
       setMessages((m) => [
         ...m,
-        { role: "assistant", type: "text", text: "요청 실패! (백엔드 상태 확인)" },
+        { role: "assistant", type: "text", text: t("fail") },
       ]);
     }
   };
 
   const openCard = async (id) => {
     try {
-      const res = await axios.get(`/api/help/cards/${id}`);
+      const res = await axios.get(
+        `/api/help/cards/${encodeURIComponent(id)}?lang=${encodeURIComponent(lang)}`
+      );
       setSelectedCard(res.data);
     } catch {
       setSelectedCard(null);
@@ -191,31 +225,30 @@ export default function ChatWidget() {
         onClick={() => setOpen(true)}
         type="button"
       >
-        챗봇
+        {t("dock")}
       </button>
     );
   }
 
   return (
-    <div
-      className={`cw-panel ${isChipsCollapsed ? "is-chips-collapsed" : ""}`}
-      aria-hidden={!open}
-    >
+    <div className={`cw-panel ${isChipsCollapsed ? "is-chips-collapsed" : ""}`} aria-hidden={!open}>
       <div className="cw-shell">
         <div className="cw-header">
           <div className="cw-header-row">
-            <div className="cw-title">실시간 챗봇</div>
+            <div className="cw-title">{t("title")}</div>
             <div className="cw-header-actions">
-              <span className="cw-status">LIVE</span>
+              <span className="cw-status">{t("live")}</span>
+
               <button
                 type="button"
                 className="cw-collapse"
                 onClick={() => setIsChipsCollapsed((prev) => !prev)}
               >
-                {isChipsCollapsed ? "칩 펼치기" : "칩 접기"}
+                {isChipsCollapsed ? t("expandChips") : t("collapseChips")}
               </button>
+
               <button type="button" className="cw-close" onClick={() => setOpen(false)}>
-                닫기
+                {t("close")}
               </button>
             </div>
           </div>
@@ -240,10 +273,11 @@ export default function ChatWidget() {
             </button>
           ))}
         </div>
+
         <div
           className="cw-chips-resizer"
           onMouseDown={handleChipsResizeStart}
-          title="드래그해서 칩 영역 높이 조절"
+          title={t("resizeChips")}
         >
           <span></span>
         </div>
@@ -251,16 +285,14 @@ export default function ChatWidget() {
         <div className="cw-body">
           {messages.map((msg, idx) => (
             <div key={idx} className={`cw-msg ${msg.role}`}>
-              {msg.type === "text" && (
-                <div className={`cw-bubble ${msg.role}`}>{msg.text}</div>
-              )}
+              {msg.type === "text" && <div className={`cw-bubble ${msg.role}`}>{msg.text}</div>}
 
               {msg.type === "cards" && (
                 <div className="cw-cards">
                   {(msg.matched || []).map((id) => (
                     <button key={id} className="cw-card" onClick={() => openCard(id)}>
                       <div className="cw-card-id">{id}</div>
-                      <div className="cw-card-open">자세히 보기</div>
+                      <div className="cw-card-open">{t("viewDetail")}</div>
                     </button>
                   ))}
                 </div>
@@ -273,10 +305,10 @@ export default function ChatWidget() {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="질문을 입력하세요 (예: 카메라, 통화 오류)"
+            placeholder={t("placeholder")}
             onKeyDown={(e) => e.key === "Enter" && send(input)}
           />
-          <button onClick={() => send(input)}>전송</button>
+          <button onClick={() => send(input)}>{t("send")}</button>
         </div>
 
         {selectedCard && (
@@ -284,12 +316,12 @@ export default function ChatWidget() {
             <div className="cw-sheet-head">
               <div className="cw-sheet-title">{selectedCard.title}</div>
               <button className="cw-x" onClick={() => setSelectedCard(null)}>
-                닫기
+                {t("close")}
               </button>
             </div>
 
             <div className="cw-section">
-              <div className="cw-section-title">빠른 체크</div>
+              <div className="cw-section-title">{t("quick")}</div>
               <ul>
                 {(selectedCard.quickChecks || []).map((x, i) => (
                   <li key={i}>{x}</li>
@@ -298,7 +330,7 @@ export default function ChatWidget() {
             </div>
 
             <div className="cw-section">
-              <div className="cw-section-title">단계별 해결</div>
+              <div className="cw-section-title">{t("steps")}</div>
               <ol>
                 {(selectedCard.steps || []).map((s, i) => (
                   <li key={i}>

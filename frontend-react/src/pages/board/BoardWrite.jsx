@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
 import { useModal } from "../../context/ModalContext";
+import { useTranslation } from "react-i18next";
 
 export default function BoardWrite() {
+  const { t } = useTranslation("board");
   const [searchParams] = useSearchParams();
   const boardId = Number(searchParams.get("boardId")) || 2;
 
@@ -16,33 +18,34 @@ export default function BoardWrite() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const t = title.trim();
-    const c = content.trim();
 
-    if (!t || !c) {
-      showModal({ title: "입력 오류", message: "제목과 내용을 모두 입력해주세요.", type: "warning" });
+    const tt = title.trim();
+    const cc = content.trim();
+
+    if (!tt || !cc) {
+      showModal({
+        title: t("modal.inputErrorTitle"),
+        message: t("modal.inputErrorMsg"),
+        type: "warning"
+      });
       return;
     }
 
     try {
       setLoading(true);
-      await api.post("/boards", {
-        boardId,
-        title: t,
-        content: c,
-      });
+      await api.post("/boards", { boardId, title: tt, content: cc });
 
       showModal({
-        title: "등록 완료",
-        message: "게시글이 성공적으로 등록되었습니다.",
+        title: t("modal.writeSuccessTitle"),
+        message: t("modal.writeSuccessMsg"),
         type: "success",
         onClose: () => nav("/board")
       });
-    } catch (e) {
-      console.error(e);
+    } catch (e2) {
+      console.error(e2);
       showModal({
-        title: "등록 실패",
-        message: e?.response?.data?.message || "글 등록 중 오류가 발생했습니다.",
+        title: t("modal.writeFailTitle"),
+        message: e2?.response?.data?.message || t("modal.writeFailMsg"),
         type: "error"
       });
     } finally {
@@ -60,21 +63,23 @@ export default function BoardWrite() {
           <svg className="w-5 h-5 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
           </svg>
-          뒤로 가기
+          {t("writePage.back")}
         </button>
 
         <div className="glass rounded-[3rem] p-12 border-slate-100 shadow-2xl animate-fade-in">
           <div className="mb-10">
-            <h1 className="text-3xl font-black text-slate-800 tracking-tight">새 게시글 작성</h1>
-            <p className="text-slate-400 mt-2 font-bold">당신의 생각을 공유해보세요.</p>
+            <h1 className="text-3xl font-black text-slate-800 tracking-tight">{t("writePage.title")}</h1>
+            <p className="text-slate-400 mt-2 font-bold">{t("writePage.desc")}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-black text-slate-700 mb-2 ml-1">제목</label>
+              <label className="block text-sm font-black text-slate-700 mb-2 ml-1">
+                {t("writePage.labelTitle")}
+              </label>
               <input
                 className="w-full px-6 py-4 bg-white border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all placeholder-slate-300 font-bold"
-                placeholder="제목을 입력하세요"
+                placeholder={t("writePage.placeholderTitle")}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 disabled={loading}
@@ -82,10 +87,12 @@ export default function BoardWrite() {
             </div>
 
             <div>
-              <label className="block text-sm font-black text-slate-700 mb-2 ml-1">내용</label>
+              <label className="block text-sm font-black text-slate-700 mb-2 ml-1">
+                {t("writePage.labelContent")}
+              </label>
               <textarea
                 className="w-full px-6 py-4 bg-white border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all placeholder-slate-300 font-bold min-h-[400px] resize-none"
-                placeholder="내용을 입력하세요"
+                placeholder={t("writePage.placeholderContent")}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 disabled={loading}
@@ -98,14 +105,14 @@ export default function BoardWrite() {
                 onClick={() => nav(-1)}
                 className="flex-1 py-5 bg-white border border-slate-200 text-slate-600 rounded-2xl font-black hover:bg-slate-50 transition-all active:scale-95"
               >
-                취소
+                {t("writePage.cancel")}
               </button>
               <button
                 type="submit"
                 disabled={loading}
                 className="flex-[2] py-5 bg-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all disabled:opacity-60 active:scale-95"
               >
-                {loading ? "등록 중..." : "게시글 등록하기"}
+                {loading ? t("writePage.submitting") : t("writePage.submit")}
               </button>
             </div>
           </form>

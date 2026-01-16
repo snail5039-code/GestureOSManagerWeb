@@ -1,0 +1,17 @@
+{
+  "hello": "Ask me anything. For example: camera issue, agent issue.",
+  "title": "Live Support",
+  "dock": "Chat",
+  "live": "LIVE",
+  "collapseChips": "Hide chips",
+  "expandChips": "Show chips",
+  "close": "Close",
+  "placeholder": "Type a question (e.g., camera, agent issue)",
+  "send": "Send",
+  "fail": "Request failed. Check the backend.",
+  "fallback": "I found a few things to try.",
+  "viewDetail": "View details",
+  "quick": "Quick checks",
+  "steps": "Step-by-step",
+  "resizeChips": "Drag to resize the chip area"
+}

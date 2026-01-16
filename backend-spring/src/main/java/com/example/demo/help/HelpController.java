@@ -32,14 +32,18 @@ public class HelpController {
     @GetMapping("/cards")
     public List<HelpCard> list(
             @RequestParam(defaultValue = "") String category,
-            @RequestParam(defaultValue = "") String q
+            @RequestParam(defaultValue = "") String q,
+            @RequestParam(defaultValue = "ko") String lang
     ) {
-        return service.list(category, q);
+        return service.list(category, q, lang);
     }
 
     @GetMapping("/cards/{id}")
-    public HelpCard detail(@PathVariable String id) {
-        HelpCard c = service.get(id);
+    public HelpCard detail(
+            @PathVariable String id,
+            @RequestParam(defaultValue = "ko") String lang
+    ) {
+        HelpCard c = service.get(id, lang);
         if (c == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "not found");
         return c;
     }
@@ -54,7 +58,6 @@ public class HelpController {
 
         String msgRaw = message == null ? "" : message.trim();
 
-        // 1) 빈 입력
         if (msgRaw.isBlank()) {
             return mk("cards", t(lang,
                     "응, 무슨 일이야?",
@@ -63,22 +66,19 @@ public class HelpController {
             ), List.of(), "ASK_PROBLEM_TYPE");
         }
 
-        // 2) 안전 필터(최소)
         String low = msgRaw.toLowerCase();
-        if (containsAny(low, "자살", "죽고", "죽을", "목숨", "끝내고", "마포대교")) {
-            return mk(
-                    "cards",
-                    t(lang,
-                            "지금은 네 안전이 제일 중요해. 혼자 버티지 말고 주변 도움을 꼭 받아.",
-                            "Your safety matters most right now. Please reach out to someone nearby for help.",
-                            "今は安全が一番大事。ひとりで抱えず、周りの助けを必ず頼って。"
-                    ),
-                    List.of(),
-                    "SAFETY_CHECK"
-            );
+        if (containsAny(low,
+                "자살", "죽고", "죽을", "목숨", "끝내고", "마포대교",
+                "suicide", "kill myself", "end my life",
+                "自殺", "死にたい"
+        )) {
+            return mk("cards", t(lang,
+                    "지금은 네 안전이 제일 중요해. 혼자 버티지 말고 주변 도움을 꼭 받아.",
+                    "Your safety matters most right now. Please reach out to someone nearby for help.",
+                    "今は安全が一番大事。ひとりで抱えず、周りの助けを必ず頼って。"
+            ), List.of(), "SAFETY_CHECK");
         }
 
-        // 3) AI에게 판단 맡김 (lang 포함)
         OpenAiService.DialogPlan plan;
         try {
             List<ChatRequest.HistoryItem> hist = (req != null ? req.history : null);
@@ -88,16 +88,11 @@ public class HelpController {
         }
 
         if (plan == null || plan.text == null || plan.text.isBlank()) {
-            return mk(
-                    "cards",
-                    t(lang,
-                            "잠깐 오류가 있었어. 방금 말한 걸 한 번만 더 보내줘!",
-                            "Something glitched. Send that one more time!",
-                            "ちょっと不具合。さっきの内容をもう一回送って！"
-                    ),
-                    List.of(),
-                    "ASK_PROBLEM_TYPE"
-            );
+            return mk("cards", t(lang,
+                    "잠깐 오류가 있었어. 방금 말한 걸 한 번만 더 보내줘!",
+                    "Something glitched. Send that one more time!",
+                    "ちょっと不具合。さっきの内容をもう一回送って！"
+            ), List.of(), "ASK_PROBLEM_TYPE");
         }
 
         String intent = (plan.intent == null || plan.intent.isBlank()) ? "PROBLEM" : plan.intent;
@@ -105,12 +100,10 @@ public class HelpController {
                 ? "ASK_FOLLOWUP"
                 : plan.nextQuestionType;
 
-        // 4) 잡담/짜증이면 카드 없이 자연스럽게
         if (plan.stateEnded || "CHITCHAT".equals(intent) || "FRUSTRATION".equals(intent)) {
             return mk("cards", plan.text, List.of(), nextQ);
         }
 
-        // ✅ 5) 문제/환경힌트면 카드 추천: AI가 추론한 category 우선 반영
         String catForRec = (plan.category == null || plan.category.isBlank())
                 ? category
                 : plan.category;
@@ -139,10 +132,29 @@ public class HelpController {
     }
 
     private static String t(String lang, String ko, String en, String ja) {
-        return switch ((lang == null ? "ko" : lang).toLowerCase()) {
+        if (lang == null) return ko;
+        String x = lang.toLowerCase();
+        if (x.contains("-")) x = x.split("-")[0];
+        if (x.contains("_")) x = x.split("_")[0];
+        return switch (x) {
             case "en" -> en;
             case "ja" -> ja;
             default -> ko;
         };
     }
+    
+    @GetMapping("/debug/lang")
+    public String debugLang(@RequestParam(defaultValue="ko") String lang,
+                            @RequestParam(defaultValue="camera") String category) {
+
+        var list = service.list(category, "", lang);
+        String first = (list != null && !list.isEmpty() && list.get(0) != null)
+                ? String.valueOf(list.get(0).title)
+                : "(empty)";
+
+        return "lang=" + lang + " category=" + category
+                + " size=" + (list == null ? 0 : list.size())
+                + " firstTitle=" + first;
+    }
+
 }

@@ -1,0 +1,17 @@
+{
+  "hello": "궁금한 내용을 입력해 주세요. 예: 카메라, 통화 오류",
+  "title": "실시간 챗봇",
+  "dock": "챗봇",
+  "live": "LIVE",
+  "collapseChips": "칩 접기",
+  "expandChips": "칩 펼치기",
+  "close": "닫기",
+  "placeholder": "질문을 입력하세요 (예: 카메라, 통화 오류)",
+  "send": "전송",
+  "fail": "요청 실패! (백엔드 상태 확인)",
+  "fallback": "관련 해결 방법을 찾아봤어요.",
+  "viewDetail": "자세히 보기",
+  "quick": "빠른 체크",
+  "steps": "단계별 해결",
+  "resizeChips": "드래그해서 칩 영역 높이 조절"
+}

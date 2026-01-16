@@ -1,24 +1,33 @@
-import { useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { LANGUAGES, languageNameByCode } from "../i18n/languages";
+// src/shared/useLangMenu.js
+import { useEffect, useState } from "react";
+import i18n from "../i18n";
 
 export default function useLangMenu() {
-  const { i18n } = useTranslation();
-  const [isLangOpen, setIsLangOpen] = useState(false);
+  const LANGUAGES = [
+    { code: "en", name: "English" },
+    { code: "ko", name: "한국어" },
+    { code: "ja", name: "日本語" },
+  ];
 
-  const currentLang = useMemo(() => {
-    return languageNameByCode(i18n.language || "ko");
-  }, [i18n.language]);
+  const [isLangOpen, setIsLangOpen] = useState(false);
+  const [currentLang, setCurrentLang] = useState("한국어");
 
   useEffect(() => {
-    const onChanged = () => {};
-    i18n.on("languageChanged", onChanged);
-    return () => i18n.off("languageChanged", onChanged);
-  }, [i18n]);
+    const lng = i18n.resolvedLanguage || i18n.language || "ko";
+    const found = LANGUAGES.find((x) => x.code === lng) || LANGUAGES[1];
+    setCurrentLang(found.name);
+  }, [i18n.resolvedLanguage, i18n.language]);
 
-  const selectLang = async (lng) => {
-    await i18n.changeLanguage(lng);
-    localStorage.setItem("lng", lng);
+  const selectLang = async (code) => {
+    // ✅ detector가 보는 키랑 똑같이
+    localStorage.setItem("lng", code);
+
+    // ✅ promise 끝난 뒤 UI가 안정적으로 따라감
+    await i18n.changeLanguage(code);
+
+    const found = LANGUAGES.find((x) => x.code === code);
+    if (found) setCurrentLang(found.name);
+
     setIsLangOpen(false);
   };
 

@@ -80,7 +80,6 @@
       }
     }
   },
-
   "login": {
     "badge": "Secure Access",
     "title": "로그인",
@@ -112,7 +111,6 @@
       "failDefault": "로그인 중 오류가 발생했습니다."
     }
   },
-
   "social": {
     "title": "소셜 로그인",
     "subtitle": "Google, Kakao, Naver로 바로 시작하세요.",
@@ -124,7 +122,6 @@
     "continue": "계속하기",
     "hint": "계정 연동 후에는 자동으로 대시보드로 이동합니다."
   },
-
   "findLoginId": {
     "title": "아이디 찾기",
     "subtitle": "가입 시 등록한 이름과 이메일을 입력해 주세요",
@@ -155,7 +152,6 @@
       "successMessage": "{{message}}\n찾으시는 아이디는 [ {{loginId}} ] 입니다."
     }
   },
-
   "findLoginPw": {
     "title": "비밀번호 찾기",
     "subtitle": "임시 비밀번호를 발급받을 계정 정보를 입력해 주세요",
@@ -185,20 +181,124 @@
       "failDefault": "비밀번호 찾기 중 오류가 발생했습니다."
     }
   },
-
   "oauth": {
     "processing": "로그인 처리 중...",
     "socialProcessing": "소셜 로그인 처리 중...",
     "noToken": "토큰이 없어 로그인 페이지로 리다이렉트합니다."
   },
-
   "logout": {
     "loading": "로그아웃 중..."
   },
-
   "country": {
     "1": "한국",
     "2": "미국",
     "3": "일본"
+  },
+  "socialLogin": {
+    "google": "Google로 로그인",
+    "naver": "네이버 로그인",
+    "kakao": "카카오 로그인"
+  },
+  "mypage": {
+    "title": "마이페이지",
+    "editProfile": "프로필 수정",
+    "cancelEdit": "수정 취소",
+    "sessionExpired": "세션이 만료되었습니다. 다시 로그인해 주세요.",
+    "loadError": "마이페이지를 불러오는 중 오류가 발생했습니다.",
+    "newPassword": "새 비밀번호",
+    "passwordConfirm": "비밀번호 확인",
+    "passwordMatch": "비밀번호가 일치합니다.",
+    "passwordNotMatch": "비밀번호가 일치하지 않습니다.",
+    "email": "이메일",
+    "sendCode": "코드 발송",
+    "sending": "발송 중",
+    "verify": "인증하기",
+    "verifying": "확인 중",
+    "verificationSent": "인증 코드가 발송되었습니다.",
+    "verificationComplete": "이메일 인증 완료",
+    "country": "국적",
+    "selectCountry": "국적 선택",
+    "nickname": "닉네임",
+    "nicknameDuplicate": "이미 사용 중인 닉네임입니다.",
+    "nicknameAvailable": "사용 가능한 닉네임입니다.",
+    "nicknameLimit": "닉네임은 30일에 1회만 변경 가능합니다.",
+    "nextChangeDate": "다음 변경 가능일",
+    "saveChanges": "변경사항 저장하기",
+
+    "form": {
+      "newPassword": "새 비밀번호",
+      "passwordConfirm": "비밀번호 확인",
+      "email": "이메일",
+      "country": "국적",
+      "nickname": "닉네임",
+      "passwordPlaceholder": "변경 시에만 입력",
+      "passwordConfirmPlaceholder": "비밀번호 확인",
+      "countrySelect": "국적 선택"
+    },
+    "emailUi": {
+      "sendCode": "코드 발송",
+      "sending": "발송 중",
+      "codePlaceholder": "인증코드 6자리",
+      "verify": "인증하기",
+      "verifying": "확인 중"
+    },
+    "email": {
+      "sendCode": "코드 발송",
+      "sending": "발송 중",
+      "codePlaceholder": "인증코드 6자리",
+      "verify": "인증하기",
+      "verifying": "확인 중"
+    },
+
+    "stats": {
+      "articles": "작성한 글",
+      "comments": "작성한 댓글",
+      "likes": "받은 좋아요"
+    },
+
+    "tabs": {
+      "myArticles": "내 게시글",
+      "myComments": "내 댓글",
+      "likedArticles": "좋아요 글",
+      "articles": "내 게시글",
+      "comments": "내 댓글",
+      "likes": "좋아요 글"
+    },
+
+    "empty": {
+      "articles": "작성한 글이 없습니다.",
+      "comments": "작성한 댓글이 없습니다.",
+      "likes": "좋아요 한 글이 없습니다."
+    },
+
+    "labels": {
+      "id": "ID",
+      "joined": "가입일",
+      "nickname": "NICKNAME",
+      "writer": "작성자",
+      "writtenAt": "작성일",
+      "views": "조회"
+    },
+
+    "errors": {
+      "input": "입력 오류",
+      "passwordMismatch": "비밀번호가 일치하지 않습니다.",
+      "emailRequired": "이메일 인증이 필요합니다.",
+      "nicknameCheckRequired": "닉네임 중복 확인이 필요합니다.",
+      "sendFail": "코드 발송 실패",
+      "verifyFail": "인증 실패",
+      "updateFail": "수정 중 오류가 발생했습니다."
+    },
+
+    "success": {
+      "codeSent": "인증 코드가 발송되었습니다. 이메일을 확인해 주세요.",
+      "verified": "이메일 인증이 완료되었습니다.",
+      "updated": "회원 정보가 성공적으로 수정되었습니다."
+    },
+
+    "modal": {
+      "updatedTitle": "수정 완료",
+      "updatedMsg": "회원 정보가 성공적으로 수정되었습니다."
+    }
   }
 }

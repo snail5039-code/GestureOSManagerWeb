@@ -195,11 +195,127 @@
   "logout": {
     "loading": "Logging out..."
   },
-  
+
   "country": {
     "1": "Korea",
     "2": "United States",
     "3": "Japan"
+  },
+
+  "socialLogin": {
+    "google": "Login with Google",
+    "naver": "Login with Naver",
+    "kakao": "Login with Kakao"
+  },
+
+  "mypage": {
+    "title": "My Page",
+    "editProfile": "Edit Profile",
+    "cancelEdit": "Cancel Edit",
+
+    "sessionExpired": "Your session has expired. Please log in again.",
+    "loadError": "Failed to load My Page.",
+
+    "newPassword": "New Password",
+    "passwordConfirm": "Confirm Password",
+    "passwordMatch": "Passwords match.",
+    "passwordNotMatch": "Passwords do not match.",
+
+    "email": "Email",
+    "sendCode": "Send Code",
+    "sending": "Sending...",
+    "verify": "Verify",
+    "verifying": "Verifying...",
+    "verificationSent": "Verification code has been sent.",
+    "verificationComplete": "Email verified",
+
+    "country": "Country",
+    "selectCountry": "Select country",
+
+    "nickname": "Nickname",
+    "nicknameDuplicate": "This nickname is already in use.",
+    "nicknameAvailable": "This nickname is available.",
+    "nicknameLimit": "You can change your nickname once every 30 days.",
+    "nextChangeDate": "Next available date",
+
+    "saveChanges": "Save Changes",
+
+    "form": {
+      "newPassword": "New Password",
+      "passwordConfirm": "Confirm Password",
+      "email": "Email",
+      "country": "Country",
+      "nickname": "Nickname",
+      "passwordPlaceholder": "Enter only to change",
+      "passwordConfirmPlaceholder": "Confirm password",
+      "countrySelect": "Select country"
+    },
+
+    "emailUi": {
+      "sendCode": "Send Code",
+      "sending": "Sending",
+      "codePlaceholder": "6-digit code",
+      "verify": "Verify",
+      "verifying": "Verifying"
+    },
+
+    "email": {
+      "sendCode": "Send Code",
+      "sending": "Sending",
+      "codePlaceholder": "6-digit code",
+      "verify": "Verify",
+      "verifying": "Verifying"
+    },
+
+    "stats": {
+      "articles": "My Articles",
+      "comments": "My Comments",
+      "likes": "Likes Received"
+    },
+
+    "tabs": {
+      "myArticles": "My Articles",
+      "myComments": "My Comments",
+      "likedArticles": "Liked Posts",
+      "articles": "My Articles",
+      "comments": "My Comments",
+      "likes": "Liked Posts"
+    },
+
+    "empty": {
+      "articles": "You haven't written any articles.",
+      "comments": "You haven't written any comments.",
+      "likes": "You haven't liked any posts."
+    },
+
+    "labels": {
+      "id": "ID",
+      "joined": "Joined",
+      "nickname": "NICKNAME",
+      "writer": "Writer",
+      "writtenAt": "Written at",
+      "views": "Views"
+    },
+
+    "errors": {
+      "input": "Input Error",
+      "passwordMismatch": "Passwords do not match.",
+      "emailRequired": "Email verification is required.",
+      "nicknameCheckRequired": "Please check nickname duplication.",
+      "sendFail": "Failed to send code.",
+      "verifyFail": "Verification failed.",
+      "updateFail": "Failed to update profile."
+    },
+
+    "success": {
+      "codeSent": "A verification code has been sent. Please check your email.",
+      "verified": "Email has been successfully verified.",
+      "updated": "Profile updated successfully."
+    },
+
+    "modal": {
+      "updatedTitle": "Updated",
+      "updatedMsg": "Profile updated successfully."
+    }
   }
-  
 }

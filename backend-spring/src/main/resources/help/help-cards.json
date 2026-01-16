@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updatedAt": "2026-01-02T00:00:00+09:00",
+  "updatedAt": "2026-01-16T00:00:00+09:00",
   "cards": [
     {
       "id": "cam-001",
@@ -8,15 +8,15 @@
       "title": "카메라 화면이 아예 안 떠요(검은 화면)",
       "symptoms": ["검은 화면", "카메라 미리보기 없음", "video가 재생 안 됨"],
       "quickChecks": [
-        "브라우저 주소창 왼쪽 아이콘 → 카메라 권한 '허용'인지 확인",
-        "다른 앱(Zoom/Discord/OBS)이 카메라 점유 중이면 종료",
-        "페이지 새로고침 후 다시 허용"
+        "브라우저 주소창 왼쪽 아이콘 → 카메라 권한이 '허용'인지 확인해 주세요",
+        "다른 앱(Zoom/Discord/OBS)이 카메라를 점유 중이면 종료해 주세요",
+        "새로고침 후 다시 허용해 주세요"
       ],
       "steps": [
-        { "label": "권한 확인", "detail": "Chrome: 설정 → 개인정보 및 보안 → 사이트 설정 → 카메라에서 현재 사이트 허용 확인" },
-        { "label": "장치 선택", "detail": "PC에 카메라가 여러 개면 입력 장치가 다른 카메라로 잡힐 수 있어요. 카메라 선택 UI 제공 권장" },
-        { "label": "점유 앱 종료", "detail": "다른 앱이 카메라 쓰는 중이면 브라우저가 못 가져와요(특히 노트북 내장캠)" },
-        { "label": "HTTPS/로컬 확인", "detail": "일부 환경은 https 또는 localhost에서만 getUserMedia 동작" }
+        { "label": "권한 확인", "detail": "Chrome: 설정 → 개인정보 및 보안 → 사이트 설정 → 카메라에서 현재 사이트가 '허용'인지 확인해 주세요." },
+        { "label": "장치 선택", "detail": "카메라가 여러 개면 다른 장치로 잡힐 수 있어요. '카메라 선택' UI/설정을 제공하면 좋아요." },
+        { "label": "점유 앱 종료", "detail": "다른 앱이 카메라를 사용 중이면 브라우저가 못 가져올 수 있어요(특히 노트북 내장캠)." },
+        { "label": "HTTPS/로컬 확인", "detail": "일부 환경은 https 또는 localhost에서만 getUserMedia가 정상 동작해요." }
       ],
       "links": [{ "label": "권한/장치 확인 가이드", "url": "/help/camera-permission" }],
       "tags": ["getUserMedia", "permission", "black-screen"]
@@ -25,16 +25,16 @@
       "id": "cam-002",
       "category": "camera",
       "title": "권한을 허용했는데도 카메라가 안 잡혀요",
-      "symptoms": ["권한 허용했는데 실패", "NotAllowedError 아닌데도 실패"],
+      "symptoms": ["권한 허용했는데 실패", "NotAllowedError는 아닌데도 실패"],
       "quickChecks": [
-        "브라우저에서 '차단됨' 상태로 저장된 사이트인지 확인",
-        "시크릿 창에서 테스트(확장 프로그램 영향 분리)",
-        "OS 카메라 권한(Windows/macOS)도 허용인지 확인"
+        "브라우저에서 해당 사이트가 '차단됨' 상태로 저장됐는지 확인해 주세요",
+        "시크릿 창에서 테스트해 주세요(확장 프로그램 영향 분리)",
+        "OS 카메라 권한(Windows/macOS)도 허용인지 확인해 주세요"
       ],
       "steps": [
-        { "label": "사이트 권한 리셋", "detail": "Chrome: 자물쇠 아이콘 → 사이트 설정 → 권한 초기화 후 재접속" },
-        { "label": "OS 권한 확인", "detail": "Windows: 설정 → 개인정보 → 카메라 → 앱 접근 허용 / macOS: 시스템 설정 → 개인정보 보호 → 카메라" },
-        { "label": "확장프로그램 끄기", "detail": "광고차단/보안 확장이 미디어 권한을 막을 수 있어요" }
+        { "label": "사이트 권한 리셋", "detail": "Chrome: 자물쇠 아이콘 → 사이트 설정 → 권한 초기화 후 재접속해 주세요." },
+        { "label": "OS 권한 확인", "detail": "Windows: 설정 → 개인정보 및 보안 → 카메라 / macOS: 시스템 설정 → 개인정보 보호 → 카메라에서 허용 여부를 확인해 주세요." },
+        { "label": "확장프로그램 끄기", "detail": "광고차단/보안 확장이 미디어 권한을 막는 경우가 있어요. 잠시 꺼서 확인해 주세요." }
       ],
       "links": [],
       "tags": ["permission", "os-privacy"]
@@ -42,50 +42,50 @@
     {
       "id": "cam-003",
       "category": "camera",
-      "title": "모바일에서 카메라가 안 돼요",
-      "symptoms": ["모바일 사파리", "모바일 크롬", "카메라 호출 실패"],
+      "title": "모바일에서 카메라/인식이 잘 안 돼요",
+      "symptoms": ["모바일 사파리", "모바일 크롬", "카메라 호출 실패", "인식률 낮음"],
       "quickChecks": [
-        "모바일은 브라우저 제약이 많아서 Chrome/Edge 권장",
-        "iOS는 WebRTC/카메라 제약이 더 큼"
+        "이 프로젝트는 PC(Windows) 제어가 목적이라 데스크톱 환경이 가장 안정적이에요",
+        "모바일 브라우저/웹뷰는 카메라 제약이 많아요"
       ],
       "steps": [
-        { "label": "브라우저 변경", "detail": "가능하면 Android는 Chrome, iOS는 최신 Safari에서 테스트" },
-        { "label": "앱 내 웹뷰 주의", "detail": "카톡/인스타 내장 브라우저(WebView)는 카메라 제약이 많아요. 외부 브라우저로 열기" }
+        { "label": "외부 브라우저로 열기", "detail": "카톡/인스타 내장 브라우저(WebView)는 제약이 큰 편이에요. 가능하면 Chrome/Safari로 열어 주세요." },
+        { "label": "PC에서 최종 테스트", "detail": "제스처가 OS 입력(마우스/키보드)으로 이어지려면 Windows + 에이전트 환경에서 검증이 필요해요." }
       ],
       "links": [],
-      "tags": ["mobile", "webview"]
+      "tags": ["mobile", "webview", "environment"]
     },
     {
       "id": "cam-004",
       "category": "camera",
-      "title": "손/얼굴 인식이 안 돼요(화면은 뜸)",
-      "symptoms": ["영상은 나오는데 인식이 0", "랜드마크 안 잡힘"],
+      "title": "손 인식이 안 돼요(화면은 뜸)",
+      "symptoms": ["영상은 나오는데 인식이 0", "랜드마크 안 잡힘", "포인터가 안 움직임"],
       "quickChecks": [
-        "조명이 어두우면 인식률이 급감",
-        "손이 프레임 밖으로 나가면 인식 안 됨",
-        "브라우저 탭이 백그라운드면 FPS 낮아짐"
+        "조명이 어두우면 인식률이 급감해요",
+        "손이 프레임 밖으로 나가면 인식이 안 돼요",
+        "탭이 백그라운드면 FPS/성능이 떨어질 수 있어요"
       ],
       "steps": [
-        { "label": "조명/배경", "detail": "정면 조명 + 배경 단순하게(손과 배경 대비 높게)" },
-        { "label": "프레임 위치", "detail": "손을 카메라 중앙, 너무 가까이/너무 멀지 않게" },
-        { "label": "성능 모드", "detail": "노트북 절전 모드면 성능이 떨어질 수 있어요. 전원 연결 추천" }
+        { "label": "조명/배경", "detail": "정면 조명을 켜고, 배경을 단순하게 해 주세요(손과 배경 대비를 높여 주세요)." },
+        { "label": "프레임 위치", "detail": "손을 카메라 중앙에 두고, 너무 가까이/너무 멀지 않게 유지해 주세요." },
+        { "label": "성능/전원", "detail": "노트북 절전 모드면 인식이 급격히 떨어질 수 있어요. 전원 연결/성능 모드를 권장해요." }
       ],
       "links": [{ "label": "촬영 자세 팁", "url": "/help/pose-tips" }],
-      "tags": ["mediapipe", "hands", "facemesh"]
+      "tags": ["mediapipe", "hands", "landmark"]
     },
     {
       "id": "cam-005",
       "category": "camera",
       "title": "인식이 너무 느려요/렉 걸려요",
-      "symptoms": ["FPS 낮음", "팬이 돎", "브라우저가 버벅"],
+      "symptoms": ["FPS 낮음", "팬이 돎", "화면이 버벅", "커서가 끊김"],
       "quickChecks": [
-        "해상도를 낮추면 체감이 크게 좋아짐(예: 1280x720 → 640x480)",
-        "탭/확장프로그램/다른 앱을 닫아 CPU/GPU 확보"
+        "해상도를 낮추면 체감이 크게 좋아져요(예: 1280x720 → 640x480)",
+        "브라우저 탭/확장프로그램/다른 앱을 닫아 CPU/GPU를 확보해 주세요"
       ],
       "steps": [
-        { "label": "영상 해상도 낮추기", "detail": "getUserMedia constraints에서 width/height 낮추기" },
-        { "label": "프레임 전송 빈도 제한", "detail": "서버로 프레임 보내면 5~10fps로 제한 + 버퍼 길이 제한" },
-        { "label": "모델 옵션 낮추기", "detail": "Hands/FaceMesh 설정(정밀도/최대 손 개수)을 낮추면 빨라져요" }
+        { "label": "해상도 낮추기", "detail": "getUserMedia constraints에서 width/height를 낮추거나 ideal로 설정해 주세요." },
+        { "label": "처리 빈도 제한", "detail": "포인터/제스처 판정 루프를 30fps 고정 대신 10~20fps로 제한하면 UX가 좋아질 수 있어요." },
+        { "label": "모델 옵션 낮추기", "detail": "Hands 설정(최대 손 개수/정밀도)을 낮추면 더 빨라져요." }
       ],
       "links": [],
       "tags": ["performance", "fps", "throttle"]
@@ -93,31 +93,33 @@
     {
       "id": "cam-006",
       "category": "camera",
-      "title": "카메라는 되는데 마이크가 안 돼요",
-      "symptoms": ["상대가 소리 못 들음", "마이크 권한 문제"],
+      "title": "카메라는 되는데 '제스처 커서'가 반응이 없어요",
+      "symptoms": ["영상만 보임", "포인터 오버레이가 안 움직임", "제스처 상태가 0"],
       "quickChecks": [
-        "사이트 마이크 권한 허용 확인",
-        "OS에서 마이크 접근 허용 확인"
+        "에이전트가 실행 중인지 확인해 주세요(로컬 Python/EXE)",
+        "매니저가 에이전트와 연결됐는지 확인해 주세요(WS/로컬 포트)",
+        "현재 모드가 MOUSE/DEFAULT 등 입력 모드인지 확인해 주세요"
       ],
       "steps": [
-        { "label": "브라우저 권한", "detail": "자물쇠 → 마이크 허용" },
-        { "label": "입력장치 선택", "detail": "헤드셋/내장 마이크가 여러 개면 잘못 선택될 수 있음" }
+        { "label": "에이전트 실행", "detail": "로컬 에이전트가 꺼져 있으면 매니저는 상태만 보여주고 실제 입력을 만들지 못해요." },
+        { "label": "연결 상태 확인", "detail": "매니저 상단에 Agent: Connected/Disconnected 같은 상태 표시를 두는 것을 권장해요." },
+        { "label": "모드 확인", "detail": "PRESENTATION/DRAW/VKEY는 동작이 다르니, 현재 모드에서 기대 동작이 맞는지 확인해 주세요." }
       ],
-      "links": [],
-      "tags": ["audio", "mic", "permission"]
+      "links": [{ "label": "에이전트 연결 가이드", "url": "/help/agent-connect" }],
+      "tags": ["agent", "ws", "mode"]
     },
     {
       "id": "cam-007",
       "category": "camera",
       "title": "카메라 호출 에러: NotFoundError",
-      "symptoms": ["NotFoundError", "No device"],
+      "symptoms": ["NotFoundError", "No device", "카메라 장치 없음"],
       "quickChecks": [
-        "카메라가 물리적으로 연결되어 있는지 확인",
-        "장치 관리자에서 카메라 비활성화 여부 확인"
+        "카메라가 물리적으로 연결돼 있는지 확인해 주세요",
+        "장치 관리자에서 카메라가 비활성화되어 있지 않은지 확인해 주세요"
       ],
       "steps": [
-        { "label": "장치 연결", "detail": "외장캠이면 USB 재연결/다른 포트 시도" },
-        { "label": "권한/드라이버", "detail": "드라이버 문제면 재설치 필요할 수 있어요" }
+        { "label": "장치 연결", "detail": "외장캠이면 USB를 재연결하거나 다른 포트로 시도해 주세요." },
+        { "label": "드라이버 확인", "detail": "드라이버 문제면 재설치가 필요할 수 있어요." }
       ],
       "links": [],
       "tags": ["NotFoundError", "device"]
@@ -126,14 +128,14 @@
       "id": "cam-008",
       "category": "camera",
       "title": "카메라 호출 에러: NotAllowedError",
-      "symptoms": ["NotAllowedError", "Permission denied"],
+      "symptoms": ["NotAllowedError", "Permission denied", "권한 거부"],
       "quickChecks": [
-        "권한을 '차단' 눌렀던 적이 있으면 자동으로 막힘",
-        "시크릿/다른 프로필에서 재시도"
+        "예전에 '차단'을 눌렀으면 자동으로 막힐 수 있어요",
+        "회사/학원 PC는 정책으로 카메라가 막힐 수 있어요"
       ],
       "steps": [
-        { "label": "권한 재허용", "detail": "사이트 권한 초기화 후 새로고침" },
-        { "label": "정책/회사PC", "detail": "회사 PC는 정책으로 카메라가 막혀 있을 수 있어요" }
+        { "label": "권한 재허용", "detail": "사이트 권한을 초기화한 뒤 새로고침해 주세요." },
+        { "label": "정책 확인", "detail": "관리자 정책/보안 프로그램이 카메라를 차단하면 브라우저만으로 해결이 어려워요." }
       ],
       "links": [],
       "tags": ["NotAllowedError", "permission"]
@@ -142,13 +144,11 @@
       "id": "cam-009",
       "category": "camera",
       "title": "카메라 호출 에러: OverconstrainedError",
-      "symptoms": ["OverconstrainedError", "constraints 불만족"],
-      "quickChecks": [
-        "해상도/프레임레이트 요구조건이 너무 빡빡하면 실패"
-      ],
+      "symptoms": ["OverconstrainedError", "constraints 불만족", "해상도 설정 실패"],
+      "quickChecks": ["요구 해상도/프레임레이트 조건이 너무 빡빡하면 실패할 수 있어요"],
       "steps": [
-        { "label": "constraints 완화", "detail": "width/height를 ideal로 두거나 낮춘 값으로 시도" },
-        { "label": "기기별 차이", "detail": "특정 노트북/웹캠은 지원 해상도가 제한적" }
+        { "label": "constraints 완화", "detail": "width/height를 ideal로 두거나 더 낮춘 값으로 시도해 주세요." },
+        { "label": "기기별 차이", "detail": "특정 노트북/웹캠은 지원 해상도가 제한적이라 단계적으로 낮추며 확인하시는 게 좋아요." }
       ],
       "links": [],
       "tags": ["constraints", "getUserMedia"]
@@ -156,16 +156,15 @@
     {
       "id": "cam-010",
       "category": "camera",
-      "title": "카메라 미러(좌우 반전)가 이상해요",
-      "symptoms": ["좌우 반전", "손 방향 혼동"],
-      "quickChecks": [
-        "preview는 미러링, 분석은 원본 좌표일 수 있음"
-      ],
+      "title": "좌우 반전(미러)이 이상해서 제스처 방향이 헷갈려요",
+      "symptoms": ["좌우 반전", "손 방향 혼동", "포인터 좌표가 이상함"],
+      "quickChecks": ["preview(화면) 미러링과 분석(좌표)은 분리하는 게 안전해요"],
       "steps": [
-        { "label": "UI와 분석 분리", "detail": "화면 표시만 transform: scaleX(-1) 적용하고, 분석은 원본 프레임 기준 유지" }
+        { "label": "UI만 미러링", "detail": "화면 표시(video/canvas)만 transform: scaleX(-1)을 적용해 주세요." },
+        { "label": "분석은 원본 기준", "detail": "손 랜드마크 좌표는 원본 프레임 기준으로 유지해 주세요(좌표계 일관성)." }
       ],
       "links": [],
-      "tags": ["mirror", "ui"]
+      "tags": ["mirror", "ui", "coordinates"]
     },
 
     {
@@ -174,13 +173,13 @@
       "title": "CORS blocked (Access-Control-Allow-Origin)",
       "symptoms": ["CORS policy", "blocked by CORS", "No 'Access-Control-Allow-Origin'"],
       "quickChecks": [
-        "프론트 주소(5173/5174)와 백엔드 허용 origin이 일치해야 함",
-        "쿠키/세션 쓰면 credentials 설정도 맞아야 함"
+        "프론트(5173)와 백엔드 허용 origin이 일치해야 해요",
+        "쿠키/세션을 쓰면 credentials 설정도 같이 맞아야 해요"
       ],
       "steps": [
-        { "label": "백엔드 CORS 설정", "detail": "allowedOrigins에 http://localhost:5173, http://localhost:5174 추가" },
-        { "label": "credentials 일치", "detail": "프론트 axios withCredentials=true ↔ 백엔드 allowCredentials(true)" },
-        { "label": "프록시 사용", "detail": "vite proxy로 /api를 백엔드로 넘기면 CORS를 피할 수 있어요" }
+        { "label": "백엔드 CORS 설정", "detail": "allowedOrigins에 http://localhost:5173 등을 추가해 주세요." },
+        { "label": "credentials 일치", "detail": "프론트 axios withCredentials=true ↔ 백엔드 allowCredentials(true)로 맞춰 주세요." },
+        { "label": "vite proxy", "detail": "개발환경에서는 /api를 프록시하면 CORS를 우회할 수 있어요." }
       ],
       "links": [{ "label": "CORS 체크리스트", "url": "/help/cors" }],
       "tags": ["cors", "axios", "spring"]
@@ -189,14 +188,14 @@
       "id": "err-002",
       "category": "error",
       "title": "404 Not Found (API 경로 문제)",
-      "symptoms": ["404", "NoResourceFoundException", "not found"],
+      "symptoms": ["404", "not found", "NoResourceFoundException"],
       "quickChecks": [
-        "요청 URL이 진짜 /api/xxx인지 확인(Network 탭)",
-        "Spring Controller 매핑(@RequestMapping) 확인"
+        "Network 탭에서 실제 요청 URL이 /api/xxx인지 확인해 주세요",
+        "Spring Controller 매핑(@RequestMapping) 경로를 확인해 주세요"
       ],
       "steps": [
-        { "label": "프론트 baseURL", "detail": "axios baseURL 또는 vite proxy가 /api를 제대로 붙이는지 확인" },
-        { "label": "백엔드 매핑", "detail": "@RequestMapping('/api/...') 경로와 정확히 일치하는지 확인" }
+        { "label": "프론트 baseURL", "detail": "axios baseURL/vite proxy가 /api를 제대로 붙이는지 확인해 주세요." },
+        { "label": "백엔드 매핑", "detail": "@RequestMapping('/api/...') 와 프론트 호출 경로가 정확히 일치해야 해요." }
       ],
       "links": [],
       "tags": ["404", "routing"]
@@ -205,14 +204,14 @@
       "id": "err-003",
       "category": "error",
       "title": "500 Internal Server Error (백엔드 예외)",
-      "symptoms": ["500", "Internal Server Error"],
+      "symptoms": ["500", "Internal Server Error", "서버 에러"],
       "quickChecks": [
-        "백엔드 콘솔 로그에서 stacktrace 상단 20줄 확보",
-        "어떤 API에서 터지는지(Network에서 URL/바디 확인)"
+        "백엔드 콘솔 stacktrace는 상단(원인)부터 확인해 주세요",
+        "어떤 API에서 터지는지 Network에서 URL/요청 바디를 확인해 주세요"
       ],
       "steps": [
-        { "label": "스택트레이스 확인", "detail": "최초 예외 원인(맨 위)부터 잡아야 함. BeanCreation/NullPointer/SQL 등" },
-        { "label": "요청 바디 검증", "detail": "DTO 필드명 mismatch면 null 들어와서 터질 수 있어요" }
+        { "label": "스택트레이스 확보", "detail": "최초 예외 원인(맨 위)을 기준으로 수정해 주세요: BeanCreation/NullPointer/SQL 등" },
+        { "label": "요청 DTO 검증", "detail": "필드명 mismatch면 null이 들어와서 터질 수 있어요. 요청/응답 스키마를 고정해 주세요." }
       ],
       "links": [{ "label": "로그 캡처 방법", "url": "/help/log-capture" }],
       "tags": ["500", "stacktrace"]
@@ -220,31 +219,33 @@
     {
       "id": "err-004",
       "category": "error",
-      "title": "무한 리다이렉트 /oauth2/success 관련",
-      "symptoms": ["redirect", "No static resource oauth2/success", "무한 루프"],
+      "title": "로그인/권한 문제로 401/403이 떠요",
+      "symptoms": ["401", "403", "Unauthorized", "Forbidden", "로그인 풀림"],
       "quickChecks": [
-        "백엔드가 프론트 라우트로 리다이렉트하도록 설정 필요",
-        "스프링이 정적 리소스로 착각하는 경로인지 확인"
+        "Authorization 헤더(JWT) 또는 쿠키가 실제로 전송되는지 확인해 주세요",
+        "백엔드 Security 설정에서 보호 경로/허용 경로가 의도와 맞는지 확인해 주세요"
       ],
       "steps": [
-        { "label": "리다이렉트 URI 확인", "detail": "OAuth2 성공 후 프론트의 라우트(/oauth2/success)로 보내면 프론트가 처리해야 함" },
-        { "label": "백엔드 매핑/포워딩", "detail": "해당 경로를 Spring에서 직접 처리하거나, SPA index.html로 포워딩 처리" }
+        { "label": "Network에서 헤더 확인", "detail": "요청에 Authorization: Bearer ... 또는 Cookie가 붙는지 확인해 주세요." },
+        { "label": "만료/리프레시", "detail": "토큰이 만료된 경우 refresh 흐름 또는 재로그인이 필요해요." },
+        { "label": "권한(role) 확인", "detail": "관리자 전용 API라면 role/authority가 맞는지 확인해 주세요." }
       ],
       "links": [],
-      "tags": ["oauth2", "redirect"]
+      "tags": ["auth", "jwt", "security"]
     },
     {
       "id": "err-005",
       "category": "error",
-      "title": "axios 요청이 8080으로 튀어요",
-      "symptoms": ["요청이 8080으로 감", "vite proxy 의심"],
+      "title": "axios 요청이 엉뚱한 서버/포트로 가요",
+      "symptoms": ["요청이 8080으로 감", "요청이 5173으로 감", "vite proxy 의심"],
       "quickChecks": [
-        "axios baseURL 설정 확인",
-        "vite.config.js proxy 설정 확인"
+        "axios baseURL 설정을 확인해 주세요",
+        "vite.config.js proxy 설정을 확인해 주세요",
+        "코드에 절대 URL을 하드코딩했는지 검색해 주세요"
       ],
       "steps": [
-        { "label": "프록시 설정", "detail": "개발환경에서 /api → http://localhost:8080 으로 프록시하는게 정상일 수도 있어요" },
-        { "label": "절대 URL 확인", "detail": "코드에 http://localhost:8080을 박아놨는지 검색" }
+        { "label": "vite proxy 확인", "detail": "개발환경에서 /api → http://localhost:8080 프록시는 정상일 수 있어요." },
+        { "label": "절대 URL 제거", "detail": "http://localhost:8080 같은 하드코딩은 환경이 바뀌면 깨져요. 상대경로(/api)를 권장해요." }
       ],
       "links": [],
       "tags": ["axios", "vite", "proxy"]
@@ -252,245 +253,261 @@
     {
       "id": "err-006",
       "category": "error",
-      "title": "WebSocket 연결 실패",
-      "symptoms": ["WS failed", "1006", "WebSocket is closed"],
+      "title": "에이전트/서버 WebSocket 연결이 실패해요",
+      "symptoms": ["WS failed", "1006", "WebSocket is closed", "연결 끊김"],
       "quickChecks": [
-        "WS URL(wss/ws)과 서버 엔드포인트가 일치하는지 확인",
-        "프론트와 백엔드 포트/호스트가 다르면 CORS/보안 정책 영향"
+        "WS URL(ws/wss)과 서버 엔드포인트가 일치하는지 확인해 주세요",
+        "프론트/백엔드/에이전트의 포트가 뒤섞이지 않았는지 확인해 주세요",
+        "배포 환경이라면 프록시(Nginx)가 WS 업그레이드를 허용해야 해요"
       ],
       "steps": [
-        { "label": "서버 엔드포인트 확인", "detail": "Spring WebSocket 설정에서 /ws 등 경로 확인" },
-        { "label": "프록시/리버스프록시", "detail": "배포 환경에서 Nginx가 WS 업그레이드를 허용해야 함" }
+        { "label": "엔드포인트 확인", "detail": "Spring WebSocket 설정의 경로(/ws 등)와 클라이언트 URL을 맞춰 주세요." },
+        { "label": "로그 남기기", "detail": "onopen/onclose/onerror, 서버 핸드셰이크 로그를 모두 남겨 주세요. 원인을 빨리 찾을 수 있어요." },
+        { "label": "wss/https", "detail": "https 환경이면 wss를 사용해야 하고, 인증/토큰 전달 방식도 정해야 해요." }
       ],
       "links": [],
-      "tags": ["websocket", "signaling"]
+      "tags": ["websocket", "agent", "realtime"]
     },
     {
       "id": "err-007",
       "category": "error",
       "title": "Mixed Content / https에서 http 호출",
-      "symptoms": ["Mixed Content", "blocked insecure content"],
-      "quickChecks": [
-        "https 페이지에서 http API를 호출하면 브라우저가 막아요"
-      ],
+      "symptoms": ["Mixed Content", "blocked insecure content", "https에서 http 차단"],
+      "quickChecks": ["https 페이지에서 http API/WS를 호출하면 브라우저가 차단해요"],
       "steps": [
-        { "label": "API도 https", "detail": "배포 시 API도 https로 맞추거나, 동일 도메인 리버스프록시 사용" }
+        { "label": "동일 보안레벨", "detail": "배포 시 API/WS도 https/wss로 맞추거나, 동일 도메인 리버스프록시로 숨겨 주세요." }
       ],
       "links": [],
-      "tags": ["https", "mixed-content"]
+      "tags": ["https", "mixed-content", "wss"]
     },
     {
       "id": "err-008",
       "category": "error",
       "title": "JSON 파싱 오류 / 응답이 HTML(Whitelabel)로 와요",
-      "symptoms": ["Unexpected token <", "Whitelabel Error Page", "XML/HTML 응답"],
-      "quickChecks": [
-        "API가 아니라 에러 페이지(HTML)를 받아서 JSON.parse가 터진 케이스가 많음"
-      ],
+      "symptoms": ["Unexpected token <", "Whitelabel Error Page", "HTML 응답"],
+      "quickChecks": ["API가 아니라 에러 페이지(HTML)를 받아서 JSON.parse가 터지는 경우가 많아요"],
       "steps": [
-        { "label": "Network에서 Response 확인", "detail": "실패 응답이 { 로 시작하는지, <html>로 시작하는지 확인" },
-        { "label": "URL/프록시 확인", "detail": "요청이 잘못된 서버/경로로 가면 HTML이 옵니다" }
+        { "label": "Network Response 확인", "detail": "응답이 { 로 시작하는지, <html>로 시작하는지 확인해 주세요." },
+        { "label": "URL/프록시 확인", "detail": "요청이 잘못된 서버/경로로 가면 HTML이 와요. baseURL/proxy/매핑을 점검해 주세요." }
       ],
       "links": [],
-      "tags": ["whitelabel", "json"]
+      "tags": ["whitelabel", "json", "routing"]
     },
     {
       "id": "err-009",
       "category": "error",
-      "title": "토큰/세션 문제(로그인 유지 안 됨)",
-      "symptoms": ["로그인 풀림", "401", "쿠키 안 옴"],
+      "title": "DB 저장/조회가 안 돼요(값이 안 들어감/안 보임)",
+      "symptoms": ["저장했는데 조회 0", "테이블 값 안 보임", "SQL 에러"],
       "quickChecks": [
-        "쿠키 기반이면 SameSite/Secure 설정 영향",
-        "프론트 요청에 withCredentials가 필요할 수 있음"
+        "실제로 연결된 DB가 맞는지(URL/스키마/컨테이너) 확인해 주세요",
+        "트랜잭션/커밋이 되는지 확인해 주세요",
+        "로그/매핑(컬럼명, nullable, enum) 불일치가 없는지 확인해 주세요"
       ],
       "steps": [
-        { "label": "쿠키 확인", "detail": "Application → Cookies에서 Set-Cookie가 오는지 확인" },
-        { "label": "SameSite 설정", "detail": "크로스도메인이면 SameSite=None; Secure가 필요할 수 있어요(https 전제)" }
+        { "label": "DB 접속 정보 확인", "detail": "application.yml의 datasource url/user/schema가 현재 실행 중 DB와 같은지 확인해 주세요." },
+        { "label": "SQL 로그 보기", "detail": "Hibernate/JPA를 쓰면 SQL 로그를 켜서 insert/update가 실제로 나가는지 확인해 주세요." },
+        { "label": "마이그레이션/스키마", "detail": "컬럼 추가/이름 변경 후 스키마가 갱신되지 않으면 저장이 실패하거나 값이 잘릴 수 있어요." }
       ],
       "links": [],
-      "tags": ["auth", "cookie", "jwt"]
+      "tags": ["db", "jpa", "sql"]
     },
     {
       "id": "err-010",
       "category": "error",
-      "title": "서버 응답이 느려요/타임아웃",
-      "symptoms": ["timeout", "응답 지연"],
+      "title": "응답이 느려요/타임아웃이 나요(인식/로그 전송 포함)",
+      "symptoms": ["timeout", "응답 지연", "서버 과부하", "에이전트 끊김"],
       "quickChecks": [
-        "서버 CPU 과부하(프레임 처리/모델) 확인",
-        "요청당 처리량 줄이기"
+        "인식 프레임 전송/로그 업로드를 너무 자주 하면 서버/네트워크가 막혀요",
+        "동기 처리로 묶여 있으면 UI도 같이 굳을 수 있어요"
       ],
       "steps": [
-        { "label": "요청 빈도 제한", "detail": "프레임 전송을 5~10fps로 제한" },
-        { "label": "큐/비동기", "detail": "무거운 작업은 큐로 넘기고 즉시 응답(accepted) 구조도 고려" }
+        { "label": "빈도 제한", "detail": "프레임/상태 전송을 5~10fps 수준으로 제한하고, 변화가 있을 때만 보내도록 최적화해 주세요." },
+        { "label": "비동기/큐", "detail": "무거운 처리(분석/저장)는 큐로 넘기고 즉시 응답(202 Accepted) 구조도 고려해 주세요." },
+        { "label": "로깅 최소화", "detail": "디버그 로그가 과도하면 성능이 크게 떨어져요. 레벨/샘플링 적용을 권장해요." }
       ],
       "links": [],
-      "tags": ["timeout", "performance"]
+      "tags": ["timeout", "performance", "throttle"]
     },
 
     {
       "id": "call-001",
       "category": "call",
-      "title": "방에 들어갔는데 상대 영상이 안 떠요",
-      "symptoms": ["remote video 없음", "상대 화면 검정"],
+      "title": "에이전트가 'Disconnected'로 떠요(매니저가 로컬 제어를 못 해요)",
+      "symptoms": ["Disconnected", "연결 안 됨", "Start 눌러도 반응 없음"],
       "quickChecks": [
-        "상대가 카메라 권한을 거부했는지 확인",
-        "서로 같은 방(roomId)인지 확인",
-        "signaling(WS)이 연결됐는지 확인"
+        "로컬 에이전트(파이썬/EXE)가 실행 중인지 확인해 주세요",
+        "방화벽/보안 프로그램이 로컬 포트를 막고 있지 않은지 확인해 주세요",
+        "매니저 설정의 에이전트 주소/포트가 맞는지 확인해 주세요"
       ],
       "steps": [
-        { "label": "WS 연결 확인", "detail": "콘솔에서 WS open/ready 메시지 확인" },
-        { "label": "offer/answer 교환", "detail": "offer 생성→전송→answer 수신 흐름 로그 남기기" },
-        { "label": "ICE 후보 교환", "detail": "candidate가 양쪽에서 오가는지 확인" }
+        { "label": "에이전트 실행 확인", "detail": "작업 관리자/트레이 아이콘/콘솔 창으로 에이전트가 실행 중인지 확인해 주세요." },
+        { "label": "포트 점검", "detail": "에이전트가 사용하는 로컬 포트(예: ws://localhost:xxxx)를 매니저 설정과 동일하게 맞춰 주세요." },
+        { "label": "방화벽 예외", "detail": "Windows 방화벽에서 앱/포트를 허용해 주세요(로컬에서도 막히는 경우가 있어요)." }
       ],
-      "links": [{ "label": "통화방 진단 체크리스트", "url": "/help/call-debug" }],
-      "tags": ["webrtc", "remote"]
+      "links": [{ "label": "에이전트 연결 가이드", "url": "/help/agent-connect" }],
+      "tags": ["agent", "connection", "localhost"]
     },
     {
       "id": "call-002",
       "category": "call",
-      "title": "같은 와이파이에서는 되는데 밖에서는 안 돼요",
-      "symptoms": ["외부 네트워크 실패", "NAT 환경"],
+      "title": "Start를 눌렀는데 커서/키보드 제어가 안 돼요",
+      "symptoms": ["Start 했는데 무반응", "입력이 발생 안 함", "제스처는 잡히는데 실행 안 됨"],
       "quickChecks": [
-        "TURN 서버가 없으면 일부 NAT에서 연결이 안 될 수 있어요"
+        "Windows 접근성/보안 권한 때문에 입력 제어가 막힐 수 있어요",
+        "관리자 권한 실행이 필요한 경우가 있어요",
+        "현재 모드가 실제 입력을 발생시키는 모드인지 확인해 주세요"
       ],
       "steps": [
-        { "label": "STUN/TURN 설정", "detail": "STUN만으로 안 되는 환경이 있어 TURN이 필요" },
-        { "label": "iceConnectionState 확인", "detail": "failed/disconnected면 NAT/방화벽 이슈 가능성이 큼" }
+        { "label": "관리자 권한", "detail": "에이전트를 '관리자 권한으로 실행'하면 입력 훅이 더 안정적인 환경이 있어요." },
+        { "label": "보안/백신 예외", "detail": "키보드/마우스 자동화는 보안 프로그램이 막는 경우가 있어 예외 등록이 필요할 수 있어요." },
+        { "label": "모드 확인", "detail": "DEFAULT/MOUSE/VKEY/DRAW/PRESENTATION은 동작이 달라요. 기대 동작과 모드를 맞춰 주세요." }
       ],
       "links": [],
-      "tags": ["turn", "nat"]
+      "tags": ["windows", "permissions", "input"]
     },
     {
       "id": "call-003",
       "category": "call",
-      "title": "상대는 나를 보는데 나는 상대를 못 봐요(단방향)",
-      "symptoms": ["one-way media", "단방향"],
+      "title": "제스처는 인식되는데 '엉뚱한 동작'이 실행돼요(매핑 문제)",
+      "symptoms": ["다른 단축키가 눌림", "클릭이 드래그로 됨", "액션이 바뀜"],
       "quickChecks": [
-        "상대쪽 트랙 추가(addTrack) 누락 여부",
-        "answer 생성 시 localDescription 설정 누락 여부"
+        "현재 로그인 사용자/프로필의 매핑이 맞는지 확인해 주세요",
+        "모드별 매핑 테이블이 분리돼 있는지 확인해 주세요",
+        "좌우 손(Left/Right) 기준이 뒤집히지 않았는지 확인해 주세요"
       ],
       "steps": [
-        { "label": "트랙 추가 확인", "detail": "getTracks().forEach(track => pc.addTrack(track, stream)) 실행 확인" },
-        { "label": "SDP 설정 순서", "detail": "setLocalDescription → signaling 전송 → setRemoteDescription 순서 체크" }
+        { "label": "매핑 화면 점검", "detail": "매니저에서 '제스처 → 액션'이 현재 모드/프로필 기준으로 적용되는지 확인해 주세요." },
+        { "label": "모드 분리", "detail": "같은 제스처라도 모드별로 다른 액션을 쓰면 충돌이 생길 수 있어요. 우선순위를 정해 주세요." },
+        { "label": "좌표/손 기준", "detail": "미러링/손 판별(Left/Right) 기준이 다르면 매핑이 뒤집혀 보일 수 있어요." }
       ],
-      "links": [],
-      "tags": ["addTrack", "sdp"]
+      "links": [{ "label": "매핑 설계 팁", "url": "/help/mapping-design" }],
+      "tags": ["mapping", "mode", "profile"]
     },
     {
       "id": "call-004",
       "category": "call",
-      "title": "소리가 안 들려요",
-      "symptoms": ["audio 없음", "mute"],
+      "title": "클릭/드래그가 너무 예민해요(오작동 많음)",
+      "symptoms": ["클릭 연타", "드래그가 풀림", "스크롤이 튐", "오작동"],
       "quickChecks": [
-        "상대가 mute인지, 브라우저 탭 음소거인지 확인",
-        "오디오 트랙이 실제로 추가됐는지 확인"
+        "디바운스/쿨다운(예: 300~600ms)이 없으면 연속 인식으로 오작동이 많아요",
+        "임계값(threshold)과 안정화(hold frames)가 필요해요"
       ],
       "steps": [
-        { "label": "오디오 트랙 확인", "detail": "stream.getAudioTracks().length 확인 + addTrack 여부" },
-        { "label": "오디오 출력 장치", "detail": "OS 출력 장치가 다른 스피커로 잡힌 케이스 있음" }
+        { "label": "쿨다운 적용", "detail": "탭/클릭 제스처는 1회 실행 후 N ms 동안 재실행을 막아 주세요." },
+        { "label": "N프레임 안정화", "detail": "특정 제스처가 연속 K프레임 이상 유지될 때만 확정해 주세요(떨림 방지)." },
+        { "label": "스무딩", "detail": "커서 좌표는 EMA/Moving Average로 부드럽게 만들면 체감이 좋아져요." }
       ],
       "links": [],
-      "tags": ["audio", "track"]
+      "tags": ["debounce", "threshold", "smoothing"]
     },
     {
       "id": "call-005",
       "category": "call",
-      "title": "통화방에서 연결이 자주 끊겨요",
-      "symptoms": ["disconnect", "ice state flapping"],
+      "title": "PRESENTATION 모드에서 다음/이전 슬라이드가 안 돼요",
+      "symptoms": ["PPT 제어 안 됨", "단축키가 안 먹힘", "슬라이드가 안 넘어감"],
       "quickChecks": [
-        "네트워크 불안정/와이파이 약함",
-        "ICE 후보 처리 로직이 중복/누락"
+        "PPT/발표 앱 창이 포커스를 가지고 있어야 단축키가 동작해요",
+        "단축키 설정이 앱(파워포인트/구글슬라이드)과 맞는지 확인해 주세요"
       ],
       "steps": [
-        { "label": "상태 로깅", "detail": "iceConnectionState / connectionState 변화 로그 남기기" },
-        { "label": "재시도 전략", "detail": "끊김 감지 시 재offer 또는 재접속 정책 필요" }
+        { "label": "포커스 확인", "detail": "발표 앱 창을 한 번 클릭해 포커스를 준 뒤 테스트해 주세요." },
+        { "label": "단축키 매핑", "detail": "다음: Right/PageDown/Space, 이전: Left/PageUp 등 환경에 맞게 매핑해 주세요." },
+        { "label": "전체화면/발표모드", "detail": "슬라이드쇼 모드에서만 동작하는 단축키가 있을 수 있어요." }
       ],
       "links": [],
-      "tags": ["reconnect", "ice"]
+      "tags": ["presentation", "hotkey", "focus"]
     },
     {
       "id": "call-006",
       "category": "call",
-      "title": "방은 들어가졌는데 상대가 'ready'가 안 떠요",
-      "symptoms": ["ready 신호 없음", "매칭 안 됨"],
+      "title": "VKEY(가상키보드)에서 입력이 이상해요/안 쌓여요",
+      "symptoms": ["입력이 안 됨", "다른 글자가 눌림", "탭이 먹히지 않음"],
       "quickChecks": [
-        "roomId가 같은지",
-        "서버에서 방 인원 카운트가 맞는지"
+        "탭 제스처(tapSeq)가 실제로 증가하는지 확인해 주세요",
+        "포인터 좌표가 키 영역과 스케일이 맞는지 확인해 주세요",
+        "키보드 레이아웃(QWERTY/한글) 전환 설계가 필요한지 확인해 주세요"
       ],
       "steps": [
-        { "label": "룸 관리 확인", "detail": "서버에서 roomId별 세션 목록/인원 수 로그 찍기" },
-        { "label": "클라이언트 재접속", "detail": "새로고침 시 이전 세션 정리가 안 되면 유령 세션 생길 수 있음" }
+        { "label": "탭 신호 검증", "detail": "탭 이벤트가 발생할 때만 입력이 확정되도록 설계해 주세요(hover만으로 입력되면 오작동이 생길 수 있어요)." },
+        { "label": "좌표 보정", "detail": "캔버스/비디오 비율 차이로 좌표가 어긋날 수 있어요. scale/offset을 분리해 보정해 주세요." },
+        { "label": "키 하이라이트", "detail": "현재 키 하이라이트(UI)가 실제 입력 키와 동일해야 디버깅이 쉬워요." }
       ],
       "links": [],
-      "tags": ["room", "ready"]
+      "tags": ["vkey", "tap", "calibration"]
     },
     {
       "id": "call-007",
       "category": "call",
-      "title": "ICE candidate 에러가 떠요",
-      "symptoms": ["addIceCandidate failed", "candidate parse error"],
+      "title": "DRAW(그리기) 모드에서 선이 끊기거나 흔들려요",
+      "symptoms": ["선이 떨림", "끊김", "지연", "원치 않는 점이 생김"],
       "quickChecks": [
-        "candidate를 JSON으로 주고받다가 깨지는 경우가 많음",
-        "null candidate 처리 누락"
+        "포인터 좌표 스무딩이 없으면 떨림이 그대로 선에 나타날 수 있어요",
+        "브러시 다운/업(그리기 시작/끝) 판정이 불안정할 수 있어요"
       ],
       "steps": [
-        { "label": "candidate 통째 전달", "detail": "RTCIceCandidateInit를 그대로 serialize/deserialize" },
-        { "label": "null candidate 처리", "detail": "candidate가 null이면 end-of-candidates로 간주하고 addIceCandidate 하지 않기" }
+        { "label": "좌표 스무딩", "detail": "EMA/칼만 필터/이동평균으로 포인터를 안정화해 주세요." },
+        { "label": "펜다운 판정", "detail": "그리기 시작 제스처는 N프레임 유지 후 확정하고, 쿨다운을 적용해 주세요." },
+        { "label": "성능 확인", "detail": "캔버스 렌더링과 인식을 동시에 하면 CPU가 높아질 수 있어요. 해상도/주기를 낮춰 주세요." }
       ],
       "links": [],
-      "tags": ["ice", "candidate"]
+      "tags": ["draw", "smoothing", "pen-down"]
     },
     {
       "id": "call-008",
       "category": "call",
-      "title": "상대 영상은 뜨는데 끊기거나 프레임이 멈춰요",
-      "symptoms": ["freeze", "stutter"],
+      "title": "RUSH/게임 모드에서 오입력이 많아요(연타/씹힘)",
+      "symptoms": ["연타", "입력 씹힘", "반응 지연", "키가 계속 눌림"],
       "quickChecks": [
-        "CPU 과부하(인식 + 통화 동시) 가능",
-        "네트워크 대역폭 부족"
+        "키다운/키업 타이밍이 틀리면 '계속 눌림'이 생길 수 있어요",
+        "게임은 포커스/권한/보안 프로그램 영향이 큰 편이에요"
       ],
       "steps": [
-        { "label": "해상도/비트레이트 낮추기", "detail": "senders의 parameters로 maxBitrate 제한 고려" },
-        { "label": "인식 프레임 제한", "detail": "인식/전송 루프를 낮추고, 통화 우선순위" }
+        { "label": "키업 보장", "detail": "모든 키다운에는 반드시 키업이 따라오도록 예외 처리를 해 주세요(에러/전환 시에도 release)." },
+        { "label": "연타 정책", "detail": "연타는 초당 횟수를 제한하고, 판정을 안정화해 주세요." },
+        { "label": "포커스/전체화면", "detail": "게임 창이 포커스를 잃으면 입력이 다른 곳으로 들어갈 수 있어요." }
       ],
       "links": [],
-      "tags": ["bitrate", "performance"]
+      "tags": ["rush", "key", "focus"]
     },
     {
       "id": "call-009",
       "category": "call",
-      "title": "통화방에서 카메라를 켰는데 상대에게 반영이 안 돼요",
-      "symptoms": ["track replace 필요", "카메라 토글"],
+      "title": "모드 전환이 안 되거나 전환 후 동작이 꼬여요",
+      "symptoms": ["모드 변경 안 됨", "전환 후 이전 모드 동작이 남음", "상태 꼬임"],
       "quickChecks": [
-        "기존 sender track을 replaceTrack 해야 함"
+        "모드 변경은 서버/매니저/에이전트가 같은 상태로 동기화돼야 해요",
+        "전환 시 타이머/리스너/키다운 상태 정리가 필요해요"
       ],
       "steps": [
-        { "label": "replaceTrack", "detail": "pc.getSenders()에서 video sender 찾아 replaceTrack(newTrack)" },
-        { "label": "재협상 필요", "detail": "상황에 따라 renegotiation(offer/answer) 필요" }
+        { "label": "전환 훅 정리", "detail": "모드 변경 시 interval/animation loop/리스너를 반드시 정리(cleanup)해 주세요." },
+        { "label": "입력 상태 리셋", "detail": "드래그/키다운 중이면 전환 시 강제로 release 처리해 주세요." },
+        { "label": "동기화 이벤트", "detail": "매니저→에이전트로 'modeChanged' 이벤트를 확실히 전달하고 ACK를 받는 구조를 권장해요." }
       ],
       "links": [],
-      "tags": ["replaceTrack", "renegotiation"]
+      "tags": ["mode", "state", "sync"]
     },
     {
       "id": "call-010",
       "category": "call",
-      "title": "통화방 디버그용 체크리스트(한 방에 확인)",
-      "symptoms": ["전체 진단"],
+      "title": "전체 진단 체크리스트(카메라→인식→에이전트→실행 한 번에)",
+      "symptoms": ["전체 진단", "뭐가 문제인지 모르겠음"],
       "quickChecks": [
-        "WS 연결됨?",
-        "offer/answer 교환됨?",
-        "ICE 후보 오감?",
-        "iceConnectionState가 connected/completed?",
-        "remoteStream track 들어옴?"
+        "1) 카메라 영상이 보이나요?",
+        "2) 손 랜드마크/포인터 값이 변하나요?",
+        "3) 에이전트 연결 상태가 Connected인가요?",
+        "4) 현재 모드가 기대 동작과 일치하나요?",
+        "5) 매핑이 현재 프로필에 적용되나요?",
+        "6) 실행(키/마우스)이 실제로 발생하나요?"
       ],
       "steps": [
-        { "label": "1) signaling", "detail": "WS open 로그 + room join/ready 확인" },
-        { "label": "2) SDP", "detail": "localDescription/remoteDescription 존재 여부" },
-        { "label": "3) ICE", "detail": "candidate count + ice state" },
-        { "label": "4) Media", "detail": "remote video element srcObject 설정 확인" }
+        { "label": "1) Camera", "detail": "권한/장치/검은화면 여부를 확인해 주세요." },
+        { "label": "2) Recognition", "detail": "랜드마크/포인터 좌표가 실시간으로 갱신되는지 확인해 주세요." },
+        { "label": "3) Agent", "detail": "로컬 포트 연결/방화벽/실행 상태를 확인해 주세요." },
+        { "label": "4) Mode/Mapping", "detail": "모드/프로필/제스처→액션 매핑을 확인해 주세요." },
+        { "label": "5) Execution", "detail": "포커스/권한/키다운-업/쿨다운 정책을 확인해 주세요." }
       ],
-      "links": [],
-      "tags": ["debug", "checklist"]
+      "links": [{ "label": "진단 페이지", "url": "/help/diagnostics" }],
+      "tags": ["debug", "checklist", "end-to-end"]
     }
   ]
 }

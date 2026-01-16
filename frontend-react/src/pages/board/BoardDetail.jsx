@@ -1,27 +1,30 @@
-﻿import React, { useEffect, useMemo, useState } from "react";
-import { useRef } from "react";
+﻿import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../../api/client";
 import { useModal } from "../../context/ModalContext";
 import LikeButton from "../../components/common/LikeButton";
 import CommentSection from "../../components/comment/CommentSection";
+import { useTranslation } from "react-i18next";
 
 const BOARD_TYPES = [
-  { id: 1, name: "공지사항" },
-  { id: 2, name: "자유게시판" },
-  { id: 3, name: "QnA" },
-  { id: 4, name: "오류사항접수" }
+  { id: 1, key: "notice" },
+  { id: 2, key: "free" },
+  { id: 3, key: "qna" },
+  { id: 4, key: "error" }
 ];
 
 export default function BoardDetail() {
+  const { t } = useTranslation("board");
   const { id } = useParams();
   const nav = useNavigate();
   const { showModal } = useModal();
+
   const [article, setArticle] = useState(null);
   const lastHitIdRef = useRef(null);
 
   useEffect(() => {
     if (!id) return;
+
     (async () => {
       try {
         const res = await api.get(`/boards/${id}`);
@@ -43,28 +46,28 @@ export default function BoardDetail() {
       } catch (e) {
         console.error(e);
         const status = e?.response?.status;
-        const message = status === 404
-          ? "삭제되었거나 존재하지 않는 게시글입니다."
-          : "게시글을 불러오지 못했습니다.";
+        const message = status === 404 ? t("modal.notFound") : t("modal.detailFail");
+
         showModal({
-          title: "오류",
+          title: t("modal.errorTitle"),
           message,
           type: "error",
           onClose: () => nav("/board", { replace: true })
         });
       }
     })();
-  }, [id, nav, showModal]);
+  }, [id, nav, showModal, t]);
 
   const boardName = useMemo(() => {
     const typeId = article?.boardId ?? article?.boardTypeId;
-    return BOARD_TYPES.find((b) => b.id === Number(typeId))?.name ?? "게시판";
-  }, [article]);
+    const key = BOARD_TYPES.find((b) => b.id === Number(typeId))?.key;
+    return key ? t(`board.types.${key}`) : t("board.default");
+  }, [article, t]);
 
   const handleDelete = () => {
     showModal({
-      title: "게시글 삭제",
-      message: "정말로 게시글을 삭제하시겠습니까?",
+      title: t("modal.deleteTitle"),
+      message: t("modal.deleteConfirm"),
       type: "warning",
       children: (
         <div className="flex gap-3">
@@ -74,21 +77,21 @@ export default function BoardDetail() {
                 await api.delete(`/boards/${id}`);
                 nav("/board", { replace: true });
                 showModal({
-                  title: "삭제 완료",
-                  message: "게시글이 성공적으로 삭제되었습니다.",
+                  title: t("modal.deleteSuccessTitle"),
+                  message: t("modal.deleteSuccessMsg"),
                   type: "success"
                 });
               } catch (e) {
                 showModal({
-                  title: "삭제 실패",
-                  message: e?.response?.data?.message || "삭제 중 오류가 발생했습니다.",
+                  title: t("modal.deleteFailTitle"),
+                  message: e?.response?.data?.message || t("modal.deleteFailMsg"),
                   type: "error"
                 });
               }
             }}
             className="flex-1 py-4 bg-rose-600 text-white rounded-2xl font-black hover:bg-rose-700 transition-all shadow-lg shadow-rose-100"
           >
-            삭제하기
+            {t("modal.deleteAction")}
           </button>
         </div>
       )
@@ -113,7 +116,7 @@ export default function BoardDetail() {
           <svg className="w-5 h-5 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
           </svg>
-          목록으로 돌아가기
+          {t("backToList")}
         </button>
 
         <div className="rounded-[3rem] overflow-hidden border border-[var(--border)] bg-[rgba(18,27,47,0.94)] shadow-2xl animate-fade-in">
@@ -133,17 +136,26 @@ export default function BoardDetail() {
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-[var(--surface-soft)] rounded-2xl flex items-center justify-center text-slate-300">
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                    <path
+                      fillRule="evenodd"
+                      d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </div>
                 <div>
-                  <div className="text-base font-black text-slate-100">{article.writerName || "익명"}</div>
+                  <div className="text-base font-black text-slate-100">
+                    {article.writerName || t("anonymous")}
+                  </div>
                   <div className="text-xs font-bold text-slate-400">{article.regDate}</div>
                 </div>
               </div>
+
               <div className="flex items-center gap-6">
                 <div className="text-center">
-                  <div className="text-xs font-black text-slate-300 uppercase tracking-widest mb-1">Views</div>
+                  <div className="text-xs font-black text-slate-300 uppercase tracking-widest mb-1">
+                    {t("viewsLabel")}
+                  </div>
                   <div className="text-lg font-black text-slate-100">{article.hit || 0}</div>
                 </div>
               </div>
@@ -167,7 +179,7 @@ export default function BoardDetail() {
                     onClick={() => nav(`/board/${id}/modify`)}
                     className="px-6 py-3 bg-[var(--surface-soft)] border border-[var(--border)] text-slate-100 rounded-2xl font-black hover:bg-[var(--surface)] transition-all shadow-sm active:scale-95"
                   >
-                    수정하기
+                    {t("modify.title")}
                   </button>
                 )}
                 {article.canDelete && (
@@ -175,7 +187,7 @@ export default function BoardDetail() {
                     onClick={handleDelete}
                     className="px-6 py-3 bg-rose-500/10 text-rose-300 border border-rose-500/30 rounded-2xl font-black hover:bg-rose-500/20 transition-all shadow-sm active:scale-95"
                   >
-                    삭제하기
+                    {t("modal.deleteAction")}
                   </button>
                 )}
               </div>
@@ -190,14 +202,3 @@ export default function BoardDetail() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-

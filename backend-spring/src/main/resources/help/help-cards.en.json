@@ -1,0 +1,513 @@
+{
+  "version": "1.0",
+  "updatedAt": "2026-01-16T00:00:00+09:00",
+  "cards": [
+    {
+      "id": "cam-001",
+      "category": "camera",
+      "title": "Camera preview is completely black (no video)",
+      "symptoms": ["Black screen", "No camera preview", "Video doesn't play"],
+      "quickChecks": [
+        "Click the icon on the left of the address bar → make sure Camera permission is set to 'Allow'",
+        "If another app (Zoom/Discord/OBS) is using the camera, close it",
+        "Refresh the page and allow the camera again"
+      ],
+      "steps": [
+        { "label": "Check permissions", "detail": "Chrome: Settings → Privacy and security → Site settings → Camera → confirm this site is set to 'Allow'." },
+        { "label": "Select the correct device", "detail": "If you have multiple cameras, the wrong device may be selected. Providing a 'camera selector' UI/setting helps a lot." },
+        { "label": "Close apps using the camera", "detail": "If another app is using the camera, the browser may fail to access it (common on laptop built-in cameras)." },
+        { "label": "Check HTTPS / localhost", "detail": "In some environments, getUserMedia works properly only on https or localhost." }
+      ],
+      "links": [{ "label": "Permission / device check guide", "url": "/help/camera-permission" }],
+      "tags": ["getUserMedia", "permission", "black-screen"]
+    },
+    {
+      "id": "cam-002",
+      "category": "camera",
+      "title": "Camera still isn't detected even after allowing permission",
+      "symptoms": ["Allowed permission but still fails", "Fails but it's not NotAllowedError"],
+      "quickChecks": [
+        "Check if the site is saved as 'Blocked' in the browser settings",
+        "Test in an Incognito window (to rule out extension interference)",
+        "Also confirm OS-level camera permission (Windows/macOS)"
+      ],
+      "steps": [
+        { "label": "Reset site permission", "detail": "Chrome: Click the lock icon → Site settings → Reset permissions, then reopen the site." },
+        { "label": "Check OS privacy settings", "detail": "Windows: Settings → Privacy & security → Camera / macOS: System Settings → Privacy & Security → Camera. Make sure the browser is allowed." },
+        { "label": "Disable extensions", "detail": "Ad blockers / security extensions can block media permissions. Temporarily disable them and test again." }
+      ],
+      "links": [],
+      "tags": ["permission", "os-privacy"]
+    },
+    {
+      "id": "cam-003",
+      "category": "camera",
+      "title": "Camera/recognition doesn’t work well on mobile",
+      "symptoms": ["Mobile Safari", "Mobile Chrome", "Camera call fails", "Low recognition accuracy"],
+      "quickChecks": [
+        "This project targets PC (Windows) control, so desktop is the most stable environment",
+        "Mobile browsers / in-app webviews have many camera restrictions"
+      ],
+      "steps": [
+        { "label": "Open in an external browser", "detail": "In-app browsers (WebView) like KakaoTalk/Instagram are restrictive. If possible, open in Chrome/Safari." },
+        { "label": "Do final testing on PC", "detail": "To verify gestures triggering OS input (mouse/keyboard), you need Windows + the local agent environment." }
+      ],
+      "links": [],
+      "tags": ["mobile", "webview", "environment"]
+    },
+    {
+      "id": "cam-004",
+      "category": "camera",
+      "title": "Hand recognition doesn't work (camera shows video)",
+      "symptoms": ["Video shows but recognition is 0", "Landmarks not detected", "Pointer doesn't move"],
+      "quickChecks": [
+        "Recognition accuracy drops sharply in low light",
+        "If the hand leaves the frame, detection fails",
+        "If the tab is in the background, FPS/performance may drop"
+      ],
+      "steps": [
+        { "label": "Lighting / background", "detail": "Turn on front lighting and keep the background simple (increase contrast between hand and background)." },
+        { "label": "Hand position in frame", "detail": "Keep your hand near the center of the camera, not too close or too far." },
+        { "label": "Performance / power mode", "detail": "On laptops, power-saving mode can drastically reduce recognition. Use AC power / high-performance mode." }
+      ],
+      "links": [{ "label": "Hand pose tips", "url": "/help/pose-tips" }],
+      "tags": ["mediapipe", "hands", "landmark"]
+    },
+    {
+      "id": "cam-005",
+      "category": "camera",
+      "title": "Recognition is slow / laggy",
+      "symptoms": ["Low FPS", "Fan ramps up", "Choppy video", "Cursor stutters"],
+      "quickChecks": [
+        "Lowering resolution often improves performance a lot (e.g., 1280x720 → 640x480)",
+        "Close other tabs/extensions/apps to free CPU/GPU"
+      ],
+      "steps": [
+        { "label": "Lower resolution", "detail": "Reduce width/height in getUserMedia constraints, or use 'ideal' with smaller values." },
+        { "label": "Limit processing frequency", "detail": "Instead of hard 30fps, limiting gesture/pointer processing to ~10–20fps can feel smoother." },
+        { "label": "Lower model options", "detail": "Reducing Hands settings (max hands / complexity) can improve speed." }
+      ],
+      "links": [],
+      "tags": ["performance", "fps", "throttle"]
+    },
+    {
+      "id": "cam-006",
+      "category": "camera",
+      "title": "Camera works but the 'gesture cursor' doesn't respond",
+      "symptoms": ["Only video shows", "Pointer overlay doesn't move", "Gesture state stays 0"],
+      "quickChecks": [
+        "Check whether the local agent is running (Python/EXE)",
+        "Check whether the manager is connected to the agent (WS/local port)",
+        "Confirm the current mode is an input mode (MOUSE/DEFAULT, etc.)"
+      ],
+      "steps": [
+        { "label": "Run the agent", "detail": "If the local agent is not running, the manager can show status but cannot generate real OS input." },
+        { "label": "Check connection status", "detail": "It’s recommended to show Agent: Connected/Disconnected status in the manager UI." },
+        { "label": "Check mode", "detail": "PRESENTATION/DRAW/VKEY behave differently—confirm the expected behavior matches the current mode." }
+      ],
+      "links": [{ "label": "Agent connection guide", "url": "/help/agent-connect" }],
+      "tags": ["agent", "ws", "mode"]
+    },
+    {
+      "id": "cam-007",
+      "category": "camera",
+      "title": "Camera error: NotFoundError",
+      "symptoms": ["NotFoundError", "No device", "No camera device detected"],
+      "quickChecks": [
+        "Confirm the camera is physically connected",
+        "Check Device Manager to ensure the camera isn't disabled"
+      ],
+      "steps": [
+        { "label": "Reconnect device", "detail": "If using an external webcam, unplug/replug USB or try a different port." },
+        { "label": "Check driver", "detail": "If it’s a driver issue, you may need to reinstall the driver." }
+      ],
+      "links": [],
+      "tags": ["NotFoundError", "device"]
+    },
+    {
+      "id": "cam-008",
+      "category": "camera",
+      "title": "Camera error: NotAllowedError",
+      "symptoms": ["NotAllowedError", "Permission denied", "Permission blocked"],
+      "quickChecks": [
+        "If you clicked 'Block' before, it may now be automatically blocked",
+        "Some managed PCs (company/school) may block cameras by policy"
+      ],
+      "steps": [
+        { "label": "Re-allow permission", "detail": "Reset site permission, then refresh and allow again." },
+        { "label": "Check policy restrictions", "detail": "If an admin policy/security software blocks the camera, it may not be solvable from the browser alone." }
+      ],
+      "links": [],
+      "tags": ["NotAllowedError", "permission"]
+    },
+    {
+      "id": "cam-009",
+      "category": "camera",
+      "title": "Camera error: OverconstrainedError",
+      "symptoms": ["OverconstrainedError", "Constraints not satisfied", "Resolution setting failed"],
+      "quickChecks": ["If requested resolution/FPS constraints are too strict, camera start can fail"],
+      "steps": [
+        { "label": "Relax constraints", "detail": "Set width/height as 'ideal' or try lower values." },
+        { "label": "Device limitations", "detail": "Some laptops/webcams support limited resolutions—try stepping down gradually." }
+      ],
+      "links": [],
+      "tags": ["constraints", "getUserMedia"]
+    },
+    {
+      "id": "cam-010",
+      "category": "camera",
+      "title": "Mirroring feels wrong and gesture directions are confusing",
+      "symptoms": ["Mirroring", "Confusing hand direction", "Pointer coordinates feel off"],
+      "quickChecks": ["It’s safest to separate 'preview mirroring' from 'analysis coordinates'"],
+      "steps": [
+        { "label": "Mirror UI only", "detail": "Apply transform: scaleX(-1) only to the display (video/canvas)." },
+        { "label": "Keep analysis on original", "detail": "Keep landmark coordinates based on the original frame (consistent coordinate system)." }
+      ],
+      "links": [],
+      "tags": ["mirror", "ui", "coordinates"]
+    },
+
+    {
+      "id": "err-001",
+      "category": "error",
+      "title": "CORS blocked (Access-Control-Allow-Origin)",
+      "symptoms": ["CORS policy", "blocked by CORS", "No 'Access-Control-Allow-Origin'"],
+      "quickChecks": [
+        "Frontend (5173) and backend allowed origins must match",
+        "If you use cookies/session, credentials settings must also match"
+      ],
+      "steps": [
+        { "label": "Backend CORS setup", "detail": "Add http://localhost:5173 etc. to allowedOrigins." },
+        { "label": "Match credentials", "detail": "Frontend axios withCredentials=true ↔ backend allowCredentials(true)." },
+        { "label": "Vite proxy", "detail": "In dev, proxying /api can bypass CORS." }
+      ],
+      "links": [{ "label": "CORS checklist", "url": "/help/cors" }],
+      "tags": ["cors", "axios", "spring"]
+    },
+    {
+      "id": "err-002",
+      "category": "error",
+      "title": "404 Not Found (API path issue)",
+      "symptoms": ["404", "not found", "NoResourceFoundException"],
+      "quickChecks": [
+        "In DevTools Network, confirm the real request URL is /api/xxx",
+        "Check Spring controller mappings (@RequestMapping)"
+      ],
+      "steps": [
+        { "label": "Frontend baseURL", "detail": "Verify axios baseURL/vite proxy correctly prefixes /api." },
+        { "label": "Backend mapping", "detail": "Make sure @RequestMapping('/api/...') matches the frontend call path exactly." }
+      ],
+      "links": [],
+      "tags": ["404", "routing"]
+    },
+    {
+      "id": "err-003",
+      "category": "error",
+      "title": "500 Internal Server Error (backend exception)",
+      "symptoms": ["500", "Internal Server Error", "Server error"],
+      "quickChecks": [
+        "Check the backend console stacktrace from the top (root cause)",
+        "In Network, identify which API fails and inspect URL/request body"
+      ],
+      "steps": [
+        { "label": "Capture stacktrace", "detail": "Fix based on the first/root exception: BeanCreation/NullPointer/SQL, etc." },
+        { "label": "Validate request DTO", "detail": "Field name mismatches can cause nulls and crashes. Freeze request/response schema." }
+      ],
+      "links": [{ "label": "How to capture logs", "url": "/help/log-capture" }],
+      "tags": ["500", "stacktrace"]
+    },
+    {
+      "id": "err-004",
+      "category": "error",
+      "title": "Auth issues: 401/403 (Unauthorized/Forbidden)",
+      "symptoms": ["401", "403", "Unauthorized", "Forbidden", "Logged out"],
+      "quickChecks": [
+        "Confirm Authorization header (JWT) or cookies are actually sent",
+        "Check backend Security config: protected vs allowed paths"
+      ],
+      "steps": [
+        { "label": "Check headers in Network", "detail": "Confirm Authorization: Bearer ... or Cookie is included in the request." },
+        { "label": "Expiry / refresh", "detail": "If the token is expired, you need a refresh flow or re-login." },
+        { "label": "Role/authority", "detail": "If an API is admin-only, confirm the user's role/authority matches." }
+      ],
+      "links": [],
+      "tags": ["auth", "jwt", "security"]
+    },
+    {
+      "id": "err-005",
+      "category": "error",
+      "title": "Axios requests go to the wrong server/port",
+      "symptoms": ["Requests go to 8080", "Requests go to 5173", "Vite proxy suspected"],
+      "quickChecks": [
+        "Check axios baseURL config",
+        "Check vite.config.js proxy settings",
+        "Search code for hardcoded absolute URLs"
+      ],
+      "steps": [
+        { "label": "Confirm Vite proxy", "detail": "In dev, /api → http://localhost:8080 proxy can be normal." },
+        { "label": "Remove absolute URLs", "detail": "Hardcoding http://localhost:8080 breaks across environments. Prefer relative paths (/api)." }
+      ],
+      "links": [],
+      "tags": ["axios", "vite", "proxy"]
+    },
+    {
+      "id": "err-006",
+      "category": "error",
+      "title": "Agent/server WebSocket connection fails",
+      "symptoms": ["WS failed", "1006", "WebSocket is closed", "Disconnected"],
+      "quickChecks": [
+        "Confirm WS URL (ws/wss) matches the server endpoint",
+        "Make sure frontend/backend/agent ports are not mixed up",
+        "In deployment, reverse proxy (e.g., Nginx) must allow WS upgrade"
+      ],
+      "steps": [
+        { "label": "Check endpoint path", "detail": "Match Spring WebSocket path (/ws etc.) and the client URL." },
+        { "label": "Log events", "detail": "Log onopen/onclose/onerror and server handshake logs to quickly find root cause." },
+        { "label": "wss/https", "detail": "On https, you must use wss. Also decide how to send auth/tokens." }
+      ],
+      "links": [],
+      "tags": ["websocket", "agent", "realtime"]
+    },
+    {
+      "id": "err-007",
+      "category": "error",
+      "title": "Mixed Content (https page calling http)",
+      "symptoms": ["Mixed Content", "blocked insecure content", "http blocked on https"],
+      "quickChecks": ["Browsers block calling http API/WS from an https page"],
+      "steps": [
+        { "label": "Match security level", "detail": "In production, use https/wss for API/WS or hide behind the same-domain reverse proxy." }
+      ],
+      "links": [],
+      "tags": ["https", "mixed-content", "wss"]
+    },
+    {
+      "id": "err-008",
+      "category": "error",
+      "title": "JSON parsing error / response is HTML (Whitelabel)",
+      "symptoms": ["Unexpected token <", "Whitelabel Error Page", "HTML response"],
+      "quickChecks": ["Often you receive an error page (HTML) instead of an API JSON response, so JSON.parse fails"],
+      "steps": [
+        { "label": "Check Network response", "detail": "Confirm whether the response starts with '{' or '<html>'." },
+        { "label": "Check URL/proxy", "detail": "If the request hits the wrong server/path, you may get HTML. Recheck baseURL/proxy/mappings." }
+      ],
+      "links": [],
+      "tags": ["whitelabel", "json", "routing"]
+    },
+    {
+      "id": "err-009",
+      "category": "error",
+      "title": "DB save/read doesn't work (data not inserted / not visible)",
+      "symptoms": ["Saved but query returns 0", "Table data not visible", "SQL error"],
+      "quickChecks": [
+        "Confirm you're connected to the right DB (URL/schema/container)",
+        "Confirm transaction/commit happens",
+        "Check mapping mismatch (column names, nullable, enum)"
+      ],
+      "steps": [
+        { "label": "Check DB connection info", "detail": "Verify application.yml datasource url/user/schema matches the currently running DB." },
+        { "label": "Enable SQL logs", "detail": "With Hibernate/JPA, enable SQL logs to see if insert/update actually runs." },
+        { "label": "Migration/schema", "detail": "After adding/renaming columns, if schema isn't updated, inserts may fail or values may be truncated." }
+      ],
+      "links": [],
+      "tags": ["db", "jpa", "sql"]
+    },
+    {
+      "id": "err-010",
+      "category": "error",
+      "title": "Slow response / timeout (including recognition/log upload)",
+      "symptoms": ["timeout", "Slow response", "Server overload", "Agent disconnects"],
+      "quickChecks": [
+        "Sending frames/logs too frequently can saturate server/network",
+        "If heavy work is synchronous, UI may freeze too"
+      ],
+      "steps": [
+        { "label": "Throttle frequency", "detail": "Limit frame/status sending to ~5–10fps and send only on meaningful changes." },
+        { "label": "Async / queue", "detail": "Consider queueing heavy work and responding quickly (e.g., 202 Accepted)." },
+        { "label": "Reduce logging", "detail": "Excess debug logs can severely hurt performance. Apply levels/sampling." }
+      ],
+      "links": [],
+      "tags": ["timeout", "performance", "throttle"]
+    },
+
+    {
+      "id": "call-001",
+      "category": "call",
+      "title": "Agent shows 'Disconnected' (manager can’t control locally)",
+      "symptoms": ["Disconnected", "Not connected", "No response after pressing Start"],
+      "quickChecks": [
+        "Check whether the local agent (Python/EXE) is running",
+        "Check whether firewall/security blocks local ports",
+        "Check whether manager settings (agent host/port) are correct"
+      ],
+      "steps": [
+        { "label": "Verify agent is running", "detail": "Check Task Manager / tray icon / console window to confirm the agent is running." },
+        { "label": "Check port", "detail": "Match the agent’s local port (e.g., ws://localhost:xxxx) with the manager settings." },
+        { "label": "Firewall exception", "detail": "Allow the app/port in Windows Firewall (it can block even local connections)." }
+      ],
+      "links": [{ "label": "Agent connection guide", "url": "/help/agent-connect" }],
+      "tags": ["agent", "connection", "localhost"]
+    },
+    {
+      "id": "call-002",
+      "category": "call",
+      "title": "Pressed Start but cursor/keyboard control doesn’t work",
+      "symptoms": ["No response after Start", "No input events", "Gestures detected but nothing executes"],
+      "quickChecks": [
+        "Windows accessibility/security permissions may block input control",
+        "Some environments require running as administrator",
+        "Check whether the current mode actually emits input"
+      ],
+      "steps": [
+        { "label": "Run as administrator", "detail": "Running the agent as Administrator can make input hooks more reliable." },
+        { "label": "AV/security exceptions", "detail": "Security software may block keyboard/mouse automation. You may need to add an exception." },
+        { "label": "Check mode", "detail": "DEFAULT/MOUSE/VKEY/DRAW/PRESENTATION behave differently—match mode to expected behavior." }
+      ],
+      "links": [],
+      "tags": ["windows", "permissions", "input"]
+    },
+    {
+      "id": "call-003",
+      "category": "call",
+      "title": "Gestures are detected but the wrong action runs (mapping issue)",
+      "symptoms": ["Wrong hotkey pressed", "Click becomes drag", "Actions are swapped"],
+      "quickChecks": [
+        "Confirm the mapping belongs to the current user/profile",
+        "Confirm mappings are separated by mode",
+        "Check if Left/Right hand detection is flipped"
+      ],
+      "steps": [
+        { "label": "Check mapping screen", "detail": "Verify 'gesture → action' is applied for the current mode/profile." },
+        { "label": "Separate by mode", "detail": "If the same gesture triggers different actions per mode, define priority to prevent conflicts." },
+        { "label": "Hand/coordinate 기준", "detail": "If mirroring or Left/Right hand detection differs, mappings can appear flipped." }
+      ],
+      "links": [{ "label": "Mapping design tips", "url": "/help/mapping-design" }],
+      "tags": ["mapping", "mode", "profile"]
+    },
+    {
+      "id": "call-004",
+      "category": "call",
+      "title": "Click/drag is too sensitive (many false triggers)",
+      "symptoms": ["Rapid clicks", "Drag releases unexpectedly", "Scroll jumps", "False triggers"],
+      "quickChecks": [
+        "Without debounce/cooldown (e.g., 300–600ms), repeated detections cause many false triggers",
+        "You need thresholds and stabilization (hold frames)"
+      ],
+      "steps": [
+        { "label": "Apply cooldown", "detail": "After executing a tap/click once, block re-execution for N ms." },
+        { "label": "Stabilize for N frames", "detail": "Confirm a gesture only if it persists for K consecutive frames (reduce jitter)." },
+        { "label": "Smoothing", "detail": "Smooth cursor coordinates with EMA/moving average for better feel." }
+      ],
+      "links": [],
+      "tags": ["debounce", "threshold", "smoothing"]
+    },
+    {
+      "id": "call-005",
+      "category": "call",
+      "title": "PRESENTATION mode: next/prev slide doesn’t work",
+      "symptoms": ["PPT control doesn’t work", "Hotkeys don’t trigger", "Slides don’t advance"],
+      "quickChecks": [
+        "The presentation app window must be focused for hotkeys to work",
+        "Confirm the hotkey mapping matches the actual app (PowerPoint/Google Slides)"
+      ],
+      "steps": [
+        { "label": "Check focus", "detail": "Click the presentation app window once to focus it, then test again." },
+        { "label": "Hotkey mapping", "detail": "Next: Right/PageDown/Space, Prev: Left/PageUp, etc. Map based on your environment." },
+        { "label": "Fullscreen/slideshow", "detail": "Some hotkeys work only in slideshow/presentation mode." }
+      ],
+      "links": [],
+      "tags": ["presentation", "hotkey", "focus"]
+    },
+    {
+      "id": "call-006",
+      "category": "call",
+      "title": "VKEY (virtual keyboard): input is weird / not accumulating",
+      "symptoms": ["No input", "Wrong character pressed", "Tap doesn’t register"],
+      "quickChecks": [
+        "Verify tap gesture signal (tapSeq) actually increments",
+        "Verify pointer coordinates align with key areas and scaling",
+        "Consider whether you need layout switching (QWERTY/Korean)"
+      ],
+      "steps": [
+        { "label": "Validate tap signal", "detail": "Commit input only on tap events (hover-only commits cause many false inputs)." },
+        { "label": "Coordinate calibration", "detail": "Aspect ratio differences between canvas/video can offset coordinates. Separate scale/offset for calibration." },
+        { "label": "Key highlight sanity", "detail": "UI highlight should match the actual key being committed—this makes debugging much easier." }
+      ],
+      "links": [],
+      "tags": ["vkey", "tap", "calibration"]
+    },
+    {
+      "id": "call-007",
+      "category": "call",
+      "title": "DRAW mode: strokes break or shake",
+      "symptoms": ["Jittery lines", "Broken strokes", "Latency", "Unwanted dots"],
+      "quickChecks": [
+        "Without coordinate smoothing, jitter shows up directly in strokes",
+        "Pen-down / pen-up detection may be unstable"
+      ],
+      "steps": [
+        { "label": "Coordinate smoothing", "detail": "Stabilize pointer with EMA/Kalman filter/moving average." },
+        { "label": "Pen-down detection", "detail": "Confirm draw-start gesture after N stable frames, and apply cooldown." },
+        { "label": "Check performance", "detail": "Running canvas rendering + recognition together can raise CPU. Reduce resolution/frequency." }
+      ],
+      "links": [],
+      "tags": ["draw", "smoothing", "pen-down"]
+    },
+    {
+      "id": "call-008",
+      "category": "call",
+      "title": "RUSH/Game mode: too many misinputs (spam / dropped inputs)",
+      "symptoms": ["Spam inputs", "Dropped inputs", "Delay", "Key stuck down"],
+      "quickChecks": [
+        "If keydown/keyup timing is wrong, 'stuck key' happens",
+        "Games are sensitive to focus/permissions/security software"
+      ],
+      "steps": [
+        { "label": "Guarantee key-up", "detail": "Ensure every keydown always has a keyup (also release on errors/mode switch)." },
+        { "label": "Rate limit policy", "detail": "Limit presses per second and stabilize detection." },
+        { "label": "Focus/fullscreen", "detail": "If the game window loses focus, inputs may go elsewhere." }
+      ],
+      "links": [],
+      "tags": ["rush", "key", "focus"]
+    },
+    {
+      "id": "call-009",
+      "category": "call",
+      "title": "Mode switch fails or behavior gets messed up after switching",
+      "symptoms": ["Mode change fails", "Previous mode behavior persists", "State is broken"],
+      "quickChecks": [
+        "Mode switching must synchronize state across server/manager/agent",
+        "You must cleanup timers/listeners and reset keydown states on switch"
+      ],
+      "steps": [
+        { "label": "Cleanup on switch", "detail": "On mode change, 반드시 interval/animation loop/listeners cleanup을 해주세요." },
+        { "label": "Reset input state", "detail": "If dragging/keydown is active, force release on mode switch." },
+        { "label": "Sync event", "detail": "Send a reliable 'modeChanged' event from manager → agent and ideally receive an ACK." }
+      ],
+      "links": [],
+      "tags": ["mode", "state", "sync"]
+    },
+    {
+      "id": "call-010",
+      "category": "call",
+      "title": "End-to-end diagnosis checklist (camera → recognition → agent → execution)",
+      "symptoms": ["End-to-end diagnosis", "Not sure what’s wrong"],
+      "quickChecks": [
+        "1) Do you see the camera preview?",
+        "2) Do hand landmarks/pointer values change?",
+        "3) Is the agent status Connected?",
+        "4) Does the current mode match the expected behavior?",
+        "5) Is mapping applied to the current profile?",
+        "6) Do actual key/mouse inputs occur?"
+      ],
+      "steps": [
+        { "label": "1) Camera", "detail": "Check permissions/device/black-screen issues." },
+        { "label": "2) Recognition", "detail": "Verify landmarks/pointer coordinates update in real time." },
+        { "label": "3) Agent", "detail": "Check local port connection/firewall/running state." },
+        { "label": "4) Mode/Mapping", "detail": "Verify mode/profile/gesture→action mappings." },
+        { "label": "5) Execution", "detail": "Check focus/permissions/keydown-up/cooldown policies." }
+      ],
+      "links": [{ "label": "Diagnostics page", "url": "/help/diagnostics" }],
+      "tags": ["debug", "checklist", "end-to-end"]
+    }
+  ]
+}

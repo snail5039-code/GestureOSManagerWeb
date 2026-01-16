@@ -1,0 +1,110 @@
+{
+  "sort": "並び替え",
+  "sortOptions": {
+    "latest": "新着順",
+    "views": "閲覧数順",
+    "comments": "コメント順"
+  },
+  "list": "一覧",
+  "pageSize": {
+    "10": "10件ずつ表示",
+    "20": "20件ずつ表示",
+    "30": "30件ずつ表示"
+  },
+  "table": {
+    "no": "番号",
+    "title": "タイトル",
+    "writer": "作成者",
+    "date": "作成日",
+    "views": "閲覧数"
+  },
+  "loading": "読み込み中...",
+  "empty": "投稿がありません。",
+  "anonymous": "匿名",
+  "search": {
+    "type": {
+      "title": "タイトル",
+      "content": "本文",
+      "titleContent": "タイトル＋本文"
+    },
+    "placeholder": "キーワードを入力してください",
+    "button": "検索"
+  },
+  "write": "投稿する",
+  "backToList": "一覧に戻る",
+  "viewsLabel": "閲覧数",
+  "board": {
+    "default": "掲示板",
+    "types": {
+      "notice": "お知らせ",
+      "free": "自由掲示板",
+      "qna": "Q&A",
+      "error": "不具合受付"
+    }
+  },
+  "modal": {
+    "errorTitle": "エラー",
+    "loadFail": "投稿の読み込みに失敗しました。",
+    "notFound": "削除されたか、存在しない投稿です。",
+    "detailFail": "投稿を取得できませんでした。",
+    "deleteTitle": "投稿を削除",
+    "deleteConfirm": "本当にこの投稿を削除しますか？",
+    "deleteAction": "削除する",
+    "deleteSuccessTitle": "削除完了",
+    "deleteSuccessMsg": "投稿を削除しました。",
+    "deleteFailTitle": "削除失敗",
+    "deleteFailMsg": "削除中にエラーが発生しました。",
+    "inputErrorTitle": "入力エラー",
+    "inputErrorMsg": "タイトルと本文を入力してください。",
+    "modifySuccessTitle": "更新完了",
+    "modifySuccessMsg": "投稿を更新しました。",
+    "modifyFailTitle": "更新失敗",
+    "modifyFailMsg": "更新中にエラーが発生しました。",
+    "writeSuccessTitle": "投稿完了",
+    "writeSuccessMsg": "投稿が作成されました。",
+    "writeFailTitle": "投稿失敗",
+    "writeFailMsg": "投稿中にエラーが発生しました。"
+  },
+  "modify": {
+    "title": "投稿を編集",
+    "desc": "内容を編集して保存してください。",
+    "labelTitle": "タイトル",
+    "labelContent": "本文",
+    "placeholderTitle": "タイトルを入力してください",
+    "placeholderContent": "本文を入力してください",
+    "cancel": "キャンセル",
+    "back": "戻る",
+    "save": "変更を保存",
+    "saving": "保存中..."
+  },
+  "writePage": {
+    "title": "新規投稿",
+    "desc": "あなたの考えを共有しましょう。",
+    "labelTitle": "タイトル",
+    "labelContent": "本文",
+    "placeholderTitle": "タイトルを入力してください",
+    "placeholderContent": "本文を入力してください",
+    "cancel": "キャンセル",
+    "back": "戻る",
+    "submit": "投稿する",
+    "submitting": "投稿中..."
+  },
+  "comment": {
+    "count": "コメント {{count}}",
+    "loading": "コメント読み込み中...",
+    "empty": "最初のコメントを残してみましょう！",
+    "reply": "返信",
+    "edit": "編集",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "save": "保存",
+    "confirmDelete": "コメントを削除しますか？",
+    "editFail": "更新失敗",
+    "deleteFail": "削除失敗",
+    "placeholderComment": "コメントを入力してください...",
+    "placeholderReply": "返信を入力してください...",
+    "submitComment": "コメント登録",
+    "submitReply": "返信登録",
+    "submitting": "作成中..."
+  }
+}

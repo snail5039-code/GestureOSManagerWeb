@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { api } from "../../api/client";
+import { useTranslation } from "react-i18next";
 
 export default function CommentWrite({ relTypeCode, relId, parentId = null, onSuccess, onCancel = null }) {
     const [content, setContent] = useState("");
     const [loading, setLoading] = useState(false);
+    const { t } = useTranslation("board");
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -19,7 +21,7 @@ export default function CommentWrite({ relTypeCode, relId, parentId = null, onSu
             if (onSuccess) onSuccess();
         } catch (e) {
             console.error(e);
-            alert(e?.response?.data?.message || "댓글 작성 실패");
+            alert(e?.response?.data?.message || t("comment.writeFail", { defaultValue: "Failed to post comment" }));
         } finally {
             setLoading(false);
         }
@@ -31,7 +33,7 @@ export default function CommentWrite({ relTypeCode, relId, parentId = null, onSu
                 <textarea
                     className="w-full border rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-200 resize-none"
                     rows={parentId ? 2 : 3}
-                    placeholder={parentId ? "답글을 입력하세요..." : "댓글을 입력하세요..."}
+                    placeholder={parentId ? t("comment.placeholderReply") : t("comment.placeholderComment")}
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                 />
@@ -42,7 +44,7 @@ export default function CommentWrite({ relTypeCode, relId, parentId = null, onSu
                             onClick={onCancel}
                             className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700"
                         >
-                            취소
+                            {t("comment.cancel")}
                         </button>
                     )}
                     <button
@@ -50,7 +52,7 @@ export default function CommentWrite({ relTypeCode, relId, parentId = null, onSu
                         disabled={loading || !content.trim()}
                         className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold disabled:opacity-50"
                     >
-                        {loading ? "작성 중..." : parentId ? "답글 등록" : "댓글 등록"}
+                        {loading ? t("comment.submitting") : parentId ? t("comment.submitReply") : t("comment.submitComment")}
                     </button>
                 </div>
             </div>

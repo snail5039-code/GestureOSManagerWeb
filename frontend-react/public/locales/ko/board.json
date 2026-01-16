@@ -1,8 +1,110 @@
 {
-    "menu": {
-        "notice": "공지사항",
-        "free": "자유게시판",
-        "qna": "QnA",
-        "error": "오류사항접수"
+  "sort": "정렬",
+  "sortOptions": {
+    "latest": "최신순",
+    "views": "조회순",
+    "comments": "댓글순"
+  },
+  "list": "목록",
+  "pageSize": {
+    "10": "10개씩 보기",
+    "20": "20개씩 보기",
+    "30": "30개씩 보기"
+  },
+  "table": {
+    "no": "번호",
+    "title": "제목",
+    "writer": "작성자",
+    "date": "작성일",
+    "views": "조회수"
+  },
+  "loading": "불러오는 중...",
+  "empty": "등록된 게시글이 없습니다.",
+  "anonymous": "익명",
+  "search": {
+    "type": {
+      "title": "제목",
+      "content": "내용",
+      "titleContent": "제목+내용"
+    },
+    "placeholder": "검색어를 입력하세요",
+    "button": "검색"
+  },
+  "write": "글쓰기",
+  "backToList": "목록으로 돌아가기",
+  "viewsLabel": "조회수",
+  "board": {
+    "default": "게시판",
+    "types": {
+      "notice": "공지사항",
+      "free": "자유게시판",
+      "qna": "QnA",
+      "error": "오류사항접수"
     }
+  },
+  "modal": {
+    "errorTitle": "오류",
+    "loadFail": "게시글을 불러오는 중 오류가 발생했습니다.",
+    "notFound": "삭제되었거나 존재하지 않는 게시글입니다.",
+    "detailFail": "게시글을 불러오지 못했습니다.",
+    "deleteTitle": "게시글 삭제",
+    "deleteConfirm": "정말로 게시글을 삭제하시겠습니까?",
+    "deleteAction": "삭제하기",
+    "deleteSuccessTitle": "삭제 완료",
+    "deleteSuccessMsg": "게시글이 성공적으로 삭제되었습니다.",
+    "deleteFailTitle": "삭제 실패",
+    "deleteFailMsg": "삭제 중 오류가 발생했습니다.",
+    "inputErrorTitle": "입력 오류",
+    "inputErrorMsg": "제목과 내용을 모두 입력해주세요.",
+    "modifySuccessTitle": "수정 완료",
+    "modifySuccessMsg": "게시글이 성공적으로 수정되었습니다.",
+    "modifyFailTitle": "수정 실패",
+    "modifyFailMsg": "글 수정 중 오류가 발생했습니다.",
+    "writeSuccessTitle": "등록 완료",
+    "writeSuccessMsg": "게시글이 성공적으로 등록되었습니다.",
+    "writeFailTitle": "등록 실패",
+    "writeFailMsg": "글 등록 중 오류가 발생했습니다."
+  },
+  "modify": {
+    "title": "게시글 수정",
+    "desc": "내용을 수정하고 저장하세요.",
+    "labelTitle": "제목",
+    "labelContent": "내용",
+    "placeholderTitle": "제목을 입력하세요",
+    "placeholderContent": "내용을 입력하세요",
+    "cancel": "취소",
+    "back": "뒤로 가기",
+    "save": "수정사항 저장하기",
+    "saving": "저장 중..."
+  },
+  "writePage": {
+    "title": "새 게시글 작성",
+    "desc": "당신의 생각을 공유해보세요.",
+    "labelTitle": "제목",
+    "labelContent": "내용",
+    "placeholderTitle": "제목을 입력하세요",
+    "placeholderContent": "내용을 입력하세요",
+    "cancel": "취소",
+    "back": "뒤로 가기",
+    "submit": "게시글 등록하기",
+    "submitting": "등록 중..."
+  },
+  "comment": {
+    "count": "댓글 {{count}}",
+    "loading": "댓글 로딩 중...",
+    "empty": "첫 댓글을 남겨보세요!",
+    "reply": "답글",
+    "edit": "수정",
+    "cancel": "취소",
+    "delete": "삭제",
+    "save": "저장",
+    "confirmDelete": "댓글을 삭제하시겠습니까?",
+    "editFail": "수정 실패",
+    "deleteFail": "삭제 실패",
+    "placeholderComment": "댓글을 입력하세요...",
+    "placeholderReply": "답글을 입력하세요...",
+    "submitComment": "댓글 등록",
+    "submitReply": "답글 등록",
+    "submitting": "작성 중..."
+  }
 }

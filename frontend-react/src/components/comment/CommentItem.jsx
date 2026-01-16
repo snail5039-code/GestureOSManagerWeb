@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import { api } from "../../api/client";
 import CommentWrite from "./CommentWrite";
 import LikeButton from "../common/LikeButton";
+import { useTranslation } from "react-i18next"
 
 export default function CommentItem({ comment, relTypeCode, relId, onRefresh }) {
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(comment.content);
     const [isReplying, setIsReplying] = useState(false);
+    const { t } = useTranslation("board");
 
     const handleUpdate = async () => {
         try {
@@ -17,18 +19,18 @@ export default function CommentItem({ comment, relTypeCode, relId, onRefresh }) 
             onRefresh();
         } catch (e) {
             console.error(e);
-            alert("수정 실패");
+            alert(t("comment.editFail"));
         }
     };
 
     const handleDelete = async () => {
-        if (!window.confirm("댓글을 삭제하시겠습니까?")) return;
+        if (!window.confirm(t("comment.confirmDelete"))) return;
         try {
             await api.delete(`/comments/${comment.id}`);
             onRefresh();
         } catch (e) {
             console.error(e);
-            alert("삭제 실패");
+            alert(t("comment.deleteFail"));
         }
     };
 
@@ -52,7 +54,7 @@ export default function CommentItem({ comment, relTypeCode, relId, onRefresh }) 
                             onClick={() => setIsReplying(!isReplying)}
                             className="text-xs text-blue-600 hover:underline"
                         >
-                            답글
+                            {t("comment.reply")}
                         </button>
                     )}
                     {comment.canModify && (
@@ -60,7 +62,7 @@ export default function CommentItem({ comment, relTypeCode, relId, onRefresh }) 
                             onClick={() => setIsEditing(!isEditing)}
                             className="text-xs text-gray-500 hover:underline"
                         >
-                            {isEditing ? "취소" : "수정"}
+                            {isEditing ? t("comment.cancel") : t("comment.edit")}
                         </button>
                     )}
                     {comment.canDelete && (
@@ -68,7 +70,7 @@ export default function CommentItem({ comment, relTypeCode, relId, onRefresh }) 
                             onClick={handleDelete}
                             className="text-xs text-red-500 hover:underline"
                         >
-                            삭제
+                            {t("comment.delete")}
                         </button>
                     )}
                 </div>
@@ -87,7 +89,7 @@ export default function CommentItem({ comment, relTypeCode, relId, onRefresh }) 
                             onClick={handleUpdate}
                             className="px-3 py-1 bg-blue-600 text-white text-xs rounded-lg"
                         >
-                            저장
+                            {t("comment.save")}
                         </button>
                     </div>
                 </div>

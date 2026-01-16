@@ -1,0 +1,513 @@
+{
+  "version": "1.0",
+  "updatedAt": "2026-01-16T00:00:00+09:00",
+  "cards": [
+    {
+      "id": "cam-001",
+      "category": "camera",
+      "title": "カメラ画面が真っ黒で何も映りません（ブラックスクリーン）",
+      "symptoms": ["画面が真っ黒", "カメラのプレビューが出ない", "動画が再生されない"],
+      "quickChecks": [
+        "アドレスバー左のアイコン → カメラ権限が「許可」になっているか確認してください",
+        "他のアプリ（Zoom/Discord/OBS）がカメラを使用中なら終了してください",
+        "ページを更新して、もう一度許可してください"
+      ],
+      "steps": [
+        { "label": "権限を確認", "detail": "Chrome：設定 → プライバシーとセキュリティ → サイトの設定 → カメラで、対象サイトが「許可」になっているか確認してください。" },
+        { "label": "デバイスを選択", "detail": "カメラが複数ある場合、別のデバイスが選ばれていることがあります。「カメラ選択」UI/設定があると便利です。" },
+        { "label": "占有アプリを終了", "detail": "他のアプリがカメラを使っていると、ブラウザが取得できない場合があります（特にノートPC内蔵カメラ）。" },
+        { "label": "HTTPS/localhostを確認", "detail": "環境によっては、https または localhost でのみ getUserMedia が正常に動作します。" }
+      ],
+      "links": [{ "label": "権限・デバイス確認ガイド", "url": "/help/camera-permission" }],
+      "tags": ["getUserMedia", "permission", "black-screen"]
+    },
+    {
+      "id": "cam-002",
+      "category": "camera",
+      "title": "権限を許可したのにカメラが検出されません",
+      "symptoms": ["権限は許可したが失敗する", "NotAllowedErrorではないのに失敗する"],
+      "quickChecks": [
+        "ブラウザにサイトが「ブロック」として保存されていないか確認してください",
+        "シークレットウィンドウで試してください（拡張機能の影響を切り分け）",
+        "OS側のカメラ権限（Windows/macOS）も許可になっているか確認してください"
+      ],
+      "steps": [
+        { "label": "サイト権限をリセット", "detail": "Chrome：鍵アイコン → サイトの設定 → 権限をリセット → 再度アクセスしてください。" },
+        { "label": "OS権限を確認", "detail": "Windows：設定 → プライバシーとセキュリティ → カメラ / macOS：システム設定 → プライバシーとセキュリティ → カメラで許可状態を確認してください。" },
+        { "label": "拡張機能を無効化", "detail": "広告ブロッカー/セキュリティ拡張が権限をブロックすることがあります。一時的にオフにして確認してください。" }
+      ],
+      "links": [],
+      "tags": ["permission", "os-privacy"]
+    },
+    {
+      "id": "cam-003",
+      "category": "camera",
+      "title": "モバイルでカメラ/認識がうまく動きません",
+      "symptoms": ["モバイルSafari", "モバイルChrome", "カメラ呼び出し失敗", "認識率が低い"],
+      "quickChecks": [
+        "本プロジェクトはPC（Windows）操作が目的なので、デスクトップ環境が最も安定します",
+        "モバイルブラウザ/アプリ内WebViewはカメラ制約が多いです"
+      ],
+      "steps": [
+        { "label": "外部ブラウザで開く", "detail": "KakaoTalk/Instagramなどのアプリ内ブラウザ（WebView）は制約が強いです。可能ならChrome/Safariで開いてください。" },
+        { "label": "最終検証はPCで", "detail": "ジェスチャーがOS入力（マウス/キーボード）につながるかは、Windows＋ローカルエージェント環境で検証が必要です。" }
+      ],
+      "links": [],
+      "tags": ["mobile", "webview", "environment"]
+    },
+    {
+      "id": "cam-004",
+      "category": "camera",
+      "title": "手の認識ができません（映像は表示される）",
+      "symptoms": ["映像は出るが認識が0", "ランドマークが取れない", "ポインターが動かない"],
+      "quickChecks": [
+        "暗いと認識率が大きく下がります",
+        "手がフレーム外だと認識されません",
+        "タブがバックグラウンドだとFPS/性能が落ちることがあります"
+      ],
+      "steps": [
+        { "label": "照明/背景", "detail": "正面の照明をつけ、背景はシンプルにしてください（手と背景のコントラストを上げる）。" },
+        { "label": "フレーム位置", "detail": "手をカメラの中央に置き、近すぎず遠すぎない距離を保ってください。" },
+        { "label": "性能/電源", "detail": "ノートPCの省電力モードだと認識が急に落ちます。電源接続/高性能モードを推奨します。" }
+      ],
+      "links": [{ "label": "姿勢のコツ", "url": "/help/pose-tips" }],
+      "tags": ["mediapipe", "hands", "landmark"]
+    },
+    {
+      "id": "cam-005",
+      "category": "camera",
+      "title": "認識が遅い/カクつく（ラグがある）",
+      "symptoms": ["FPSが低い", "ファンが回る", "映像がカクカク", "カーソルが途切れる"],
+      "quickChecks": [
+        "解像度を下げると体感が大きく改善します（例：1280x720 → 640x480）",
+        "他のタブ/拡張機能/アプリを閉じてCPU/GPUを確保してください"
+      ],
+      "steps": [
+        { "label": "解像度を下げる", "detail": "getUserMedia の constraints で width/height を下げるか、ideal を小さめに設定してください。" },
+        { "label": "処理頻度を制限", "detail": "30fps固定ではなく、10〜20fps程度に制限するとUXが良くなることがあります。" },
+        { "label": "モデル設定を軽くする", "detail": "Hands の設定（最大手数/精度）を下げると速くなります。" }
+      ],
+      "links": [],
+      "tags": ["performance", "fps", "throttle"]
+    },
+    {
+      "id": "cam-006",
+      "category": "camera",
+      "title": "カメラは映るのに「ジェスチャーカーソル」が反応しません",
+      "symptoms": ["映像だけ表示される", "ポインターオーバーレイが動かない", "ジェスチャー状態が0のまま"],
+      "quickChecks": [
+        "エージェント（ローカルPython/EXE）が起動しているか確認してください",
+        "マネージャーがエージェントに接続できているか確認してください（WS/ローカルポート）",
+        "現在のモードが入力モード（MOUSE/DEFAULTなど）か確認してください"
+      ],
+      "steps": [
+        { "label": "エージェント起動", "detail": "ローカルエージェントが停止していると、マネージャーは状態表示はできても実際の入力を発生できません。" },
+        { "label": "接続状態を確認", "detail": "マネージャー上部に Agent: Connected/Disconnected の表示を入れるのがおすすめです。" },
+        { "label": "モード確認", "detail": "PRESENTATION/DRAW/VKEY は動作が異なります。期待する動作とモードが一致しているか確認してください。" }
+      ],
+      "links": [{ "label": "エージェント接続ガイド", "url": "/help/agent-connect" }],
+      "tags": ["agent", "ws", "mode"]
+    },
+    {
+      "id": "cam-007",
+      "category": "camera",
+      "title": "カメラ呼び出しエラー：NotFoundError",
+      "symptoms": ["NotFoundError", "No device", "カメラデバイスが見つからない"],
+      "quickChecks": [
+        "カメラが物理的に接続されているか確認してください",
+        "デバイスマネージャーでカメラが無効化されていないか確認してください"
+      ],
+      "steps": [
+        { "label": "デバイス接続", "detail": "外付けカメラならUSBを抜き差しするか、別のポートを試してください。" },
+        { "label": "ドライバー確認", "detail": "ドライバー問題の場合は再インストールが必要なことがあります。" }
+      ],
+      "links": [],
+      "tags": ["NotFoundError", "device"]
+    },
+    {
+      "id": "cam-008",
+      "category": "camera",
+      "title": "カメラ呼び出しエラー：NotAllowedError",
+      "symptoms": ["NotAllowedError", "Permission denied", "権限拒否"],
+      "quickChecks": [
+        "以前に「ブロック」を押した場合、自動的に拒否されることがあります",
+        "会社/学校のPCはポリシーでカメラが禁止されている場合があります"
+      ],
+      "steps": [
+        { "label": "権限を再許可", "detail": "サイト権限をリセットしてから更新し、再度許可してください。" },
+        { "label": "ポリシー確認", "detail": "管理者ポリシー/セキュリティソフトがブロックしている場合、ブラウザだけでは解決が難しいです。" }
+      ],
+      "links": [],
+      "tags": ["NotAllowedError", "permission"]
+    },
+    {
+      "id": "cam-009",
+      "category": "camera",
+      "title": "カメラ呼び出しエラー：OverconstrainedError",
+      "symptoms": ["OverconstrainedError", "constraints不一致", "解像度設定失敗"],
+      "quickChecks": ["要求した解像度/フレームレート条件が厳しすぎると失敗することがあります"],
+      "steps": [
+        { "label": "constraintsを緩める", "detail": "width/height を ideal にするか、より低い値で試してください。" },
+        { "label": "デバイス差", "detail": "特定のノートPC/ウェブカメラは対応解像度が限られます。段階的に下げて確認してください。" }
+      ],
+      "links": [],
+      "tags": ["constraints", "getUserMedia"]
+    },
+    {
+      "id": "cam-010",
+      "category": "camera",
+      "title": "左右反転（ミラー）が不自然で方向が分かりにくいです",
+      "symptoms": ["左右反転", "手の方向が混乱する", "ポインター座標がおかしい"],
+      "quickChecks": ["プレビューのミラーリングと解析（座標）を分けるのが安全です"],
+      "steps": [
+        { "label": "UIだけミラー", "detail": "表示（video/canvas）だけに transform: scaleX(-1) を適用してください。" },
+        { "label": "解析は元の座標系", "detail": "ランドマーク座標は元フレーム基準のままにしてください（座標系の一貫性）。" }
+      ],
+      "links": [],
+      "tags": ["mirror", "ui", "coordinates"]
+    },
+
+    {
+      "id": "err-001",
+      "category": "error",
+      "title": "CORS blocked (Access-Control-Allow-Origin)",
+      "symptoms": ["CORS policy", "blocked by CORS", "No 'Access-Control-Allow-Origin'"],
+      "quickChecks": [
+        "フロント（5173）とバックエンドの許可originが一致している必要があります",
+        "Cookie/セッションを使う場合はcredentials設定も揃える必要があります"
+      ],
+      "steps": [
+        { "label": "バックエンドのCORS設定", "detail": "allowedOrigins に http://localhost:5173 などを追加してください。" },
+        { "label": "credentialsを一致", "detail": "フロント axios withCredentials=true ↔ バック allowCredentials(true) に揃えてください。" },
+        { "label": "Vite proxy", "detail": "開発環境では /api をプロキシするとCORSを回避できます。" }
+      ],
+      "links": [{ "label": "CORSチェックリスト", "url": "/help/cors" }],
+      "tags": ["cors", "axios", "spring"]
+    },
+    {
+      "id": "err-002",
+      "category": "error",
+      "title": "404 Not Found（APIパスの問題）",
+      "symptoms": ["404", "not found", "NoResourceFoundException"],
+      "quickChecks": [
+        "Networkタブで実際のURLが /api/xxx になっているか確認してください",
+        "Spring Controllerのマッピング（@RequestMapping）を確認してください"
+      ],
+      "steps": [
+        { "label": "フロントのbaseURL", "detail": "axios baseURL / Vite proxy が /api を正しく付けているか確認してください。" },
+        { "label": "バックエンドのマッピング", "detail": "@RequestMapping('/api/...') とフロントの呼び出しパスが完全一致する必要があります。" }
+      ],
+      "links": [],
+      "tags": ["404", "routing"]
+    },
+    {
+      "id": "err-003",
+      "category": "error",
+      "title": "500 Internal Server Error（バックエンド例外）",
+      "symptoms": ["500", "Internal Server Error", "サーバーエラー"],
+      "quickChecks": [
+        "バックエンドコンソールのスタックトレースは先頭（原因）から確認してください",
+        "どのAPIで落ちているかNetworkでURL/リクエストボディを確認してください"
+      ],
+      "steps": [
+        { "label": "スタックトレースを取得", "detail": "最初の例外（根本原因）を基準に修正してください：BeanCreation/NullPointer/SQL など。" },
+        { "label": "リクエストDTO検証", "detail": "フィールド名不一致だとnullが入り落ちます。リクエスト/レスポンスのスキーマを固定してください。" }
+      ],
+      "links": [{ "label": "ログ取得方法", "url": "/help/log-capture" }],
+      "tags": ["500", "stacktrace"]
+    },
+    {
+      "id": "err-004",
+      "category": "error",
+      "title": "ログイン/権限の問題で 401/403 になります",
+      "symptoms": ["401", "403", "Unauthorized", "Forbidden", "ログインが切れる"],
+      "quickChecks": [
+        "Authorizationヘッダー（JWT）またはCookieが送信されているか確認してください",
+        "バックエンドSecurity設定で保護/許可パスが意図通りか確認してください"
+      ],
+      "steps": [
+        { "label": "Networkでヘッダー確認", "detail": "リクエストに Authorization: Bearer ... または Cookie が付いているか確認してください。" },
+        { "label": "期限/リフレッシュ", "detail": "トークン期限切れの場合、refreshフローまたは再ログインが必要です。" },
+        { "label": "権限（role）確認", "detail": "管理者専用APIなら role/authority が一致しているか確認してください。" }
+      ],
+      "links": [],
+      "tags": ["auth", "jwt", "security"]
+    },
+    {
+      "id": "err-005",
+      "category": "error",
+      "title": "axiosリクエストが別のサーバー/ポートに飛びます",
+      "symptoms": ["8080に飛ぶ", "5173に飛ぶ", "vite proxy疑い"],
+      "quickChecks": [
+        "axios baseURL設定を確認してください",
+        "vite.config.js の proxy 設定を確認してください",
+        "コード内に絶対URLのハードコードがないか検索してください"
+      ],
+      "steps": [
+        { "label": "Vite proxy確認", "detail": "開発環境で /api → http://localhost:8080 のプロキシは正常な場合があります。" },
+        { "label": "絶対URLを削除", "detail": "http://localhost:8080 のようなハードコードは環境が変わると壊れます。相対パス（/api）推奨です。" }
+      ],
+      "links": [],
+      "tags": ["axios", "vite", "proxy"]
+    },
+    {
+      "id": "err-006",
+      "category": "error",
+      "title": "エージェント/サーバーのWebSocket接続に失敗します",
+      "symptoms": ["WS failed", "1006", "WebSocket is closed", "切断される"],
+      "quickChecks": [
+        "WS URL（ws/wss）とサーバーエンドポイントが一致しているか確認してください",
+        "フロント/バック/エージェントのポートが混ざっていないか確認してください",
+        "本番環境ではプロキシ（Nginx）がWS Upgradeを許可する必要があります"
+      ],
+      "steps": [
+        { "label": "エンドポイント確認", "detail": "Spring WebSocket設定のパス（/ws等）とクライアントURLを合わせてください。" },
+        { "label": "ログを残す", "detail": "onopen/onclose/onerror とサーバーハンドシェイクログを残すと原因特定が早いです。" },
+        { "label": "wss/https", "detail": "https環境ではwssが必要です。認証/トークンの渡し方も決める必要があります。" }
+      ],
+      "links": [],
+      "tags": ["websocket", "agent", "realtime"]
+    },
+    {
+      "id": "err-007",
+      "category": "error",
+      "title": "Mixed Content / httpsからhttpを呼んでブロックされます",
+      "symptoms": ["Mixed Content", "blocked insecure content", "httpsでhttpがブロック"],
+      "quickChecks": ["httpsページからhttpのAPI/WSを呼ぶとブラウザがブロックします"],
+      "steps": [
+        { "label": "同じセキュリティレベルに合わせる", "detail": "本番ではAPI/WSもhttps/wssに揃えるか、同一ドメインのリバースプロキシで隠してください。" }
+      ],
+      "links": [],
+      "tags": ["https", "mixed-content", "wss"]
+    },
+    {
+      "id": "err-008",
+      "category": "error",
+      "title": "JSONパースエラー / 応答がHTML（Whitelabel）で返ってきます",
+      "symptoms": ["Unexpected token <", "Whitelabel Error Page", "HTML応答"],
+      "quickChecks": ["APIではなくエラーページ（HTML）を受け取り、JSON.parseが失敗するケースが多いです"],
+      "steps": [
+        { "label": "NetworkのResponse確認", "detail": "応答が { で始まるか、<html> で始まるか確認してください。" },
+        { "label": "URL/プロキシ確認", "detail": "誤ったサーバー/パスに飛ぶとHTMLが返ります。baseURL/proxy/マッピングを点検してください。" }
+      ],
+      "links": [],
+      "tags": ["whitelabel", "json", "routing"]
+    },
+    {
+      "id": "err-009",
+      "category": "error",
+      "title": "DBの保存/取得ができません（入らない/見えない）",
+      "symptoms": ["保存したのに0件", "テーブル値が見えない", "SQLエラー"],
+      "quickChecks": [
+        "接続先DBが正しいか（URL/スキーマ/コンテナ）確認してください",
+        "トランザクション/コミットが行われているか確認してください",
+        "マッピング不一致（カラム名/nullable/enum）がないか確認してください"
+      ],
+      "steps": [
+        { "label": "DB接続情報確認", "detail": "application.yml の datasource url/user/schema が実行中DBと一致しているか確認してください。" },
+        { "label": "SQLログを見る", "detail": "Hibernate/JPAならSQLログを有効にして、insert/updateが実際に出ているか確認してください。" },
+        { "label": "マイグレーション/スキーマ", "detail": "カラム追加/名前変更後にスキーマが更新されていないと保存失敗や値の切り捨てが起きます。" }
+      ],
+      "links": [],
+      "tags": ["db", "jpa", "sql"]
+    },
+    {
+      "id": "err-010",
+      "category": "error",
+      "title": "応答が遅い/タイムアウトします（認識/ログ送信含む）",
+      "symptoms": ["timeout", "応答遅延", "サーバー過負荷", "エージェント切断"],
+      "quickChecks": [
+        "フレーム送信/ログアップロードが多すぎるとサーバー/ネットワークが詰まります",
+        "重い処理を同期でやるとUIも固まります"
+      ],
+      "steps": [
+        { "label": "送信頻度を制限", "detail": "フレーム/状態送信を5〜10fps程度に抑え、変化がある時だけ送るよう最適化してください。" },
+        { "label": "非同期/キュー", "detail": "重い処理（解析/保存）はキューに渡し、即時応答（202 Accepted）構成も検討してください。" },
+        { "label": "ログを最小化", "detail": "デバッグログが多いと性能が大きく落ちます。レベル/サンプリングを適用してください。" }
+      ],
+      "links": [],
+      "tags": ["timeout", "performance", "throttle"]
+    },
+
+    {
+      "id": "call-001",
+      "category": "call",
+      "title": "エージェントが「Disconnected」と表示されます（ローカル制御できない）",
+      "symptoms": ["Disconnected", "接続できない", "Startを押しても反応なし"],
+      "quickChecks": [
+        "ローカルエージェント（Python/EXE）が起動しているか確認してください",
+        "ファイアウォール/セキュリティがローカルポートを塞いでいないか確認してください",
+        "マネージャー設定のエージェントアドレス/ポートが正しいか確認してください"
+      ],
+      "steps": [
+        { "label": "起動状態確認", "detail": "タスクマネージャー/トレイアイコン/コンソールでエージェントが動作中か確認してください。" },
+        { "label": "ポート確認", "detail": "エージェントのローカルポート（例：ws://localhost:xxxx）をマネージャー設定と合わせてください。" },
+        { "label": "ファイアウォール例外", "detail": "Windowsファイアウォールでアプリ/ポートを許可してください（ローカルでもブロックされることがあります）。" }
+      ],
+      "links": [{ "label": "エージェント接続ガイド", "url": "/help/agent-connect" }],
+      "tags": ["agent", "connection", "localhost"]
+    },
+    {
+      "id": "call-002",
+      "category": "call",
+      "title": "Startを押したのにカーソル/キーボード制御ができません",
+      "symptoms": ["Start後に無反応", "入力が発生しない", "ジェスチャーは取れるが実行されない"],
+      "quickChecks": [
+        "Windowsのアクセシビリティ/セキュリティ権限で入力制御がブロックされることがあります",
+        "管理者権限での実行が必要な場合があります",
+        "現在のモードが実際に入力を発生するモードか確認してください"
+      ],
+      "steps": [
+        { "label": "管理者権限で実行", "detail": "エージェントを「管理者として実行」すると入力フックが安定する環境があります。" },
+        { "label": "セキュリティ/AV例外", "detail": "キーボード/マウス自動化はセキュリティソフトにブロックされがちです。例外登録が必要な場合があります。" },
+        { "label": "モード確認", "detail": "DEFAULT/MOUSE/VKEY/DRAW/PRESENTATION は動作が違います。期待動作とモードを合わせてください。" }
+      ],
+      "links": [],
+      "tags": ["windows", "permissions", "input"]
+    },
+    {
+      "id": "call-003",
+      "category": "call",
+      "title": "ジェスチャーは認識されるのに別の動作が実行されます（マッピング問題）",
+      "symptoms": ["別のショートカットが押される", "クリックがドラッグになる", "アクションが入れ替わる"],
+      "quickChecks": [
+        "現在のログインユーザー/プロファイルのマッピングが正しいか確認してください",
+        "モード別マッピングが分離されているか確認してください",
+        "左右手（Left/Right）の判定が反転していないか確認してください"
+      ],
+      "steps": [
+        { "label": "マッピング画面確認", "detail": "マネージャーで「ジェスチャー→アクション」が現在のモード/プロファイル基準で適用されているか確認してください。" },
+        { "label": "モード分離", "detail": "同じジェスチャーでもモード別に違うアクションを使う場合、優先順位を決めないと衝突します。" },
+        { "label": "左右/座標基準", "detail": "ミラーリングや手判定（Left/Right）の基準が違うと、マッピングが反転して見えることがあります。" }
+      ],
+      "links": [{ "label": "マッピング設計のヒント", "url": "/help/mapping-design" }],
+      "tags": ["mapping", "mode", "profile"]
+    },
+    {
+      "id": "call-004",
+      "category": "call",
+      "title": "クリック/ドラッグが敏感すぎます（誤動作が多い）",
+      "symptoms": ["クリック連打", "ドラッグが外れる", "スクロールが跳ねる", "誤動作"],
+      "quickChecks": [
+        "デバウンス/クールダウン（例：300〜600ms）がないと連続認識で誤動作が増えます",
+        "しきい値（threshold）と安定化（hold frames）が必要です"
+      ],
+      "steps": [
+        { "label": "クールダウン適用", "detail": "タップ/クリックは1回実行後、N ms は再実行をブロックしてください。" },
+        { "label": "Nフレーム安定化", "detail": "特定ジェスチャーが連続Kフレーム以上維持されたときだけ確定してください（揺れ対策）。" },
+        { "label": "スムージング", "detail": "カーソル座標をEMA/移動平均で滑らかにすると体感が良くなります。" }
+      ],
+      "links": [],
+      "tags": ["debounce", "threshold", "smoothing"]
+    },
+    {
+      "id": "call-005",
+      "category": "call",
+      "title": "PRESENTATIONモードで次/前スライドが動きません",
+      "symptoms": ["PPT制御できない", "ショートカットが効かない", "スライドが進まない"],
+      "quickChecks": [
+        "PPT/発表アプリのウィンドウがフォーカスを持っている必要があります",
+        "ショートカット設定がアプリ（PowerPoint/Google Slides）と一致しているか確認してください"
+      ],
+      "steps": [
+        { "label": "フォーカス確認", "detail": "発表アプリのウィンドウを一度クリックしてフォーカスを当ててからテストしてください。" },
+        { "label": "ショートカットマッピング", "detail": "次：Right/PageDown/Space、前：Left/PageUp など、環境に合わせてマップしてください。" },
+        { "label": "全画面/発表モード", "detail": "スライドショー中のみ動作するショートカットがある場合があります。" }
+      ],
+      "links": [],
+      "tags": ["presentation", "hotkey", "focus"]
+    },
+    {
+      "id": "call-006",
+      "category": "call",
+      "title": "VKEY（仮想キーボード）で入力がおかしい/溜まりません",
+      "symptoms": ["入力されない", "別の文字が押される", "タップが効かない"],
+      "quickChecks": [
+        "タップジェスチャー（tapSeq）が実際に増えているか確認してください",
+        "ポインター座標がキー領域とスケール一致しているか確認してください",
+        "キーボード配列（QWERTY/韓国語）切り替えが必要か検討してください"
+      ],
+      "steps": [
+        { "label": "タップ信号を検証", "detail": "タップ発生時のみ入力確定にしてください（hoverだけで確定すると誤入力が増えます）。" },
+        { "label": "座標補正", "detail": "canvas/videoの比率差で座標がずれます。scale/offsetを分けて補正してください。" },
+        { "label": "ハイライト確認", "detail": "UIのキーのハイライトと、実際に確定されるキーが一致している必要があります。" }
+      ],
+      "links": [],
+      "tags": ["vkey", "tap", "calibration"]
+    },
+    {
+      "id": "call-007",
+      "category": "call",
+      "title": "DRAW（描画）モードで線が途切れる/揺れます",
+      "symptoms": ["線が揺れる", "途切れる", "遅延", "不要な点が出る"],
+      "quickChecks": [
+        "座標スムージングがないと揺れがそのまま線に出ます",
+        "ペンダウン/ペンアップ判定が不安定な可能性があります"
+      ],
+      "steps": [
+        { "label": "座標スムージング", "detail": "EMA/カルマンフィルタ/移動平均でポインターを安定化してください。" },
+        { "label": "ペンダウン判定", "detail": "描き始めジェスチャーはNフレーム維持後に確定し、クールダウンも適用してください。" },
+        { "label": "性能確認", "detail": "キャンバス描画と認識を同時に行うとCPUが上がります。解像度/周期を下げてください。" }
+      ],
+      "links": [],
+      "tags": ["draw", "smoothing", "pen-down"]
+    },
+    {
+      "id": "call-008",
+      "category": "call",
+      "title": "RUSH/ゲームモードで誤入力が多い（連打/抜け）",
+      "symptoms": ["連打", "入力抜け", "反応遅延", "キーが押しっぱなし"],
+      "quickChecks": [
+        "keydown/keyupのタイミングがズレると「押しっぱなし」が起きます",
+        "ゲームはフォーカス/権限/セキュリティソフトの影響が大きいです"
+      ],
+      "steps": [
+        { "label": "keyupを保証", "detail": "すべてのkeydownに必ずkeyupが付くよう例外処理してください（エラー/モード切替時もrelease）。" },
+        { "label": "連打ポリシー", "detail": "1秒あたりの回数を制限し、判定を安定化してください。" },
+        { "label": "フォーカス/全画面", "detail": "ゲームウィンドウがフォーカスを失うと入力が別の場所に入ることがあります。" }
+      ],
+      "links": [],
+      "tags": ["rush", "key", "focus"]
+    },
+    {
+      "id": "call-009",
+      "category": "call",
+      "title": "モード切替ができない/切替後に動作が崩れます",
+      "symptoms": ["モード変更できない", "切替後も前の動作が残る", "状態が崩れる"],
+      "quickChecks": [
+        "モード変更はサーバー/マネージャー/エージェントの状態が同期している必要があります",
+        "切替時にタイマー/リスナー/keydown状態の整理が必要です"
+      ],
+      "steps": [
+        { "label": "切替時のクリーンアップ", "detail": "モード変更時に interval/animation loop/リスナー を必ず cleanup してください。" },
+        { "label": "入力状態のリセット", "detail": "ドラッグ/keydown中なら、切替時に強制的にreleaseしてください。" },
+        { "label": "同期イベント", "detail": "マネージャー→エージェントへ modeChanged を確実に伝え、ACKを受ける構造が望ましいです。" }
+      ],
+      "links": [],
+      "tags": ["mode", "state", "sync"]
+    },
+    {
+      "id": "call-010",
+      "category": "call",
+      "title": "総合診断チェックリスト（カメラ→認識→エージェント→実行）",
+      "symptoms": ["総合診断", "何が問題かわからない"],
+      "quickChecks": [
+        "1) カメラ映像は見えますか？",
+        "2) 手ランドマーク/ポインター値は変化しますか？",
+        "3) エージェント接続状態はConnectedですか？",
+        "4) 現在のモードは期待動作と一致していますか？",
+        "5) マッピングは現在プロファイルに適用されていますか？",
+        "6) 実際のキー/マウス入力は発生していますか？"
+      ],
+      "steps": [
+        { "label": "1) Camera", "detail": "権限/デバイス/ブラックスクリーンを確認してください。" },
+        { "label": "2) Recognition", "detail": "ランドマーク/ポインター座標がリアルタイムで更新されるか確認してください。" },
+        { "label": "3) Agent", "detail": "ローカルポート接続/ファイアウォール/起動状態を確認してください。" },
+        { "label": "4) Mode/Mapping", "detail": "モード/プロファイル/ジェスチャー→アクションのマッピングを確認してください。" },
+        { "label": "5) Execution", "detail": "フォーカス/権限/keydown-up/クールダウンポリシーを確認してください。" }
+      ],
+      "links": [{ "label": "診断ページ", "url": "/help/diagnostics" }],
+      "tags": ["debug", "checklist", "end-to-end"]
+    }
+  ]
+}

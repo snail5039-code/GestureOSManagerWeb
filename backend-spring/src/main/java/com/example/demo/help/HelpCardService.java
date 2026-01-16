@@ -27,8 +27,13 @@ public class HelpCardService {
 
     private final Map<String, float[]> vectors = new HashMap<>();
 
+    // ✅ 기본(ko) 카드: 추천/임베딩/카테고리 기준
     private List<HelpCard> cards = new ArrayList<>();
     private Map<String, HelpCard> byId = new HashMap<>();
+
+    // ✅ UI 표시용 언어별 카드 캐시
+    private final Map<String, List<HelpCard>> cardsByLang = new HashMap<>();
+    private final Map<String, Map<String, HelpCard>> byIdByLang = new HashMap<>();
 
     public HelpCardService(
             ObjectMapper om,
@@ -44,7 +49,7 @@ public class HelpCardService {
 
     @PostConstruct
     public void load() {
-        // 1) 카드 로드
+        // ✅ 1) 기본(ko) 카드 로드 (추천/임베딩 기준)
         HelpCardsFile file;
         try {
             ClassPathResource res = new ClassPathResource("help/help-cards.json");
@@ -59,7 +64,16 @@ public class HelpCardService {
             throw new RuntimeException("Failed to load help/help-cards.json", e);
         }
 
-        // 2) 벡터 캐시 로드(있으면 재사용)
+        // ✅ 1-1) UI 표시용 언어별 카드 로드
+        //     (ko는 동일 파일 사용)
+        loadLangFileToCache("ko", "help/help-cards.json");
+        loadLangFileToCache("en", "help/help-cards.en.json");
+        loadLangFileToCache("ja", "help/help-cards.ja.json");
+
+        System.out.println("[HelpCardService] lang cache sizes => "
+                + "ko=" + sizeOf("ko") + ", en=" + sizeOf("en") + ", ja=" + sizeOf("ja"));
+
+        // ✅ 2) 벡터 캐시 로드/생성 (기존 로직 유지)
         HelpVectorCache cache = readVectorCacheSafe();
         Map<String, HelpVectorCache.Entry> cached = (cache != null && cache.vectors != null)
                 ? cache.vectors
@@ -78,17 +92,17 @@ public class HelpCardService {
             }
         }
 
-        // ✅ 여기서부터 “새 임베딩 생성”은 옵션 + 키 있을 때만
         if (!buildEmbeddingsOnStartup) {
-            System.out.println("[HelpCardService] embeddings: startup build disabled. reused=" + reused + " totalVectors=" + vectors.size());
+            System.out.println("[HelpCardService] embeddings: startup build disabled. reused=" + reused
+                    + " totalVectors=" + vectors.size());
             return;
         }
         if (!openAi.isApiKeyReady()) {
-            System.out.println("[HelpCardService] embeddings: no api key. reused=" + reused + " totalVectors=" + vectors.size());
+            System.out.println("[HelpCardService] embeddings: no api key. reused=" + reused
+                    + " totalVectors=" + vectors.size());
             return;
         }
 
-        // 3) 카드별 hash 비교해서 변경된 것만 생성
         int created = 0;
 
         for (HelpCard c : cards) {
@@ -99,7 +113,6 @@ public class HelpCardService {
 
             HelpVectorCache.Entry hit = cached.get(c.id);
             if (hit != null && hash.equals(hit.hash) && hit.vector != null && hit.vector.length > 0) {
-                // 이미 위에서 vectors에 넣었을 수도 있지만 안전하게
                 vectors.put(c.id, hit.vector);
                 continue;
             }
@@ -112,12 +125,11 @@ public class HelpCardService {
                     created++;
                 }
             } catch (Exception ex) {
-                // 실패해도 서버는 떠야 함
-                System.out.println("[HelpCardService] embedding failed cardId=" + c.id + " msg=" + ex.getClass().getSimpleName());
+                System.out.println("[HelpCardService] embedding failed cardId=" + c.id
+                        + " msg=" + ex.getClass().getSimpleName());
             }
         }
 
-        // 4) 캐시 저장
         HelpVectorCache out = new HelpVectorCache();
         out.version = (file != null ? file.version : "unknown");
         out.updatedAt = (file != null ? file.updatedAt : null);
@@ -126,7 +138,18 @@ public class HelpCardService {
 
         writeVectorCacheSafe(out);
 
-        System.out.println("[HelpCardService] embeddings: reused=" + reused + " created=" + created + " totalVectors=" + vectors.size());
+        System.out.println("[HelpCardService] embeddings: reused=" + reused + " created=" + created
+                + " totalVectors=" + vectors.size());
+        
+        System.out.println("[HelpCardService] cardsByLang keys=" + cardsByLang.keySet());
+        System.out.println("[HelpCardService] ja loaded? " + cardsByLang.containsKey("ja"));
+        System.out.println("[HelpCardService] ja size=" + (cardsByLang.get("ja") == null ? -1 : cardsByLang.get("ja").size()));
+
+    }
+
+    private int sizeOf(String lang) {
+        List<HelpCard> x = cardsByLang.get(lang);
+        return x == null ? 0 : x.size();
     }
 
     public List<String> categories() {
@@ -138,11 +161,21 @@ public class HelpCardService {
                 .toList();
     }
 
-    public List<HelpCard> list(String category, String q) {
+    // ✅ lang 적용 list
+    public List<HelpCard> list(String category, String q, String lang) {
         String cat = normalize(category);
         String qq = normalize(q);
+        String l = normLang(lang);
 
-        return cards.stream()
+        List<HelpCard> source = cardsByLang.get(l);
+        if (source == null || source.isEmpty()) {
+            // 여기 찍히면 "그 언어 파일이 안 읽힌 상태"임
+            System.out.println("[HelpCardService] WARN: lang cache missing. requested=" + lang
+                    + " normalized=" + l + " -> fallback to ko");
+            source = cardsByLang.getOrDefault("ko", this.cards);
+        }
+
+        return source.stream()
                 .filter(Objects::nonNull)
                 .filter(c -> cat.isBlank() || normalize(c.category).equals(cat))
                 .filter(c -> qq.isBlank() || matches(c, qq))
@@ -150,10 +183,21 @@ public class HelpCardService {
                 .toList();
     }
 
-    public HelpCard get(String id) {
-        return byId.get(id);
+    // ✅ lang 적용 get
+    public HelpCard get(String id, String lang) {
+        String l = normLang(lang);
+
+        Map<String, HelpCard> map = byIdByLang.get(l);
+        if (map == null || map.isEmpty()) {
+            System.out.println("[HelpCardService] WARN: byId cache missing. requested=" + lang
+                    + " normalized=" + l + " -> fallback to ko");
+            map = byIdByLang.getOrDefault("ko", this.byId);
+        }
+
+        return map.get(id);
     }
 
+    // ✅ 추천은 기본(ko) cards 기준 유지 (임베딩/추천 안정성)
     public RecommendResult recommend(String category, String message, int limit) {
         String cat = normalize(category);
         String msg = (message == null) ? "" : message.trim();
@@ -163,7 +207,6 @@ public class HelpCardService {
             return new RecommendResult(fb, 0.0, false);
         }
 
-        // 임베딩 캐시가 없으면 token 폴백
         if (vectors.isEmpty() || !openAi.isApiKeyReady()) {
             List<HelpCard> fb = recommendByTokens(cat, msg, limit);
             return new RecommendResult(fb, 0.0, false);
@@ -238,8 +281,14 @@ public class HelpCardService {
         String t = normalize(c.title);
         if (!t.isBlank() && t.contains(qq)) return true;
 
-        if (c.symptoms != null) for (String s : c.symptoms) if (normalize(s).contains(qq)) return true;
-        if (c.tags != null) for (String s : c.tags) if (normalize(s).contains(qq)) return true;
+        if (c.symptoms != null)
+            for (String s : c.symptoms)
+                if (normalize(s).contains(qq)) return true;
+
+        if (c.tags != null)
+            for (String s : c.tags)
+                if (normalize(s).contains(qq)) return true;
+
         return false;
     }
 
@@ -295,9 +344,12 @@ public class HelpCardService {
         int score = 0;
         score += tokenHit(msgTokens, normalize(c.title)) * 2;
 
-        if (c.symptoms != null) for (String s : c.symptoms) score += tokenHit(msgTokens, normalize(s)) * 6;
-        if (c.tags != null) for (String t : c.tags) score += tokenHit(msgTokens, normalize(t)) * 3;
-        if (c.quickChecks != null) for (String q : c.quickChecks) score += tokenHit(msgTokens, normalize(q)) * 1;
+        if (c.symptoms != null)
+            for (String s : c.symptoms) score += tokenHit(msgTokens, normalize(s)) * 6;
+        if (c.tags != null)
+            for (String t : c.tags) score += tokenHit(msgTokens, normalize(t)) * 3;
+        if (c.quickChecks != null)
+            for (String q : c.quickChecks) score += tokenHit(msgTokens, normalize(q)) * 1;
         if (c.steps != null) {
             for (var st : c.steps) {
                 score += tokenHit(msgTokens, normalize(st.label)) * 1;
@@ -367,6 +419,7 @@ public class HelpCardService {
         public final List<HelpCard> cards;
         public final double maxSim;
         public final boolean usedEmbeddings;
+
         public RecommendResult(List<HelpCard> cards, double maxSim, boolean usedEmbeddings) {
             this.cards = cards;
             this.maxSim = maxSim;
@@ -385,10 +438,7 @@ public class HelpCardService {
             public float[] vector;
 
             public Entry() {}
-            public Entry(String hash, float[] vector) {
-                this.hash = hash;
-                this.vector = vector;
-            }
+            public Entry(String hash, float[] vector) { this.hash = hash; this.vector = vector; }
         }
     }
 
@@ -425,5 +475,57 @@ public class HelpCardService {
         } catch (Exception e) {
             return Integer.toHexString(Objects.hashCode(s));
         }
+    }
+
+    private void loadLangFileToCache(String lang, String classpath) {
+    	  try {
+    	    ClassPathResource res = new ClassPathResource(classpath);
+    	    if (!res.exists()) {
+    	      System.out.println("[HelpCardService] WARN: lang file not found. lang=" + lang + " path=" + classpath);
+    	      return;
+    	    }
+
+    	    HelpCardsFile file;
+    	    try (InputStream is = res.getInputStream()) {
+    	      file = om.readValue(is, HelpCardsFile.class);
+    	    }
+
+    	    List<HelpCard> list = (file != null && file.cards != null) ? file.cards : new ArrayList<>();
+
+    	    // ✅ 비어있으면 캐시에 넣지 말고 그냥 fallback (ko 사용)
+    	    if (list.isEmpty()) {
+    	      System.out.println("[HelpCardService] WARN: lang file empty. lang=" + lang + " path=" + classpath + " -> fallback to ko");
+    	      return;
+    	    }
+
+    	    Map<String, HelpCard> map = list.stream()
+    	        .filter(c -> c != null && c.id != null)
+    	        .collect(Collectors.toMap(c -> c.id, c -> c, (a, b) -> a));
+
+    	    cardsByLang.put(lang, list);
+    	    byIdByLang.put(lang, map);
+
+    	    System.out.println("[HelpCardService] loaded lang=" + lang + " cards=" + list.size() + " from=" + classpath);
+    	  } catch (Exception e) {
+    	    System.out.println("[HelpCardService] failed to load lang file lang=" + lang + " path=" + classpath
+    	        + " err=" + e.getClass().getSimpleName());
+    	  }
+    	}
+
+    private String safeMsg(Exception e) {
+        try {
+            return e.getMessage();
+        } catch (Exception ex) {
+            return "";
+        }
+    }
+
+    // ✅ 핵심: i18next가 "ja-JP" 같은 걸 줄 수 있으니 앞 토큰만 자르기
+    private String normLang(String lang) {
+        if (lang == null || lang.isBlank()) return "ko";
+        lang = lang.trim().toLowerCase(Locale.ROOT);
+        if (lang.contains("-")) lang = lang.split("-")[0]; // ja-JP -> ja
+        if (lang.contains("_")) lang = lang.split("_")[0]; // ja_JP -> ja
+        return (lang.equals("en") || lang.equals("ja") || lang.equals("ko")) ? lang : "ko";
     }
 }
