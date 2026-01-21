@@ -2,9 +2,6 @@
   "systemOverview": "システム概要",
   "title": "Gesture OS Manager",
 
-  "polling": "REST ポーリング {{ms}}ms",
-  "connected": "接続済み",
-
   "liveStatus": {
     "title": "ライブステータス",
     "desc": "モーション認識の状態と接続情報をリアルタイムで確認します。",

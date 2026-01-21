@@ -64,15 +64,6 @@ export default function MotionGuide() {
           <div className="text-sm text-[var(--muted)]">{t("navTitle")}</div>
           <h1 className="text-2xl tracking-tight text-white">{t("title")}</h1>
         </div>
-
-        <div className="flex items-center gap-2">
-          <span className="rounded-full border border-[var(--border)] px-3 py-1 text-xs text-[var(--muted)]">
-            {t("status.live")}
-          </span>
-          <span className="rounded-full bg-[var(--accent)]/20 px-3 py-1 text-xs text-[var(--accent)]">
-            {t("status.ready")}
-          </span>
-        </div>
       </header>
 
       {/* mode tabs + search */}

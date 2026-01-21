@@ -47,15 +47,6 @@ export default function Home() {
           <div className="text-sm text-[var(--muted)]">{t("systemOverview")}</div>
           <h1 className="text-3xl tracking-tight text-white">{t("title")}</h1>
         </div>
-
-        <div className="flex items-center gap-2">
-          <span className="rounded-full border border-[var(--border)] px-3 py-1 text-xs text-[var(--muted)]">
-            {t("polling", { ms: 500 })}
-          </span>
-          <span className="rounded-full bg-[var(--accent)]/20 px-3 py-1 text-xs text-[var(--accent)]">
-            {t("connected")}
-          </span>
-        </div>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr,1fr]">

@@ -2,9 +2,6 @@
   "systemOverview": "System Overview",
   "title": "Gesture OS Manager",
 
-  "polling": "REST polling {{ms}}ms",
-  "connected": "CONNECTED",
-
   "liveStatus": {
     "title": "Live Status",
     "desc": "Check real-time gesture recognition status and connection info.",

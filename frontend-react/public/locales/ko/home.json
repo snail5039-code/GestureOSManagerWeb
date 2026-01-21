@@ -2,9 +2,6 @@
   "systemOverview": "시스템 개요",
   "title": "Gesture OS Manager",
 
-  "polling": "REST 폴링 {{ms}}ms",
-  "connected": "연결됨",
-
   "liveStatus": {
     "title": "실시간 상태",
     "desc": "실시간으로 모션 인식 상태와 연결 정보를 확인합니다.",
