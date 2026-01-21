@@ -1,0 +1,25 @@
+{
+  "navTitle": "About",
+  "title": "Program Overview",
+  "badge": "SLT Project",
+
+  "core": {
+    "title": "Core Features",
+    "desc": "An integrated solution that helps you control your computer with sign-language-based gestures and enables real-time interaction.",
+    "items": [
+      "Motion recognition-based control",
+      "User-friendly guide",
+      "Board/feedback system"
+    ]
+  },
+
+  "env": {
+    "title": "Supported Environment",
+    "desc": "We provide a desktop app (.exe) that runs on Windows."
+  },
+
+  "status": {
+    "title": "Progress",
+    "desc": "The desktop version is currently being prepared for release."
+  }
+}

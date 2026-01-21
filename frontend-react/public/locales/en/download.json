@@ -1,0 +1,26 @@
+{
+  "navTitle": "Download",
+  "title": "Download",
+  "badge": "Windows .exe",
+
+  "desktopApp": {
+    "title": "Desktop App",
+    "desc": "The chatbot and hand-gesture control features are available in the desktop app.",
+    "button": "Coming soon",
+    "note": "This page is temporary until the release."
+  },
+
+  "requirements": {
+    "title": "Minimum Requirements",
+    "items": [
+      "Windows 10 or later",
+      "Webcam recommended",
+      "Internet connection"
+    ]
+  },
+
+  "version": {
+    "title": "Version",
+    "value": "Beta in preparation"
+  }
+}

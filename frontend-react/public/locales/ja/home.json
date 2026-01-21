@@ -1,0 +1,40 @@
+{
+  "systemOverview": "システム概要",
+  "title": "Gesture OS Manager",
+
+  "polling": "REST ポーリング {{ms}}ms",
+  "connected": "接続済み",
+
+  "liveStatus": {
+    "title": "ライブステータス",
+    "desc": "モーション認識の状態と接続情報をリアルタイムで確認します。",
+    "card": {
+      "connection": "接続",
+      "activeGesture": "アクティブジェスチャー",
+      "fps": "FPS",
+      "mode": "モード"
+    },
+    "value": {
+      "stable": "安定",
+      "none": "なし",
+      "mouse": "マウス"
+    }
+  },
+
+  "quickActions": {
+    "title": "クイック操作",
+    "start": "開始",
+    "stop": "停止",
+    "preview": "プレビュー",
+    "refresh": "更新"
+  },
+
+  "recentUpdates": {
+    "title": "最近の更新",
+    "items": [
+      "Motion Guide ページを用意しました。",
+      "掲示板 UI をアプリ風レイアウトに更新中です。",
+      "ログインページのデザインを刷新しました。"
+    ]
+  }
+}

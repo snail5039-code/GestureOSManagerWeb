@@ -1,0 +1,40 @@
+{
+  "systemOverview": "System Overview",
+  "title": "Gesture OS Manager",
+
+  "polling": "REST polling {{ms}}ms",
+  "connected": "CONNECTED",
+
+  "liveStatus": {
+    "title": "Live Status",
+    "desc": "Check real-time gesture recognition status and connection info.",
+    "card": {
+      "connection": "Connection",
+      "activeGesture": "Active Gesture",
+      "fps": "FPS",
+      "mode": "Mode"
+    },
+    "value": {
+      "stable": "Stable",
+      "none": "None",
+      "mouse": "Mouse"
+    }
+  },
+
+  "quickActions": {
+    "title": "Quick Actions",
+    "start": "Start",
+    "stop": "Stop",
+    "preview": "Preview",
+    "refresh": "Refresh"
+  },
+
+  "recentUpdates": {
+    "title": "Recent Updates",
+    "items": [
+      "The Motion Guide page is ready.",
+      "The board UI is being updated to an app-style layout.",
+      "The login page design has been refreshed."
+    ]
+  }
+}

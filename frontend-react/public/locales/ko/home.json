@@ -1,0 +1,40 @@
+{
+  "systemOverview": "시스템 개요",
+  "title": "Gesture OS Manager",
+
+  "polling": "REST 폴링 {{ms}}ms",
+  "connected": "연결됨",
+
+  "liveStatus": {
+    "title": "실시간 상태",
+    "desc": "실시간으로 모션 인식 상태와 연결 정보를 확인합니다.",
+    "card": {
+      "connection": "연결",
+      "activeGesture": "활성 제스처",
+      "fps": "FPS",
+      "mode": "모드"
+    },
+    "value": {
+      "stable": "안정적",
+      "none": "없음",
+      "mouse": "마우스"
+    }
+  },
+
+  "quickActions": {
+    "title": "빠른 실행",
+    "start": "시작",
+    "stop": "중지",
+    "preview": "미리보기",
+    "refresh": "새로고침"
+  },
+
+  "recentUpdates": {
+    "title": "최근 업데이트",
+    "items": [
+      "Motion Guide 페이지가 준비되었습니다.",
+      "게시판 UI가 앱 스타일로 변경됩니다.",
+      "로그인 페이지 디자인을 새롭게 구성했습니다."
+    ]
+  }
+}

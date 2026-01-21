@@ -33,7 +33,7 @@ export default function AppHeader() {
             to="/"
             className="text-lg tracking-tight text-white hover:text-[var(--accent)] transition-colors"
           >
-            {t("header:brand")}
+            Gesture OS Manager
           </Link>
 
           <nav className="flex items-center gap-2 lg:hidden">

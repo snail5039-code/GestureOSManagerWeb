@@ -1,46 +1,56 @@
+import { useTranslation } from "react-i18next";
+
 export default function Download() {
+  const { t } = useTranslation("download");
+
+  const reqs = t("requirements.items", { returnObjects: true });
+
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <div className="text-sm text-[var(--muted)]">Download</div>
-          <h1 className="text-3xl tracking-tight text-white">다운로드</h1>
+          <div className="text-sm text-[var(--muted)]">{t("navTitle")}</div>
+          <h1 className="text-3xl tracking-tight text-white">{t("title")}</h1>
         </div>
+
         <span className="rounded-full bg-[var(--accent)]/20 px-3 py-1 text-xs text-[var(--accent)]">
-          Windows .exe
+          {t("badge")}
         </span>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr,1fr]">
         <section className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-8">
-          <h2 className="text-lg text-white">데스크톱 앱</h2>
-          <p className="mt-3 text-sm text-[var(--muted)]">
-            챗봇과 손 모션 제어 기능은 데스크톱 앱에서 제공됩니다.
-          </p>
+          <h2 className="text-lg text-white">{t("desktopApp.title")}</h2>
+
+          <p className="mt-3 text-sm text-[var(--muted)]">{t("desktopApp.desc")}</p>
+
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <button
               type="button"
               disabled
               className="rounded-2xl bg-[var(--accent)] px-6 py-3 text-sm text-white opacity-60"
             >
-              다운로드 준비중
+              {t("desktopApp.button")}
             </button>
-            <span className="text-xs text-[var(--muted)]">배포 전까지는 임시 안내 페이지입니다.</span>
+
+            <span className="text-xs text-[var(--muted)]">{t("desktopApp.note")}</span>
           </div>
         </section>
 
         <aside className="space-y-6">
           <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-8">
-            <h3 className="text-sm text-white">필수 사양</h3>
+            <h3 className="text-sm text-white">{t("requirements.title")}</h3>
+
             <ul className="mt-3 space-y-2 text-xs text-[var(--muted)]">
-              <li>Windows 10 이상</li>
-              <li>웹캠 연결 권장</li>
-              <li>인터넷 연결</li>
+              {(Array.isArray(reqs) ? reqs : []).map((text, idx) => (
+                <li key={idx}>{text}</li>
+              ))}
             </ul>
           </div>
+
           <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-8">
-            <h3 className="text-sm text-white">버전</h3>
-            <p className="mt-2 text-xs text-[var(--muted)]">Beta 준비 중</p>
+            <h3 className="text-sm text-white">{t("version.title")}</h3>
+            <p className="mt-2 text-xs text-[var(--muted)]">{t("version.value")}</p>
           </div>
         </aside>
       </div>
