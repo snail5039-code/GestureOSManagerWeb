@@ -128,8 +128,8 @@
         "片手がフレームから消えると、スクロールが途切れることがあります。"
       ],
       "media": {
-        "thumb": "/motion/open_pinch.png",
-        "image": "/motion/open_pinch.png"
+        "thumb": "/motion/open_fist.png",
+        "image": "/motion/open_fist.png"
       }
     },
     {
