@@ -29,6 +29,9 @@
    </scm>
    <properties>
       <java.version>17</java.version>
+       <!-- 인코딩 고정 (한글/일본어/특수문자 컴파일 깨짐 방지) -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
    </properties>
    <dependencies>
       <dependency>
@@ -82,18 +85,18 @@
           <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
           <version>2.8.0</version>
       </dependency>
-      <!-- JSP -->
+		<!-- JSP -->
       <dependency>
          <groupId>org.apache.tomcat.embed</groupId>
          <artifactId>tomcat-embed-jasper</artifactId>
       </dependency>
 
-      <!-- JSTL (jakarta) -->
+		<!-- JSTL (jakarta) -->
       <dependency>
          <groupId>org.glassfish.web</groupId>
          <artifactId>jakarta.servlet.jsp.jstl</artifactId>
       </dependency>
-      <!-- 파이썬 연결 -->
+		<!-- 파이썬 연결 -->
       <dependency>
 		 <groupId>org.springframework.boot</groupId>
 		 <artifactId>spring-boot-starter-webflux</artifactId>
@@ -149,6 +152,10 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
    </dependencies>
 

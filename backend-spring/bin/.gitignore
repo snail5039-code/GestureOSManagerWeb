@@ -13,6 +13,12 @@ target/
 .springBeans
 .sts4-cache
 
+### Project secrets (DO NOT COMMIT) ###
+src/main/resources/application-api.yml
+
+### local generated cache ###
+data/
+
 ### IntelliJ IDEA ###
 .idea
 *.iws
@@ -32,5 +38,4 @@ build/
 ### VS Code ###
 .vscode/
 
-### Project secrets (DO NOT COMMIT) ###
-src/main/resources/application-api.yml
+
