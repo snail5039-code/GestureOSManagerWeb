@@ -93,3 +93,5 @@ CREATE TABLE IF NOT EXISTS email_verification (
 
 CREATE INDEX IF NOT EXISTS idx_email_verification_email ON email_verification(email);
 
+
+
