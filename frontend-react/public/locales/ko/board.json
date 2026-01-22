@@ -105,6 +105,10 @@
     "placeholderReply": "답글을 입력하세요...",
     "submitComment": "댓글 등록",
     "submitReply": "답글 등록",
-    "submitting": "작성 중..."
+    "submitting": "작성 중...",
+    "title": "댓글",
+    "refresh": "새로고침",
+    "loadFail": "댓글을 불러오지 못했어요.",
+    "retry": "재시도"
   }
 }

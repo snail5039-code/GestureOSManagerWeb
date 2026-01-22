@@ -95,10 +95,10 @@ export default function Login() {
               <button
                 type="button"
                 onClick={() => nav("/home")}
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1 text-xs text-[var(--muted)] hover:text-white hover:border-[var(--accent)]/35 transition-colors"
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1 text-xs text-[var(--muted)] hover:text-[color:var(--text)] hover:border-[var(--accent)]/35 transition-colors"
               >
                 <span aria-hidden>←</span>
-                <span>{t("common:nav.home")}</span>
+                <span className="text-[color:var(--text)]">{t("common:nav.home")}</span>
               </button>
               <div />
             </div>
@@ -107,15 +107,20 @@ export default function Login() {
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-3 py-1 text-xs text-[var(--muted)]">
                 {t("member:login.badge")}
               </div>
-              <h1 className="text-3xl tracking-tight text-white">{t("member:login.title")}</h1>
+              {/* ✅ text-white → var(--text-strong) */}
+              <h1 className="text-3xl tracking-tight text-[color:var(--text-strong)]">
+                {t("member:login.title")}
+              </h1>
               <p className="mt-2 text-sm text-[var(--muted)]">{t("member:login.subtitle")}</p>
             </div>
 
             <form className="space-y-6" onSubmit={onSubmit}>
               <div>
-                <label className="block text-xs text-[var(--muted)]">{t("member:login.field.loginId")}</label>
+                <label className="block text-xs text-[var(--muted)]">
+                  {t("member:login.field.loginId")}
+                </label>
                 <input
-                  className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]"
+                  className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 text-sm text-[color:var(--text)] outline-none focus:border-[var(--accent)]"
                   value={loginId}
                   onChange={(e) => setLoginId(e.target.value)}
                   placeholder={t("member:login.placeholder.loginId")}
@@ -125,9 +130,11 @@ export default function Login() {
               </div>
 
               <div>
-                <label className="block text-xs text-[var(--muted)]">{t("member:login.field.password")}</label>
+                <label className="block text-xs text-[var(--muted)]">
+                  {t("member:login.field.password")}
+                </label>
                 <input
-                  className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]"
+                  className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 text-sm text-[color:var(--text)] outline-none focus:border-[var(--accent)]"
                   value={loginPw}
                   onChange={(e) => setLoginPw(e.target.value)}
                   placeholder={t("member:login.placeholder.password")}
@@ -138,14 +145,15 @@ export default function Login() {
 
               <div className="flex items-center justify-between text-xs text-[var(--muted)]">
                 <div className="flex gap-3">
-                  <Link to="/findLoginId" className="hover:text-white transition-colors">
+                  {/* ✅ hover:text-white → hover:text var(--text) */}
+                  <Link to="/findLoginId" className="hover:text-[color:var(--text)] transition-colors">
                     {t("member:login.link.findId")}
                   </Link>
-                  <Link to="/findLoginPw" className="hover:text-white transition-colors">
+                  <Link to="/findLoginPw" className="hover:text-[color:var(--text)] transition-colors">
                     {t("member:login.link.findPw")}
                   </Link>
                 </div>
-                <Link to="/join" className="text-[var(--accent)] hover:text-white transition-colors">
+                <Link to="/join" className="text-[var(--accent)] hover:text-[color:var(--text)] transition-colors">
                   {t("member:login.link.join")}
                 </Link>
               </div>
@@ -162,7 +170,8 @@ export default function Login() {
 
           <div className="rounded-[2.5rem] border border-[var(--border)] bg-[var(--surface)] p-10 shadow-[0_20px_45px_rgba(6,12,26,0.55)]">
             <div className="mb-6">
-              <h2 className="text-lg text-white">{t("member:social.title")}</h2>
+              {/* ✅ text-white → var(--text-strong) */}
+              <h2 className="text-lg text-[color:var(--text-strong)]">{t("member:social.title")}</h2>
               <p className="mt-2 text-sm text-[var(--muted)]">{t("member:social.subtitle")}</p>
             </div>
 

@@ -4,6 +4,8 @@ import { api } from "../../api/client";
 import { useAuth } from "../../auth/AuthProvider";
 import { useModal } from "../../context/ModalContext";
 import { useTranslation } from "react-i18next";
+import { formatDateTimeMinute } from "../../utils/datetime";
+import FilePicker from "../../components/common/FilePicker";
 
 import defaultAvatar from "../../assets/default-avatar.png";
 
@@ -33,7 +35,8 @@ function resolveProfileSrc(rawUrl, bust = "") {
 }
 
 export default function MyPage() {
-  const { t } = useTranslation(["member", "common"]);
+  // ✅ common 제거 (defaultValue도 제거할 거라 common 키 안 씀)
+  const { t } = useTranslation(["member"]);
   const { logout, isAuthed, loading: authLoading } = useAuth();
   const { showModal } = useModal();
   const nav = useNavigate();
@@ -424,10 +427,10 @@ export default function MyPage() {
 
     try {
       // 1) 파일 업로드(선택 시) / 기본 이미지로 되돌리기
-      let profileImageUrl = data.member.profileImageUrl || "";
+      let profileImageUrl = data.member.profileImageUrl ?? null;
 
       if (revertToDefault) {
-        profileImageUrl = ""; // 서버 정책에 맞게: ""이면 default로 표시
+        profileImageUrl = null;
       } else if (profileFile) {
         profileImageUrl = await uploadProfileImage(profileFile);
       }
@@ -442,6 +445,7 @@ export default function MyPage() {
         nickname: editForm.nickname.trim(),
         countryId: nextCountryId,
         profileImageUrl,
+        resetProfileImage: revertToDefault,
       };
       if (editForm.loginPw) updateData.loginPw = editForm.loginPw;
 
@@ -499,6 +503,18 @@ export default function MyPage() {
     return resolveProfileSrc(data?.member?.profileImageUrl, profileBust);
   }, [profilePreview, revertToDefault, data?.member?.profileImageUrl, profileBust]);
 
+  // ✅ country 번역 키가 없으면 서버 countryName으로 폴백 (defaultValue 없이 처리)
+  const countryLabel = useCallback(
+    (c) => {
+      const key = `member:country.${c.id}`;
+      const translated = t(key);
+      // i18next는 키가 없으면 보통 key 문자열 그대로 반환
+      if (!translated || translated === key) return c.countryName;
+      return translated;
+    },
+    [t]
+  );
+
   if (authLoading || (loading && isAuthed)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
@@ -512,16 +528,18 @@ export default function MyPage() {
   const { member, stats, myArticles, myComments, likedArticles } = data;
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] py-12 px-6 text-[var(--text)]">
-
+    <div className="min-h-screen bg-[var(--bg)] py-12 px-6 text-[color:var(--text)]">
       <div className="max-w-5xl mx-auto space-y-10">
         <div className="flex items-center justify-between">
-          <h1 className="text-4xl font-black text-slate-100 tracking-tight">{t("member:mypage.title")}</h1>
+          {/* ✅ text-slate-100 → var(--text-strong) */}
+          <h1 className="text-4xl font-black text-[color:var(--text-strong)] tracking-tight">
+            {t("member:mypage.title")}
+          </h1>
 
           <div className="flex items-center gap-3">
             <button
               onClick={handleLinkManager}
-              className="px-8 py-4 rounded-2xl font-black transition-all shadow-xl bg-[var(--surface)] border border-[var(--border)] text-slate-200 hover:bg-[var(--surface-soft)]"
+              className="px-8 py-4 rounded-2xl font-black transition-all shadow-xl bg-[var(--surface)] border border-[var(--border)] text-[color:var(--text)] hover:bg-[var(--surface-soft)]"
             >
               {t("member:mypage.modal.linkTitle")}
             </button>
@@ -530,7 +548,7 @@ export default function MyPage() {
               onClick={handleEditToggle}
               className={`px-8 py-4 rounded-2xl font-black transition-all shadow-xl ${
                 isEditing
-                  ? "bg-[var(--surface)] border border-[var(--border)] text-slate-200 hover:bg-[var(--surface-soft)]"
+                  ? "bg-[var(--surface)] border border-[var(--border)] text-[color:var(--text)] hover:bg-[var(--surface-soft)]"
                   : "bg-indigo-600 text-white hover:bg-indigo-700"
               }`}
             >
@@ -555,25 +573,27 @@ export default function MyPage() {
 
             <div className="flex-1 text-center md:text-left">
               <div className="flex flex-wrap items-center gap-4 justify-center md:justify-start mb-4">
-                <h2 className="text-4xl font-black text-slate-100">{member.name}</h2>
+                {/* ✅ text-slate-100 → var(--text-strong) */}
+                <h2 className="text-4xl font-black text-[color:var(--text-strong)]">{member.name}</h2>
                 <span className="px-4 py-1.5 bg-indigo-50 text-indigo-600 text-xs font-black rounded-full border border-indigo-100 uppercase tracking-widest">
                   {member.role}
                 </span>
               </div>
 
-              <p className="text-xl font-bold text-slate-300 mb-6">{member.email}</p>
+              {/* ✅ text-slate-300 → var(--muted) or var(--text) (메일은 읽기 좋게 text) */}
+              <p className="text-xl font-bold text-[color:var(--text)] mb-6">{member.email}</p>
 
               <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-                <div className="px-5 py-2 bg-[var(--surface-soft)] rounded-2xl text-sm font-black text-slate-200 border border-[var(--border)]">
+                <div className="px-5 py-2 bg-[var(--surface-soft)] rounded-2xl text-sm font-black text-[color:var(--text)] border border-[var(--border)]">
                   {t("member:mypage.labels.id")}: {member.loginId}
                 </div>
 
-                <div className="px-5 py-2 bg-[var(--surface-soft)] rounded-2xl text-sm font-black text-slate-200 border border-[var(--border)]">
-                  {t("member:mypage.labels.joined")}: {member.regDate?.split("T")[0]}
+                <div className="px-5 py-2 bg-[var(--surface-soft)] rounded-2xl text-sm font-black text-[color:var(--text)] border border-[var(--border)]">
+                  {t("member:mypage.labels.joined")}: {formatDateTimeMinute(member.regDate)}
                 </div>
 
                 {member.nickname && (
-                  <div className="px-5 py-2 bg-emerald-500/10 rounded-2xl text-sm font-black text-emerald-300 border border-emerald-500/30">
+                  <div className="px-5 py-2 bg-emerald-500/10 rounded-2xl text-sm font-black text-[color:var(--text)] border border-emerald-500/30">
                     {t("member:mypage.labels.nickname")}: {member.nickname}
                   </div>
                 )}
@@ -589,8 +609,8 @@ export default function MyPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* ✅ 프로필 사진 변경 UI */}
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-black text-slate-200 mb-2 ml-1">
-                    {t("common:profileImage", { defaultValue: "Profile image" })}
+                  <label className="block text-sm font-black text-[color:var(--text)] mb-2 ml-1">
+                    {t("member:mypage.profile.label")}
                   </label>
 
                   <div className="flex items-center gap-6">
@@ -607,11 +627,10 @@ export default function MyPage() {
                     </div>
 
                     <div className="flex flex-col gap-3">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handlePickProfile}
-                        className="block text-sm font-bold text-slate-200 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-indigo-600 file:text-white file:font-black hover:file:bg-indigo-700"
+                      <FilePicker
+                        onPick={handlePickProfile}
+                        label={t("member:mypage.profile.pickFile")}
+                        emptyLabel={t("member:mypage.profile.noFile")}
                       />
 
                       <div className="flex gap-2 flex-wrap">
@@ -619,9 +638,9 @@ export default function MyPage() {
                           <button
                             type="button"
                             onClick={clearPickedProfile}
-                            className="px-4 py-2 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-slate-200 hover:bg-[var(--surface-soft)] font-black"
+                            className="px-4 py-2 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[color:var(--text)] hover:bg-[var(--surface-soft)] font-black"
                           >
-                            {t("common:clearSelection", { defaultValue: "Clear selection" })}
+                            {t("member:mypage.profile.pickCancel")}
                           </button>
                         )}
 
@@ -630,21 +649,21 @@ export default function MyPage() {
                           onClick={handleRevertDefault}
                           className="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-black border border-slate-700"
                         >
-                          {t("common:revertDefault", { defaultValue: "Revert to default" })}
+                          {t("member:mypage.profile.revertDefault")}
                         </button>
                       </div>
 
-                      <p className="text-xs font-bold text-slate-400">
-                        {t("common:profileSaveHint", { defaultValue: "* Changes apply only after you click Save." })}
+                      <p className="text-xs font-bold text-[var(--muted)]">
+                        {t("member:mypage.profile.hintApplyOnSave")}
                       </p>
-                      <p className="text-[11px] font-bold text-slate-500">
-                        * {t("common:currentUrl", { defaultValue: "Current URL" })}: {member.profileImageUrl || "(none)"}
+
+                      <p className="text-[11px] font-bold text-[var(--muted)]">
+                        {t("member:mypage.profile.currentUrl")}: {member.profileImageUrl ?? t("member:mypage.profile.none")}
                       </p>
+
                       {revertToDefault && (
                         <p className="text-[11px] font-black text-amber-300">
-                          {t("common:willRevertDefault", {
-                            defaultValue: "Will be reset to the default image when saved.",
-                          })}
+                          {t("member:mypage.profile.willRevertDefault")}
                         </p>
                       )}
                     </div>
@@ -654,7 +673,7 @@ export default function MyPage() {
                 {!member.provider && (
                   <>
                     <div>
-                      <label className="block text-sm font-black text-slate-200 mb-2 ml-1">
+                      <label className="block text-sm font-black text-[color:var(--text)] mb-2 ml-1">
                         {t("member:mypage.form.newPassword")}
                       </label>
                       <input
@@ -663,12 +682,12 @@ export default function MyPage() {
                         value={editForm.loginPw}
                         onChange={handleInputChange}
                         placeholder={t("member:mypage.form.passwordPlaceholder")}
-                        className="w-full px-6 py-4 bg-[var(--surface-soft)] border border-[var(--border)] rounded-2xl focus:ring-2 focus:ring-[var(--accent)] focus:bg-[var(--surface)] outline-none transition-all font-bold text-slate-100"
+                        className="w-full px-6 py-4 bg-[var(--surface-soft)] border border-[var(--border)] rounded-2xl focus:ring-2 focus:ring-[var(--accent)] focus:bg-[var(--surface)] outline-none transition-all font-bold text-[color:var(--text)]"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-black text-slate-200 mb-2 ml-1">
+                      <label className="block text-sm font-black text-[color:var(--text)] mb-2 ml-1">
                         {t("member:mypage.form.passwordConfirm")}
                       </label>
                       <input
@@ -677,7 +696,7 @@ export default function MyPage() {
                         value={editForm.loginPwConfirm}
                         onChange={handleInputChange}
                         placeholder={t("member:mypage.form.passwordConfirmPlaceholder")}
-                        className="w-full px-6 py-4 bg-[var(--surface-soft)] border border-[var(--border)] rounded-2xl focus:ring-2 focus:ring-[var(--accent)] focus:bg-[var(--surface)] outline-none transition-all font-bold text-slate-100"
+                        className="w-full px-6 py-4 bg-[var(--surface-soft)] border border-[var(--border)] rounded-2xl focus:ring-2 focus:ring-[var(--accent)] focus:bg-[var(--surface)] outline-none transition-all font-bold text-[color:var(--text)]"
                       />
                       {pwMsg.text && <p className={`text-xs ml-2 mt-2 font-black ${pwMsg.color}`}>{pwMsg.text}</p>}
                     </div>
@@ -685,7 +704,7 @@ export default function MyPage() {
                 )}
 
                 <div>
-                  <label className="block text-sm font-black text-slate-200 mb-2 ml-1">
+                  <label className="block text-sm font-black text-[color:var(--text)] mb-2 ml-1">
                     {t("member:mypage.form.email")}
                   </label>
 
@@ -695,7 +714,7 @@ export default function MyPage() {
                       name="email"
                       value={editForm.email}
                       onChange={handleInputChange}
-                      className="flex-1 px-6 py-4 bg-[var(--surface-soft)] border border-[var(--border)] rounded-2xl focus:ring-2 focus:ring-[var(--accent)] focus:bg-[var(--surface)] outline-none transition-all font-bold text-slate-100"
+                      className="flex-1 px-6 py-4 bg-[var(--surface-soft)] border border-[var(--border)] rounded-2xl focus:ring-2 focus:ring-[var(--accent)] focus:bg-[var(--surface)] outline-none transition-all font-bold text-[color:var(--text)]"
                     />
 
                     {editForm.email !== data.member.email && !isEmailVerified && (
@@ -717,7 +736,7 @@ export default function MyPage() {
                         placeholder={t("member:mypage.email.codePlaceholder")}
                         value={verificationCode}
                         onChange={(e) => setVerificationCode(e.target.value)}
-                        className="flex-1 px-6 py-4 bg-[var(--surface-soft)] border border-[var(--border)] rounded-2xl focus:ring-2 focus:ring-[var(--accent)] focus:bg-[var(--surface)] outline-none transition-all font-bold text-slate-100"
+                        className="flex-1 px-6 py-4 bg-[var(--surface-soft)] border border-[var(--border)] rounded-2xl focus:ring-2 focus:ring-[var(--accent)] focus:bg-[var(--surface)] outline-none transition-all font-bold text-[color:var(--text)]"
                       />
                       <button
                         type="button"
@@ -734,7 +753,7 @@ export default function MyPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-black text-slate-200 mb-2 ml-1">
+                  <label className="block text-sm font-black text-[color:var(--text)] mb-2 ml-1">
                     {t("member:mypage.form.country")}
                   </label>
 
@@ -742,19 +761,19 @@ export default function MyPage() {
                     name="countryId"
                     value={editForm.countryId}
                     onChange={handleInputChange}
-                    className="w-full px-6 py-4 bg-[var(--surface-soft)] border border-[var(--border)] rounded-2xl focus:ring-2 focus:ring-[var(--accent)] focus:bg-[var(--surface)] outline-none transition-all font-bold text-slate-100 appearance-none"
+                    className="w-full px-6 py-4 bg-[var(--surface-soft)] border border-[var(--border)] rounded-2xl focus:ring-2 focus:ring-[var(--accent)] focus:bg-[var(--surface)] outline-none transition-all font-bold text-[color:var(--text)] appearance-none"
                   >
                     <option value="">{t("member:mypage.form.countrySelect")}</option>
                     {countries.map((c) => (
                       <option key={c.id} value={c.id}>
-                        {t(`member:country.${c.id}`, { defaultValue: c.countryName })}
+                        {countryLabel(c)}
                       </option>
                     ))}
                   </select>
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-black text-slate-200 mb-2 ml-1">
+                  <label className="block text-sm font-black text-[color:var(--text)] mb-2 ml-1">
                     {t("member:mypage.form.nickname")}
                   </label>
 
@@ -764,13 +783,15 @@ export default function MyPage() {
                     value={editForm.nickname}
                     onChange={handleInputChange}
                     onBlur={handleNicknameBlur}
-                    className="w-full px-6 py-4 bg-[var(--surface-soft)] border border-[var(--border)] rounded-2xl focus:ring-2 focus:ring-[var(--accent)] focus:bg-[var(--surface)] outline-none transition-all font-bold text-slate-100"
+                    className="w-full px-6 py-4 bg-[var(--surface-soft)] border border-[var(--border)] rounded-2xl focus:ring-2 focus:ring-[var(--accent)] focus:bg-[var(--surface)] outline-none transition-all font-bold text-[color:var(--text)]"
                   />
 
-                  {nicknameMsg.text && <p className={`text-xs ml-2 mt-2 font-black ${nicknameMsg.color}`}>{nicknameMsg.text}</p>}
+                  {nicknameMsg.text && (
+                    <p className={`text-xs ml-2 mt-2 font-black ${nicknameMsg.color}`}>{nicknameMsg.text}</p>
+                  )}
 
                   {!data.nicknameChangeAllowed && (
-                    <div className="mt-4 p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-xs font-black text-rose-300 flex items-center gap-3">
+                    <div className="mt-4 p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-xs font-black text-[color:var(--text)] flex items-center gap-3">
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path
                           strokeLinecap="round"
@@ -808,10 +829,10 @@ export default function MyPage() {
               className="glass rounded-[2.5rem] p-8 text-center border-[var(--border)] shadow-xl hover:shadow-[0_16px_35px_rgba(59,130,246,0.2)] transition-all group"
             >
               <div className="text-3xl mb-3">{stat.icon}</div>
-              <div className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1 group-hover:text-[var(--accent)] transition-colors">
+              <div className="text-xs font-black text-[var(--muted)] uppercase tracking-widest mb-1 group-hover:text-[var(--accent)] transition-colors">
                 {stat.label}
               </div>
-              <div className="text-4xl font-black text-slate-100">{stat.value}</div>
+              <div className="text-4xl font-black text-[color:var(--text-strong)]">{stat.value}</div>
             </div>
           ))}
         </div>
@@ -829,7 +850,7 @@ export default function MyPage() {
                 className={`flex-1 py-6 text-sm font-black transition-all uppercase tracking-widest ${
                   activeTab === tab.id
                     ? "text-[var(--accent)] bg-[var(--surface)] border-b-4 border-[var(--accent)]"
-                    : "text-slate-300 hover:text-slate-100 hover:bg-[var(--surface)]/60"
+                    : "text-[var(--muted)] hover:text-[color:var(--text)] hover:bg-[var(--surface)]/60"
                 }`}
               >
                 {tab.label}
@@ -841,7 +862,7 @@ export default function MyPage() {
             {activeTab === "articles" && (
               <div className="space-y-4">
                 {myArticles.length === 0 ? (
-                  <div className="py-20 text-center text-slate-400 font-black italic">
+                  <div className="py-20 text-center text-[var(--muted)] font-black italic">
                     {t("member:mypage.empty.articles")}
                   </div>
                 ) : (
@@ -852,12 +873,12 @@ export default function MyPage() {
                       className="p-6 rounded-3xl hover:bg-[rgba(59,130,246,0.12)] cursor-pointer transition-all border border-transparent hover:border-[rgba(59,130,246,0.3)] group flex items-center justify-between"
                     >
                       <div>
-                        <div className="text-lg font-black text-slate-100 group-hover:text-[var(--accent)] transition-colors">
+                        <div className="text-lg font-black text-[color:var(--text-strong)] group-hover:text-[var(--accent)] transition-colors">
                           {a.title}
                         </div>
-                        <div className="text-xs font-bold text-slate-300 mt-2 flex items-center gap-4">
+                        <div className="text-xs font-bold text-[var(--muted)] mt-2 flex items-center gap-4">
                           <span>
-                            {t("member:mypage.labels.writtenAt")} {a.regDate?.split("T")[0]}
+                            {t("member:mypage.labels.writtenAt")} {formatDateTimeMinute(a.regDate)}
                           </span>
                           <span>
                             {t("member:mypage.labels.views")} {a.hitCount || 0}
@@ -865,7 +886,7 @@ export default function MyPage() {
                         </div>
                       </div>
                       <svg
-                        className="w-5 h-5 text-slate-300 group-hover:text-[var(--accent)] transition-all transform group-hover:translate-x-1"
+                        className="w-5 h-5 text-[var(--muted)] group-hover:text-[var(--accent)] transition-all transform group-hover:translate-x-1"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -881,7 +902,7 @@ export default function MyPage() {
             {activeTab === "comments" && (
               <div className="space-y-4">
                 {myComments.length === 0 ? (
-                  <div className="py-20 text-center text-slate-400 font-black italic">
+                  <div className="py-20 text-center text-[var(--muted)] font-black italic">
                     {t("member:mypage.empty.comments")}
                   </div>
                 ) : (
@@ -891,11 +912,11 @@ export default function MyPage() {
                       onClick={() => c.relTypeCode === "article" && nav(`/board/${c.relId}`)}
                       className="p-6 rounded-3xl hover:bg-[rgba(59,130,246,0.12)] cursor-pointer transition-all border border-transparent hover:border-[rgba(59,130,246,0.3)] group"
                     >
-                      <div className="text-base font-bold text-slate-200 line-clamp-2 group-hover:text-[var(--accent)] transition-colors">
+                      <div className="text-base font-bold text-[color:var(--text)] line-clamp-2 group-hover:text-[var(--accent)] transition-colors">
                         "{c.content}"
                       </div>
-                      <div className="text-xs font-bold text-slate-400 mt-3">
-                        {t("member:mypage.labels.writtenAt")} {c.updateDate}
+                      <div className="text-xs font-bold text-[var(--muted)] mt-3">
+                        {t("member:mypage.labels.writtenAt")} {formatDateTimeMinute(c.updateDate)}
                       </div>
                     </div>
                   ))
@@ -906,7 +927,7 @@ export default function MyPage() {
             {activeTab === "likes" && (
               <div className="space-y-4">
                 {likedArticles.length === 0 ? (
-                  <div className="py-20 text-center text-slate-400 font-black italic">
+                  <div className="py-20 text-center text-[var(--muted)] font-black italic">
                     {t("member:mypage.empty.likes")}
                   </div>
                 ) : (
@@ -917,20 +938,20 @@ export default function MyPage() {
                       className="p-6 rounded-3xl hover:bg-[rgba(59,130,246,0.12)] cursor-pointer transition-all border border-transparent hover:border-[rgba(59,130,246,0.3)] group flex items-center justify-between"
                     >
                       <div>
-                        <div className="text-lg font-black text-slate-100 group-hover:text-[var(--accent)] transition-colors">
+                        <div className="text-lg font-black text-[color:var(--text-strong)] group-hover:text-[var(--accent)] transition-colors">
                           {a.title}
                         </div>
-                        <div className="text-xs font-bold text-slate-300 mt-2 flex items-center gap-4">
+                        <div className="text-xs font-bold text-[var(--muted)] mt-2 flex items-center gap-4">
                           <span>
                             {t("member:mypage.labels.writer")} {a.writerName}
                           </span>
                           <span>
-                            {t("member:mypage.labels.writtenAt")} {a.regDate?.split("T")[0]}
+                            {t("member:mypage.labels.writtenAt")} {formatDateTimeMinute(a.regDate)}
                           </span>
                         </div>
                       </div>
                       <svg
-                        className="w-5 h-5 text-slate-300 group-hover:text-[var(--accent)] transition-all transform group-hover:translate-x-1"
+                        className="w-5 h-5 text-[var(--muted)] group-hover:text-[var(--accent)] transition-all transform group-hover:translate-x-1"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"

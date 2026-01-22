@@ -1,9 +1,9 @@
 {
   "join": {
-    "title": "新規登録",
-    "subtitle": "開始するために情報を入力してください。",
+    "title": "会員登録",
+    "subtitle": "新しい開始のために情報を入力してください。",
     "field": {
-      "loginId": "ユーザーID",
+      "loginId": "ID",
       "password": "パスワード",
       "password2": "パスワード確認",
       "name": "名前",
@@ -12,18 +12,18 @@
       "country": "国籍"
     },
     "placeholder": {
-      "loginId": "ユーザーIDを入力してください",
-      "password": "パスワードを入力してください",
-      "password2": "パスワードを再入力してください",
+      "loginId": "IDを入力してください",
+      "password": "パスワード",
+      "password2": "パスワード確認",
       "name": "名前を入力してください",
-      "nickname": "使用するニックネーム",
+      "nickname": "ニックネームを入力",
       "email": "example@email.com",
-      "code": "6桁の認証コード",
+      "code": "認証コード6桁",
       "country": "国籍を選択してください"
     },
     "pw": {
-      "tooShort": "パスワードは6文字以上で入力してください。",
-      "match": "パスワードが一致しました。",
+      "tooShort": "パスワードは6文字以上である必要があります。",
+      "match": "パスワードが一致します。",
       "mismatch": "パスワードが一致しません。"
     },
     "btn": {
@@ -31,27 +31,27 @@
       "sending": "送信中..",
       "verify": "認証する",
       "verifying": "確認中..",
-      "submit": "登録を完了",
+      "submit": "登録完了",
       "submitting": "登録処理中.."
     },
     "hint": {
       "already": "すでにアカウントをお持ちですか？",
-      "loginLink": "ログインへ"
+      "loginLink": "ログイン"
     },
     "msg": {
       "loginId": {
-        "taken": "このユーザーIDはすでに使用されています。",
-        "available": "このユーザーIDは使用可能です。",
-        "error": "ユーザーID確認中にエラーが発生しました"
+        "taken": "すでに使用されているIDです。",
+        "available": "使用可能なIDです。",
+        "error": "ID確認中にエラーが発生しました。"
       },
       "nickname": {
-        "taken": "このニックネームはすでに使用されています。",
-        "available": "このニックネームは使用可能です。",
-        "error": "ニックネーム確認中にエラーが発生しました"
+        "taken": "すでに使用されているニックネームです。",
+        "available": "使用可能なニックネームです。",
+        "error": "ニックネーム確認中にエラーが発生しました。"
       },
       "email": {
         "sent": "認証コードを送信しました。",
-        "verified": "メール認証が完了しました"
+        "verified": "メール認証完了"
       }
     },
     "modal": {
@@ -61,14 +61,14 @@
       "verifyOkTitle": "認証完了",
       "verifyOkBody": "メール認証が完了しました。",
       "joinOkTitle": "登録成功",
-      "joinOkBody": "新規登録が完了しました。ログインページへ移動します。",
+      "joinOkBody": "会員登録が完了しました。ログインページへ移動します。",
       "sendFailTitle": "送信失敗",
       "verifyFailTitle": "認証失敗",
       "joinFailTitle": "登録失敗",
-      "joinFailBody": "登録中にエラーが発生しました。",
+      "joinFailBody": "会員登録中にエラーが発生しました。",
       "need": {
-        "loginId": "ユーザーIDを入力してください。",
-        "loginIdCheck": "ユーザーIDの重複確認が必要です。",
+        "loginId": "IDを入力してください。",
+        "loginIdCheck": "IDの重複確認が必要です。",
         "password": "パスワードを入力してください。",
         "passwordMismatch": "パスワードが一致しません。",
         "name": "名前を入力してください。",
@@ -86,11 +86,11 @@
     "title": "ログイン",
     "subtitle": "ダッシュボードとモーションガイドへ移動します。",
     "field": {
-      "loginId": "ユーザーID",
+      "loginId": "ID",
       "password": "パスワード"
     },
     "placeholder": {
-      "loginId": "ユーザーIDを入力してください",
+      "loginId": "IDを入力してください",
       "password": "パスワードを入力してください"
     },
     "btn": {
@@ -100,32 +100,32 @@
     "link": {
       "findId": "IDを探す",
       "findPw": "パスワードを探す",
-      "join": "新規登録"
+      "join": "会員登録"
     },
     "modal": {
       "inputError": "入力エラー",
-      "needBoth": "ユーザーIDとパスワードを両方入力してください。",
+      "needBoth": "IDとパスワードを両方入力してください。",
       "successTitle": "ログイン成功",
       "successWelcome": "{{name}}さん、ようこそ。",
       "failTitle": "ログイン失敗",
-      "fail401": "ユーザーIDまたはパスワードが正しくありません。",
+      "fail401": "IDまたはパスワードが正しくありません。",
       "failDefault": "ログイン中にエラーが発生しました。"
     }
   },
   "social": {
     "title": "ソーシャルログイン",
-    "subtitle": "Google / Kakao / Naverで今すぐ開始できます。",
+    "subtitle": "Google / Kakao / Naver で簡単に開始できます。",
     "provider": {
       "google": "Google",
       "kakao": "Kakao",
       "naver": "Naver"
     },
     "continue": "続ける",
-    "hint": "アカウント連携後、自動的にダッシュボードへ移動します。"
+    "hint": "連携後は自動的にダッシュボードへ移動します。"
   },
   "findLoginId": {
     "title": "IDを探す",
-    "subtitle": "登録時の名前とメールアドレスを入力してください",
+    "subtitle": "登録時の名前とメールアドレスを入力してください。",
     "field": {
       "name": "名前",
       "email": "メール"
@@ -150,22 +150,22 @@
       "successTitle": "検索成功",
       "failTitle": "検索失敗",
       "failDefault": "ID検索中にエラーが発生しました。",
-      "successMessage": "{{message}}\nお探しのユーザーIDは [ {{loginId}} ] です。"
+      "successMessage": "{{message}}\nIDは [ {{loginId}} ] です。"
     }
   },
   "findLoginPw": {
     "title": "パスワードを探す",
-    "subtitle": "仮パスワードを発行するための情報を入力してください",
+    "subtitle": "仮パスワードを受け取るためにアカウント情報を入力してください。",
     "field": {
-      "loginId": "ユーザーID",
+      "loginId": "ID",
       "email": "メール"
     },
     "placeholder": {
-      "loginId": "ユーザーIDを入力してください",
+      "loginId": "IDを入力してください",
       "email": "example@email.com"
     },
     "btn": {
-      "submit": "パスワード再設定",
+      "submit": "パスワードを探す",
       "loading": "処理中...",
       "back": "戻る"
     },
@@ -175,17 +175,17 @@
     },
     "modal": {
       "inputError": "入力エラー",
-      "needLoginId": "ユーザーIDを入力してください。",
+      "needLoginId": "IDを入力してください。",
       "needEmail": "メールを入力してください。",
       "successTitle": "成功",
       "failTitle": "失敗",
-      "failDefault": "パスワード再設定中にエラーが発生しました。"
+      "failDefault": "パスワード検索中にエラーが発生しました。"
     }
   },
   "oauth": {
     "processing": "ログイン処理中...",
     "socialProcessing": "ソーシャルログイン処理中...",
-    "noToken": "トークンがありません。ログインページへリダイレクトします。"
+    "noToken": "トークンが見つかりません。ログインページへリダイレクトします。"
   },
   "logout": {
     "loading": "ログアウト中..."
@@ -203,33 +203,30 @@
   "mypage": {
     "title": "マイページ",
     "editProfile": "プロフィール編集",
-    "cancelEdit": "編集をキャンセル",
-    "sessionExpired": "セッションの有効期限が切れました。再度ログインしてください。",
-    "loadError": "マイページの読み込み中にエラーが発生しました。",
-    "passwordMatch": "パスワードが一致しました。",
+    "cancelEdit": "編集キャンセル",
+    "passwordMatch": "パスワードが一致します。",
     "passwordNotMatch": "パスワードが一致しません。",
     "verificationSent": "認証コードを送信しました。",
-    "verificationComplete": "メール認証が完了しました。",
-    "selectCountry": "国籍を選択",
-    "nicknameDuplicate": "このニックネームはすでに使用されています。",
-    "nicknameAvailable": "このニックネームは使用可能です。",
+    "emailVerified": "メール認証完了",
+    "nicknameDuplicate": "すでに使用されているニックネームです。",
+    "nicknameAvailable": "使用可能なニックネームです。",
     "nicknameLimit": "ニックネームは30日に1回のみ変更できます。",
     "nextChangeDate": "次の変更可能日",
     "saveChanges": "変更を保存",
-
     "actions": {
       "linkManager": "マネージャー連携"
     },
-
     "profile": {
       "label": "プロフィール画像",
       "pickCancel": "選択を解除",
       "revertDefault": "デフォルト画像に戻す",
-      "hintApplyOnSave": "* 保存してから反映されます。",
-      "currentUrl": "* 現在保存されているURL",
-      "none": "(なし)"
+      "hintApplyOnSave": "※ 保存を押した後に反映されます。",
+      "currentUrl": "※ 現在保存されているURL",
+      "none": "(なし)",
+      "willRevertDefault": "保存するとデフォルト画像に戻ります。",
+      "pickFile": "ファイルを選択",
+      "noFile": "選択されたファイルはありません"
     },
-
     "form": {
       "newPassword": "新しいパスワード",
       "passwordConfirm": "パスワード確認",
@@ -240,78 +237,69 @@
       "passwordConfirmPlaceholder": "パスワード確認",
       "countrySelect": "国籍を選択"
     },
-
-    "emailUi": {
-      "sendCode": "コード送信",
-      "sending": "送信中",
-      "codePlaceholder": "6桁の認証コード",
-      "verify": "認証する",
-      "verifying": "確認中"
-    },
-
     "email": {
       "sendCode": "コード送信",
       "sending": "送信中",
-      "codePlaceholder": "6桁の認証コード",
+      "codePlaceholder": "認証コード6桁",
       "verify": "認証する",
       "verifying": "確認中"
     },
-
     "stats": {
-      "articles": "投稿",
-      "comments": "コメント",
-      "likes": "いいね"
+      "articles": "投稿数",
+      "comments": "コメント数",
+      "likes": "獲得いいね"
     },
-
     "tabs": {
       "articles": "自分の投稿",
       "comments": "自分のコメント",
       "likes": "いいねした投稿"
     },
-
     "empty": {
       "articles": "投稿がありません。",
       "comments": "コメントがありません。",
       "likes": "いいねした投稿がありません。"
     },
-
     "labels": {
       "id": "ID",
       "joined": "登録日",
-      "nickname": "NICKNAME",
+      "nickname": "ニックネーム",
       "writer": "作成者",
       "writtenAt": "作成日",
-      "views": "閲覧数"
+      "views": "閲覧"
     },
-
     "errors": {
-      "input": "入力エラー",
       "passwordMismatch": "パスワードが一致しません。",
-      "emailRequired": "メール認証が必要です。",
+      "emailRequired": "メールを入力してください。",
+      "emailVerifyRequired": "メール認証が必要です。",
+      "codeRequired": "認証コードを入力してください。",
       "nicknameCheckRequired": "ニックネームの重複確認が必要です。",
-      "sendFail": "コード送信に失敗しました",
-      "verifyFail": "認証に失敗しました",
+      "sendFail": "コード送信に失敗しました。",
+      "verifyFail": "認証に失敗しました。",
       "updateFail": "更新中にエラーが発生しました。"
     },
-
-    "success": {
-      "codeSent": "認証コードを送信しました。メールをご確認ください。",
-      "verified": "メール認証が完了しました。",
-      "updated": "会員情報を更新しました。"
-    },
-
     "modal": {
+      "inputErrorTitle": "入力エラー",
+      "verifyNeededTitle": "認証が必要です",
+      "sessionExpiredTitle": "セッション期限切れ",
+      "sessionExpiredMsg": "セッションが期限切れです。再ログインしてください。",
+      "loadFailTitle": "読み込み失敗",
+      "loadFailMsg": "マイページの読み込み中にエラーが発生しました。",
+      "codeSentTitle": "送信完了",
+      "codeSentMsg": "認証コードを送信しました。メールをご確認ください。",
+      "verifiedTitle": "認証完了",
+      "verifiedMsg": "メール認証が完了しました。",
+      "sendFailTitle": "送信失敗",
+      "verifyFailTitle": "認証失敗",
       "updatedTitle": "更新完了",
       "updatedMsg": "会員情報を更新しました。",
-
+      "updateFailTitle": "更新失敗",
       "linkTitle": "マネージャー連携",
       "linkMsg": "連携リクエストを送信しました。(有効時間: {{sec}}秒)",
-      "linkFailTitle": "連携に失敗しました",
-      "linkFailMsg": "マネージャーアプリが起動中か（またはインストール済み／プロトコル登録済み）を確認してください。",
-
+      "linkFailTitle": "連携失敗",
+      "linkFailMsg": "マネージャーアプリが起動中(またはインストール/プロトコル登録)か確認してください。",
       "uploadFailTitle": "アップロード失敗",
       "uploadOnlyImage": "画像ファイルのみアップロードできます。",
-      "uploadMaxSize": "3MB以下でアップロードしてください。"
+      "uploadMaxSize": "3MB以下のファイルをアップロードしてください。"
     }
   }
 }

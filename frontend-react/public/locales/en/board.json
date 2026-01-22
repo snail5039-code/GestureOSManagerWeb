@@ -105,6 +105,10 @@
     "placeholderReply": "Write a reply...",
     "submitComment": "Post Comment",
     "submitReply": "Post Reply",
-    "submitting": "Posting..."
+    "submitting": "Posting...",
+    "title": "Comments",
+    "refresh": "Refresh",
+    "loadFail": "Failed to load comments.",
+    "retry": "Retry"
   }
 }

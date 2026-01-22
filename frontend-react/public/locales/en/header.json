@@ -7,8 +7,8 @@
     "download": "Download"
   },
   "auth": {
-    "login": "Login",
-    "join": "Sign up",
-    "logout": "Logout"
+    "login": "Log In",
+    "join": "Sign Up",
+    "logout": "Log Out"
   }
 }

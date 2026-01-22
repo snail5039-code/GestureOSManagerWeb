@@ -14,7 +14,7 @@ export default function MotionGuide() {
       { key: "mouse", label: t("modes.mouse") },
       { key: "keyboard", label: t("modes.keyboard") },
       { key: "draw", label: t("modes.draw") },
-      { key: "presentation", label: t("modes.presentation") }
+      { key: "presentation", label: t("modes.presentation") },
     ],
     [t]
   );
@@ -41,7 +41,7 @@ export default function MotionGuide() {
         g.action,
         ...(Array.isArray(g.howTo) ? g.howTo : []),
         ...(Array.isArray(g.tips) ? g.tips : []),
-        ...(Array.isArray(g.pitfalls) ? g.pitfalls : [])
+        ...(Array.isArray(g.pitfalls) ? g.pitfalls : []),
       ]
         .filter(Boolean)
         .join(" ")
@@ -57,12 +57,19 @@ export default function MotionGuide() {
     return list.find((g) => g?.id === selectedId) || null;
   }, [gestures, selectedId]);
 
+  // ✅ “흰 선/연한 선” 설명 이미지 가독성만 올리는 필터(디자인 요소 변경 X)
+  // - drop-shadow로 외곽이 생겨서 밝은 배경에서도 선이 살아남
+  // - contrast/saturate로 라인 선명도 살짝 보정
+  const mediaImgFx =
+    "[filter:drop-shadow(0_1px_2px_rgba(0,0,0,0.35))_drop-shadow(0_0_10px_rgba(0,0,0,0.25))_contrast(1.18)_saturate(1.05)]";
+
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="text-sm text-[var(--muted)]">{t("navTitle")}</div>
-          <h1 className="text-2xl tracking-tight text-white">{t("title")}</h1>
+          {/* ✅ text-white -> var(--text) */}
+          <h1 className="text-2xl tracking-tight text-[color:var(--text)]">{t("title")}</h1>
         </div>
       </header>
 
@@ -80,7 +87,7 @@ export default function MotionGuide() {
                   "rounded-full px-3 py-1 text-xs transition-all select-none",
                   active
                     ? "bg-[var(--accent)]/20 text-[var(--accent)] ring-1 ring-[var(--accent)]/30"
-                    : "border border-[var(--border)] text-[var(--muted)] hover:text-white"
+                    : "border border-[var(--border)] text-[var(--muted)] hover:text-[color:var(--text)]"
                 )}
               >
                 {m.label}
@@ -94,7 +101,7 @@ export default function MotionGuide() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t("list.searchPlaceholder")}
-            className="w-full rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm text-white placeholder:text-[var(--muted)] outline-none focus:ring-2 focus:ring-[var(--accent)]/35"
+            className="w-full rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm text-[color:var(--text)] placeholder:text-[var(--muted)] outline-none focus:ring-2 focus:ring-[var(--accent)]/35"
           />
         </div>
       </div>
@@ -102,7 +109,8 @@ export default function MotionGuide() {
       <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
         {/* left list */}
         <section className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[0_18px_40px_rgba(6,12,26,0.45)]">
-          <h2 className="text-lg text-white">{t("list.title")}</h2>
+          {/* ✅ text-white -> var(--text) */}
+          <h2 className="text-lg text-[color:var(--text)]">{t("list.title")}</h2>
           <p className="mt-2 text-sm text-[var(--muted)]">{t("list.desc")}</p>
 
           <div className="mt-6 space-y-3">
@@ -134,7 +142,7 @@ export default function MotionGuide() {
                           <img
                             src={thumb}
                             alt={t("detail.imageAlt")}
-                            className="h-full w-full object-contain p-1"
+                            className={cn("h-full w-full object-contain p-1", mediaImgFx)}
                             loading="lazy"
                           />
                         ) : (
@@ -143,7 +151,8 @@ export default function MotionGuide() {
                       </div>
 
                       <div className="min-w-0">
-                        <div className="text-sm text-white truncate">
+                        {/* ✅ text-white -> var(--text) */}
+                        <div className="text-sm text-[color:var(--text)] truncate">
                           {item.name} <span className="text-[var(--muted)]">· {item.summary}</span>
                         </div>
                         <div className="text-xs text-[var(--muted)] truncate">
@@ -165,7 +174,8 @@ export default function MotionGuide() {
         {/* right detail + caution */}
         <aside className="space-y-6">
           <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6">
-            <h3 className="text-sm text-white">{t("detail.title")}</h3>
+            {/* ✅ text-white -> var(--text) */}
+            <h3 className="text-sm text-[color:var(--text)]">{t("detail.title")}</h3>
 
             {!selected ? (
               <p className="mt-3 text-xs text-[var(--muted)]">{t("detail.selectHint")}</p>
@@ -177,7 +187,7 @@ export default function MotionGuide() {
                     <img
                       src={selected.media.image}
                       alt={t("detail.imageAlt")}
-                      className="h-40 w-full object-contain p-3"
+                      className={cn("h-40 w-full object-contain p-3", mediaImgFx)}
                       loading="lazy"
                     />
                   ) : (
@@ -188,7 +198,8 @@ export default function MotionGuide() {
                 </div>
 
                 <div className="space-y-3">
-                  <div className="text-base text-white">
+                  {/* ✅ text-white -> var(--text) */}
+                  <div className="text-base text-[color:var(--text)]">
                     {selected.name} <span className="text-[var(--muted)]">· {selected.summary}</span>
                   </div>
 
@@ -205,7 +216,8 @@ export default function MotionGuide() {
           </div>
 
           <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6">
-            <h3 className="text-sm text-white">{t("caution.title")}</h3>
+            {/* ✅ text-white -> var(--text) */}
+            <h3 className="text-sm text-[color:var(--text)]">{t("caution.title")}</h3>
             <ul className="mt-3 space-y-2 text-xs text-[var(--muted)]">
               {(Array.isArray(cautionItems) ? cautionItems : []).map((text, idx) => (
                 <li key={idx}>{text}</li>
@@ -223,7 +235,8 @@ function DetailRow({ label, value }) {
   return (
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
       <div className="text-[10px] text-[var(--muted)]">{label}</div>
-      <div className="mt-1 text-xs text-white">{value}</div>
+      {/* ✅ text-white -> var(--text) */}
+      <div className="mt-1 text-xs text-[color:var(--text)]">{value}</div>
     </div>
   );
 }
@@ -235,7 +248,8 @@ function DetailList({ label, items }) {
   return (
     <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
       <div className="text-[10px] text-[var(--muted)]">{label}</div>
-      <ul className="mt-2 space-y-1 text-xs text-white/90">
+      {/* ✅ text-white/90 -> var(--text)/90 */}
+      <ul className="mt-2 space-y-1 text-xs text-[color:var(--text)]/90">
         {arr.map((v, i) => (
           <li key={i}>• {v}</li>
         ))}

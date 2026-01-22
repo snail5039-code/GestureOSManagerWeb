@@ -105,6 +105,10 @@
     "placeholderReply": "返信を入力してください...",
     "submitComment": "コメント登録",
     "submitReply": "返信登録",
-    "submitting": "作成中..."
+    "submitting": "作成中...",
+    "title": "コメント",
+    "refresh": "更新",
+    "loadFail": "コメントの読み込みに失敗しました。",
+    "retry": "再試行"
   }
 }

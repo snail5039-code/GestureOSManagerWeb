@@ -21,7 +21,8 @@ public interface ArticleDao {
 	int write(Article article);
 
 	@Select("""
-			 SELECT a.*, m.nickname AS writerName
+			 SELECT a.*, m.nickname AS writerName, 
+			 	m.profile_image_url AS writerProfileImageUrl
 			    FROM article a
 			    JOIN member m ON a.memberId = m.id
 			    WHERE a.boardId = #{boardId}
@@ -30,23 +31,27 @@ public interface ArticleDao {
 	List<Article> articleListByBoardId(int boardId);
 
 	@Select("""
-			SELECT a.*, m.nickname AS writerName
-				FROM article a
-			    JOIN member m ON a.memberId = m.id
-			    ORDER BY a.id DESC
-			""")
-	List<Article> articleList(); // 이거 일단 보류
+		    SELECT a.*, 
+		           m.nickname AS writerName,
+		           m.profile_image_url AS writerProfileImageUrl
+		    FROM article a
+		    JOIN member m ON a.memberId = m.id
+		    ORDER BY a.id DESC
+		""")
+	List<Article> articleList();
 
 	@Select("""
-			   SELECT a.*, m.nickname AS writerName,
-			       (SELECT COUNT(*)
-			        FROM comment c
-			        WHERE c.relTypeCode = 'article' AND c.relId = a.id) AS commentCount
-			FROM article a
+			   SELECT a.*, 
+			          m.nickname AS writerName,
+			          m.profile_image_url AS writerProfileImageUrl,
+			          (SELECT COUNT(*)
+			           FROM comment c
+			           WHERE c.relTypeCode = 'article' AND c.relId = a.id) AS commentCount
+			   FROM article a
 			   JOIN member m ON a.memberId = m.id
 			   WHERE a.id = #{id}
-			   """)
-	Article articleDetail(int id);
+			""")
+			Article articleDetail(int id);
 
 	@Update("""
 			UPDATE article
@@ -104,6 +109,7 @@ public interface ArticleDao {
 	@Select("""
 			<script>
 			SELECT a.*, m.nickname AS writerName,
+				   m.profile_image_url AS writerProfileImageUrl,
 			       (SELECT COUNT(*)
 			        FROM comment c
 			        WHERE c.relTypeCode = 'article' AND c.relId = a.id) AS commentCount
@@ -154,14 +160,16 @@ public interface ArticleDao {
 	List<Article> selectByMemberId(int memberId);
 
 	@Select("""
-			SELECT a.*, m.nickname AS writerName
-			FROM article a
-			JOIN member m ON a.memberId = m.id
-			JOIN reaction r ON a.id = r.relId
-			WHERE r.memberId = #{memberId}
-			  AND r.relTypeCode = 'article'
-			ORDER BY r.regDate DESC
-			""")
+		    SELECT a.*, 
+		           m.nickname AS writerName,
+		           m.profile_image_url AS writerProfileImageUrl
+		    FROM article a
+		    JOIN member m ON a.memberId = m.id
+		    JOIN reaction r ON a.id = r.relId
+		    WHERE r.memberId = #{memberId}
+		      AND r.relTypeCode = 'article'
+		    ORDER BY r.regDate DESC
+		""")
 	List<Article> selectLikedByMemberId(int memberId);
 
 	@Select("SELECT COUNT(*) FROM article WHERE memberId = #{memberId}")

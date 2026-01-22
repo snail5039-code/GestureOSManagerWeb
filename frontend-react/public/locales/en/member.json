@@ -3,7 +3,7 @@
     "title": "Sign Up",
     "subtitle": "Please enter your information to get started.",
     "field": {
-      "loginId": "User ID",
+      "loginId": "Username",
       "password": "Password",
       "password2": "Confirm Password",
       "name": "Name",
@@ -12,13 +12,13 @@
       "country": "Country"
     },
     "placeholder": {
-      "loginId": "Enter your user ID",
-      "password": "Enter your password",
-      "password2": "Confirm your password",
+      "loginId": "Enter your username",
+      "password": "Password",
+      "password2": "Confirm password",
       "name": "Enter your name",
-      "nickname": "Nickname to use",
+      "nickname": "Choose a nickname",
       "email": "example@email.com",
-      "code": "6-digit code",
+      "code": "6-digit verification code",
       "country": "Select your country"
     },
     "pw": {
@@ -30,24 +30,24 @@
       "sendCode": "Send Code",
       "sending": "Sending..",
       "verify": "Verify",
-      "verifying": "Checking..",
+      "verifying": "Verifying..",
       "submit": "Complete Sign Up",
-      "submitting": "Creating account.."
+      "submitting": "Signing up.."
     },
     "hint": {
       "already": "Already have an account?",
-      "loginLink": "Go to login"
+      "loginLink": "Log in"
     },
     "msg": {
       "loginId": {
-        "taken": "This user ID is already in use.",
-        "available": "This user ID is available.",
-        "error": "Error while checking user ID"
+        "taken": "This username is already taken.",
+        "available": "This username is available.",
+        "error": "Error occurred while checking the username."
       },
       "nickname": {
-        "taken": "This nickname is already in use.",
+        "taken": "This nickname is already taken.",
         "available": "This nickname is available.",
-        "error": "Error while checking nickname"
+        "error": "Error occurred while checking the nickname."
       },
       "email": {
         "sent": "A verification code has been sent.",
@@ -59,22 +59,22 @@
       "sendOkTitle": "Sent",
       "sendOkBody": "A verification code has been sent. Please check your email.",
       "verifyOkTitle": "Verified",
-      "verifyOkBody": "Email verification is complete.",
+      "verifyOkBody": "Your email has been verified.",
       "joinOkTitle": "Success",
-      "joinOkBody": "Sign-up complete. Redirecting to the login page.",
+      "joinOkBody": "Sign up completed. Redirecting to the login page.",
       "sendFailTitle": "Send Failed",
       "verifyFailTitle": "Verification Failed",
-      "joinFailTitle": "Sign-up Failed",
-      "joinFailBody": "An error occurred during sign-up.",
+      "joinFailTitle": "Sign Up Failed",
+      "joinFailBody": "An error occurred during sign up.",
       "need": {
-        "loginId": "Please enter your user ID.",
-        "loginIdCheck": "Please check user ID availability.",
+        "loginId": "Please enter your username.",
+        "loginIdCheck": "Please check username availability.",
         "password": "Please enter your password.",
         "passwordMismatch": "Passwords do not match.",
         "name": "Please enter your name.",
         "email": "Please enter your email.",
         "emailVerify": "Email verification is required.",
-        "nickname": "Please enter a nickname.",
+        "nickname": "Please enter your nickname.",
         "nicknameCheck": "Please check nickname availability.",
         "country": "Please select your country.",
         "code": "Please enter the verification code."
@@ -83,38 +83,38 @@
   },
   "login": {
     "badge": "Secure Access",
-    "title": "Login",
-    "subtitle": "Go to the dashboard and motion guide.",
+    "title": "Log In",
+    "subtitle": "Continue to the dashboard and motion guide.",
     "field": {
-      "loginId": "User ID",
+      "loginId": "Username",
       "password": "Password"
     },
     "placeholder": {
-      "loginId": "Enter your user ID",
+      "loginId": "Enter your username",
       "password": "Enter your password"
     },
     "btn": {
-      "submit": "Login",
+      "submit": "Log In",
       "submitting": "Logging in..."
     },
     "link": {
-      "findId": "Find ID",
+      "findId": "Find Username",
       "findPw": "Find Password",
       "join": "Sign Up"
     },
     "modal": {
       "inputError": "Input Error",
-      "needBoth": "Please enter both your user ID and password.",
+      "needBoth": "Please enter both username and password.",
       "successTitle": "Login Successful",
       "successWelcome": "Welcome, {{name}}.",
       "failTitle": "Login Failed",
-      "fail401": "Invalid user ID or password.",
-      "failDefault": "An error occurred while logging in."
+      "fail401": "Incorrect username or password.",
+      "failDefault": "An error occurred during login."
     }
   },
   "social": {
     "title": "Social Login",
-    "subtitle": "Get started instantly with Google, Kakao, or Naver.",
+    "subtitle": "Start quickly with Google, Kakao, or Naver.",
     "provider": {
       "google": "Google",
       "kakao": "Kakao",
@@ -124,7 +124,7 @@
     "hint": "After linking your account, you will be redirected to the dashboard automatically."
   },
   "findLoginId": {
-    "title": "Find ID",
+    "title": "Find Username",
     "subtitle": "Enter the name and email you used when signing up.",
     "field": {
       "name": "Name",
@@ -135,13 +135,13 @@
       "email": "example@email.com"
     },
     "btn": {
-      "submit": "Find ID",
+      "submit": "Find Username",
       "loading": "Searching...",
-      "back": "Back"
+      "back": "Go Back"
     },
     "link": {
       "findPw": "Find Password",
-      "login": "Login"
+      "login": "Log In"
     },
     "modal": {
       "inputError": "Input Error",
@@ -149,37 +149,37 @@
       "needEmail": "Please enter your email.",
       "successTitle": "Found",
       "failTitle": "Failed",
-      "failDefault": "An error occurred while finding your ID.",
-      "successMessage": "{{message}}\nYour user ID is [ {{loginId}} ]."
+      "failDefault": "An error occurred while finding the username.",
+      "successMessage": "{{message}}\nYour username is [ {{loginId}} ]."
     }
   },
   "findLoginPw": {
     "title": "Find Password",
-    "subtitle": "Enter account info to receive a temporary password.",
+    "subtitle": "Enter account information to receive a temporary password.",
     "field": {
-      "loginId": "User ID",
+      "loginId": "Username",
       "email": "Email"
     },
     "placeholder": {
-      "loginId": "Enter your user ID",
+      "loginId": "Enter your username",
       "email": "example@email.com"
     },
     "btn": {
-      "submit": "Reset Password",
+      "submit": "Find Password",
       "loading": "Processing...",
-      "back": "Back"
+      "back": "Go Back"
     },
     "link": {
-      "findId": "Find ID",
-      "login": "Login"
+      "findId": "Find Username",
+      "login": "Log In"
     },
     "modal": {
       "inputError": "Input Error",
-      "needLoginId": "Please enter your user ID.",
+      "needLoginId": "Please enter your username.",
       "needEmail": "Please enter your email.",
       "successTitle": "Success",
       "failTitle": "Failed",
-      "failDefault": "An error occurred while resetting your password."
+      "failDefault": "An error occurred while finding the password."
     }
   },
   "oauth": {
@@ -192,126 +192,114 @@
   },
   "country": {
     "1": "Korea",
-    "2": "United States",
+    "2": "USA",
     "3": "Japan"
   },
   "socialLogin": {
-    "google": "Continue with Google",
-    "naver": "Continue with Naver",
-    "kakao": "Continue with Kakao"
+    "google": "Log in with Google",
+    "naver": "Log in with Naver",
+    "kakao": "Log in with Kakao"
   },
   "mypage": {
     "title": "My Page",
     "editProfile": "Edit Profile",
     "cancelEdit": "Cancel",
-    "sessionExpired": "Your session has expired. Please log in again.",
-    "loadError": "An error occurred while loading My Page.",
     "passwordMatch": "Passwords match.",
     "passwordNotMatch": "Passwords do not match.",
     "verificationSent": "A verification code has been sent.",
-    "verificationComplete": "Email verified",
-    "selectCountry": "Select country",
-    "nicknameDuplicate": "This nickname is already in use.",
+    "emailVerified": "Email verified",
+    "nicknameDuplicate": "This nickname is already taken.",
     "nicknameAvailable": "This nickname is available.",
     "nicknameLimit": "You can change your nickname only once every 30 days.",
     "nextChangeDate": "Next available date",
     "saveChanges": "Save changes",
-
     "actions": {
       "linkManager": "Link Manager"
     },
-
     "profile": {
-      "label": "Profile Photo",
-      "pickCancel": "Cancel selection",
-      "revertDefault": "Revert to default image",
-      "hintApplyOnSave": "* Changes apply only after saving.",
+      "label": "Profile image",
+      "pickCancel": "Clear selection",
+      "revertDefault": "Revert to default",
+      "hintApplyOnSave": "* Changes apply only after you click Save.",
       "currentUrl": "* Current saved URL",
-      "none": "(none)"
+      "none": "(none)",
+      "willRevertDefault": "It will be reset to the default image when you save.",
+      "pickFile": "Choose file",
+      "noFile": "No file selected"
     },
-
     "form": {
       "newPassword": "New password",
       "passwordConfirm": "Confirm password",
       "email": "Email",
       "country": "Country",
       "nickname": "Nickname",
-      "passwordPlaceholder": "Only if changing",
+      "passwordPlaceholder": "Only enter to change",
       "passwordConfirmPlaceholder": "Confirm password",
       "countrySelect": "Select country"
     },
-
-    "emailUi": {
-      "sendCode": "Send Code",
-      "sending": "Sending",
-      "codePlaceholder": "6-digit code",
-      "verify": "Verify",
-      "verifying": "Checking"
-    },
-
     "email": {
-      "sendCode": "Send Code",
+      "sendCode": "Send code",
       "sending": "Sending",
       "codePlaceholder": "6-digit code",
       "verify": "Verify",
-      "verifying": "Checking"
+      "verifying": "Verifying"
     },
-
     "stats": {
       "articles": "Posts",
       "comments": "Comments",
-      "likes": "Likes"
+      "likes": "Likes received"
     },
-
     "tabs": {
       "articles": "My posts",
       "comments": "My comments",
       "likes": "Liked posts"
     },
-
     "empty": {
       "articles": "No posts yet.",
       "comments": "No comments yet.",
       "likes": "No liked posts yet."
     },
-
     "labels": {
       "id": "ID",
       "joined": "Joined",
-      "nickname": "NICKNAME",
-      "writer": "Author",
-      "writtenAt": "Date",
+      "nickname": "Nickname",
+      "writer": "Writer",
+      "writtenAt": "Written",
       "views": "Views"
     },
-
     "errors": {
-      "input": "Input Error",
       "passwordMismatch": "Passwords do not match.",
-      "emailRequired": "Email verification is required.",
+      "emailRequired": "Please enter your email.",
+      "emailVerifyRequired": "Email verification is required.",
+      "codeRequired": "Please enter the verification code.",
       "nicknameCheckRequired": "Nickname availability check is required.",
       "sendFail": "Failed to send code",
       "verifyFail": "Verification failed",
       "updateFail": "An error occurred while updating."
     },
-
-    "success": {
-      "codeSent": "A verification code has been sent. Please check your email.",
-      "verified": "Email verification is complete.",
-      "updated": "Profile updated successfully."
-    },
-
     "modal": {
+      "inputErrorTitle": "Input Error",
+      "verifyNeededTitle": "Verification Required",
+      "sessionExpiredTitle": "Session Expired",
+      "sessionExpiredMsg": "Your session has expired. Please log in again.",
+      "loadFailTitle": "Load Failed",
+      "loadFailMsg": "An error occurred while loading My Page.",
+      "codeSentTitle": "Sent",
+      "codeSentMsg": "A verification code has been sent. Please check your email.",
+      "verifiedTitle": "Verified",
+      "verifiedMsg": "Email verification completed.",
+      "sendFailTitle": "Send Failed",
+      "verifyFailTitle": "Verification Failed",
       "updatedTitle": "Updated",
-      "updatedMsg": "Profile updated successfully.",
-
+      "updatedMsg": "Your profile has been updated successfully.",
+      "updateFailTitle": "Update Failed",
       "linkTitle": "Link Manager",
-      "linkMsg": "Link request sent. (Valid for {{sec}}s)",
+      "linkMsg": "Link request sent. (Expires in {{sec}}s)",
       "linkFailTitle": "Link Failed",
-      "linkFailMsg": "Make sure the Manager app is running (or installed / protocol registered).",
-
+      "linkFailMsg": "Please make sure the Manager app is running (or installed / protocol registered).",
       "uploadFailTitle": "Upload Failed",
-      "uploadOnlyImage": "Only image files are allowed.",
-      "uploadMaxSize": "Please upload a file under 3MB."
+      "uploadOnlyImage": "Only image files can be uploaded.",
+      "uploadMaxSize": "Please upload a file up to 3MB."
     }
   }
 }

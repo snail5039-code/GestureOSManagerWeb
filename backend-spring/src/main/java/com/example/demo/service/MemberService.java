@@ -308,92 +308,93 @@ public class MemberService {
         }
     }
 
-	public void memberModify(Member member, int id) {
-		System.out.println("[MemberService] memberModify id=" + id + ", member=" + member);
+    public void memberModify(Member member, int id) {
+        System.out.println("[MemberService] memberModify id=" + id + ", member=" + member);
 
-		Member oldMember = memberDao.findById(id);
-		if (oldMember == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
-		}
+        Member oldMember = memberDao.findById(id);
+        if (oldMember == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다.");
+        }
 
-		// ===== 1) 누락 필드 머지 (프론트에서 안 보낸 값은 기존값 유지) =====
-		// name (NOT NULL)
-		if (member.getName() == null || member.getName().isBlank()) {
-			member.setName(oldMember.getName());
-		}
+        // ===== 1) 누락 필드 머지 (프론트에서 안 보낸 값은 기존값 유지) =====
+        // name (NOT NULL)
+        if (member.getName() == null || member.getName().isBlank()) {
+            member.setName(oldMember.getName());
+        }
 
-		// email
-		if (member.getEmail() == null || member.getEmail().isBlank()) {
-			member.setEmail(oldMember.getEmail());
-		}
+        // email
+        if (member.getEmail() == null || member.getEmail().isBlank()) {
+            member.setEmail(oldMember.getEmail());
+        }
 
-		// countryId
-		if (member.getCountryId() == null) {
-			member.setCountryId(oldMember.getCountryId());
-		}
+        // countryId
+        if (member.getCountryId() == null) {
+            member.setCountryId(oldMember.getCountryId());
+        }
 
-		// nickname (빈 문자열이면 기존 유지)
-		if (member.getNickname() != null && member.getNickname().isBlank()) {
-			member.setNickname(null);
-		}
+        // nickname (빈 문자열이면 기존 유지)
+        if (member.getNickname() != null && member.getNickname().isBlank()) {
+            member.setNickname(null);
+        }
 
-		// profile image url
-		if (member.getProfileImageUrl() == null || member.getProfileImageUrl().isBlank()) {
-			member.setProfileImageUrl(oldMember.getProfileImageUrl());
-		}
+        // ✅✅✅ [변경] profile image url: resetProfileImage=true면 NULL로 강제 세팅
+        if (member.isResetProfileImage()) {
+            member.setProfileImageUrl(null);
+        } else {
+            if (member.getProfileImageUrl() == null || member.getProfileImageUrl().isBlank()) {
+                member.setProfileImageUrl(oldMember.getProfileImageUrl());
+            }
+        }
 
-		// ===== 2) 비밀번호: 비어있으면 유지 / 있으면 정책검증 + 해시 =====
-		if (member.getLoginPw() == null || member.getLoginPw().isBlank()) {
-			member.setLoginPw(oldMember.getLoginPw());
-		} else {
-			validatePasswordOrThrow(member.getLoginPw());
-			String raw = member.getLoginPw().trim();
-			member.setLoginPw(passwordEncoder.encode(raw));
-		}
+        // ===== 2) 비밀번호: 비어있으면 유지 / 있으면 정책검증 + 해시 =====
+        if (member.getLoginPw() == null || member.getLoginPw().isBlank()) {
+            member.setLoginPw(oldMember.getLoginPw());
+        } else {
+            validatePasswordOrThrow(member.getLoginPw());
+            String raw = member.getLoginPw().trim();
+            member.setLoginPw(passwordEncoder.encode(raw));
+        }
 
-		// ===== 3) 닉네임 변경 30일 제한 + nicknameUpdatedAt 세팅 =====
-		String nextNickname = member.getNickname();
-		String oldNickname = oldMember.getNickname();
+        // ===== 3) 닉네임 변경 30일 제한 + nicknameUpdatedAt 세팅 =====
+        String nextNickname = member.getNickname();
+        String oldNickname = oldMember.getNickname();
 
-		if (nextNickname != null && !nextNickname.equals(oldNickname)) {
-			java.time.LocalDateTime last = null;
+        if (nextNickname != null && !nextNickname.equals(oldNickname)) {
+            java.time.LocalDateTime last = null;
 
-			if (oldMember.getNicknameUpdatedAt() != null) {
-				try {
-					last = java.time.LocalDateTime.parse(oldMember.getNicknameUpdatedAt(),
-							java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-				} catch (Exception e) {
-					try {
-						last = java.time.LocalDateTime.parse(oldMember.getNicknameUpdatedAt());
-					} catch (Exception ignored) {
-					}
-				}
-			}
+            if (oldMember.getNicknameUpdatedAt() != null) {
+                try {
+                    last = java.time.LocalDateTime.parse(oldMember.getNicknameUpdatedAt(),
+                            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                } catch (Exception e) {
+                    try {
+                        last = java.time.LocalDateTime.parse(oldMember.getNicknameUpdatedAt());
+                    } catch (Exception ignored) {
+                    }
+                }
+            }
 
-			if (last != null && last.plusDays(30).isAfter(java.time.LocalDateTime.now())) {
-				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "닉네임은 30일에 한 번만 변경 가능합니다.");
-			}
+            if (last != null && last.plusDays(30).isAfter(java.time.LocalDateTime.now())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "닉네임은 30일에 한 번만 변경 가능합니다.");
+            }
 
-			member.setNicknameUpdatedAt(java.time.LocalDateTime.now()
-					.format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-		} else {
-			// 닉네임 변경 없으면 기존 유지
-			member.setNickname(oldNickname);
-			member.setNicknameUpdatedAt(oldMember.getNicknameUpdatedAt());
-		}
+            member.setNicknameUpdatedAt(java.time.LocalDateTime.now()
+                    .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        } else {
+            // 닉네임 변경 없으면 기존 유지
+            member.setNickname(oldNickname);
+            member.setNicknameUpdatedAt(oldMember.getNicknameUpdatedAt());
+        }
 
-		// ===== 4) DB 업데이트 =====
-		try {
-			memberDao.memberModify(member, id);
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-					"회원 정보 수정 중 오류가 발생했습니다: " + e.getMessage());
-		}
-	}
-
-
-
+        // ===== 4) DB 업데이트 =====
+        try {
+            memberDao.memberModify(member, id);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "회원 정보 수정 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
 
     public void memberDelete(int id) {
         this.memberDao.memberDelete(id);

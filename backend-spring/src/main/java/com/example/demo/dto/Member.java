@@ -42,4 +42,13 @@ public class Member {
 	public String getProfileImageUrl() { return profileImageUrl; }
 	public void setProfileImageUrl(String profileImageUrl) { this.profileImageUrl = profileImageUrl; }
 
+	private boolean resetProfileImage;
+
+	public boolean isResetProfileImage() {
+	    return resetProfileImage;
+	}
+	public void setResetProfileImage(boolean resetProfileImage) {
+	    this.resetProfileImage = resetProfileImage;
+	}
+
 }

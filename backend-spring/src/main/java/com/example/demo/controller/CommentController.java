@@ -6,19 +6,13 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.demo.dto.Comment;
 import com.example.demo.service.CommentService;
 
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -28,32 +22,76 @@ public class CommentController {
 
     private final CommentService commentService;
 
-    @GetMapping("/{relTypeCode}/{relId}")
-    public List<Comment> list(
-            @PathVariable String relTypeCode,
-            @PathVariable int relId,
-            Authentication auth) {
-
-        Integer loginMemberId = (auth != null) ? (Integer) auth.getPrincipal() : null;
-        return commentService.getCommentsByRel(relTypeCode, relId, loginMemberId);
+    private String normRelType(String relTypeCode) {
+        return (relTypeCode == null) ? null : relTypeCode.trim().toLowerCase();
     }
 
+    private Integer loginId(Authentication auth) {
+        return commentService.extractLoginMemberId(auth);
+    }
+
+    // ✅ 프론트 방식 1) /api/comments?relTypeCode=article&relId=18
+    @GetMapping
+    public List<Comment> listByQuery(
+            @RequestParam String relTypeCode,
+            @RequestParam int relId,
+            Authentication auth
+    ) {
+        return commentService.getCommentsByRel(normRelType(relTypeCode), relId, loginId(auth));
+    }
+
+    // ✅ 프론트 방식 2) /api/comments/{relTypeCode}/{relId}
+    @GetMapping("/{relTypeCode}/{relId}")
+    public List<Comment> listByPath(
+            @PathVariable String relTypeCode,
+            @PathVariable int relId,
+            Authentication auth
+    ) {
+        return commentService.getCommentsByRel(normRelType(relTypeCode), relId, loginId(auth));
+    }
+
+    // ✅ 프론트 fallback까지 커버: POST /api/comments body {relTypeCode, relId, content, parentId}
+    @PostMapping
+    public Map<String, Object> writeByBody(
+            @RequestBody WriteReq req,
+            Authentication auth
+    ) {
+        Integer memberId = loginId(auth);
+        if (memberId == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+
+        if (req == null || req.relTypeCode == null || req.relId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "relTypeCode/relId가 필요합니다.");
+        }
+
+        Comment c = new Comment();
+        c.setRelTypeCode(normRelType(req.relTypeCode));
+        c.setRelId(req.relId);
+        c.setContent(req.content);
+        c.setParentId(req.parentId);
+
+        commentService.writeComment(c, memberId);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        return result;
+    }
+
+    // ✅ 기존: POST /api/comments/{relTypeCode}/{relId} body {content,parentId}
     @PostMapping("/{relTypeCode}/{relId}")
-    public Map<String, Object> write(
+    public Map<String, Object> writeByPath(
             @PathVariable String relTypeCode,
             @PathVariable int relId,
             @RequestBody Comment comment,
-            Authentication auth) {
+            Authentication auth
+    ) {
+        Integer memberId = loginId(auth);
+        if (memberId == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
 
-        if (auth == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
-        }
-
-        Integer loginMemberId = (Integer) auth.getPrincipal();
-        comment.setRelTypeCode(relTypeCode);
+        if (comment == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "잘못된 요청입니다.");
+        comment.setRelTypeCode(normRelType(relTypeCode));
         comment.setRelId(relId);
 
-        commentService.writeComment(comment, loginMemberId);
+        commentService.writeComment(comment, memberId);
 
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
@@ -64,16 +102,15 @@ public class CommentController {
     public Map<String, Object> modify(
             @PathVariable int id,
             @RequestBody Comment comment,
-            Authentication auth) {
+            Authentication auth
+    ) {
+        Integer memberId = loginId(auth);
+        if (memberId == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
 
-        if (auth == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
-        }
-
-        Integer loginMemberId = (Integer) auth.getPrincipal();
+        if (comment == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "잘못된 요청입니다.");
         comment.setId(id);
 
-        commentService.modifyComment(comment, loginMemberId);
+        commentService.modifyComment(comment, memberId);
 
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
@@ -83,17 +120,23 @@ public class CommentController {
     @DeleteMapping("/{id}")
     public Map<String, Object> delete(
             @PathVariable int id,
-            Authentication auth) {
+            Authentication auth
+    ) {
+        Integer memberId = loginId(auth);
+        if (memberId == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
 
-        if (auth == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
-        }
-
-        Integer loginMemberId = (Integer) auth.getPrincipal();
-        commentService.deleteComment(id, loginMemberId);
+        commentService.deleteComment(id, memberId);
 
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
         return result;
+    }
+
+    @Data
+    static class WriteReq {
+        private String relTypeCode;
+        private Integer relId;
+        private Integer parentId;
+        private String content;
     }
 }

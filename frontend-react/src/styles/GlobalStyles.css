@@ -1,91 +1,191 @@
 @reference "tailwindcss";
 
+/* =========================
+   THEME TOKENS (Dark/Light)
+   ========================= */
+
+/* 기본값(=dark) */
 :root {
-    --bg: #0b1324;
-    --bg-deep: #0a1020;
-    --surface: #121b2f;
-    --surface-soft: #0f182b;
-    --border: rgba(71, 92, 122, 0.35);
-    --text: #e6ecf5;
-    --muted: #9fb0c9;
-    --accent: #3b82f6;
-    --accent-strong: #2563eb;
-    --success: #22c55e;
-    --danger: #ef4444;
+  --bg: #0b1324;
+  --bg-deep: #0a1020;
+  --surface: #121b2f;
+  --surface-soft: #0f182b;
+  --border: rgba(71, 92, 122, 0.35);
+  --text: #e6ecf5;
+  --text-strong: #ffffff;
+  --muted: #9fb0c9;
+  --accent: #3b82f6;
+  --accent-strong: #2563eb;
+  --success: #22c55e;
+  --danger: #ef4444;
 
-    --glass-bg: rgba(16, 24, 42, 0.7);
-    --glass-border: rgba(71, 92, 122, 0.25);
-    --glass-shadow: 0 20px 45px rgba(4, 10, 22, 0.55);
+  --glass-bg: rgba(16, 24, 42, 0.7);
+  --glass-border: rgba(71, 92, 122, 0.25);
+  --glass-shadow: 0 20px 45px rgba(4, 10, 22, 0.55);
 }
 
+/* ✅ dark 명시(지금 값 그대로) */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0b1324;
+  --bg-deep: #0a1020;
+  --surface: #121b2f;
+  --surface-soft: #0f182b;
+  --border: rgba(71, 92, 122, 0.35);
+  --text: #e6ecf5;
+  --text-strong: #ffffff;
+  --muted: #9fb0c9;
+  --accent: #3b82f6;
+  --accent-strong: #2563eb;
+  --success: #22c55e;
+  --danger: #ef4444;
+
+  --glass-bg: rgba(16, 24, 42, 0.7);
+  --glass-border: rgba(71, 92, 122, 0.25);
+  --glass-shadow: 0 20px 45px rgba(4, 10, 22, 0.55);
+}
+
+/* ✅ light 새 세트 */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  /* 배경은 “차가운 화이트” */
+  --bg: #f6f8fc;
+  --bg-deep: #eef2f8;
+
+  /* 카드/표면 */
+  --surface: rgba(15, 23, 42, 0.04);      /* 기본 카드 */
+  --surface-soft: rgba(255, 255, 255, 0.85); /* 헤더/소프트 */
+
+  /* 구분선/텍스트 */
+  --border: rgba(15, 23, 42, 0.12);
+  --text: #0b1220;
+  --text-strong: #07101e;
+  --muted: rgba(7, 16, 30, 0.68);
+
+  /* 포인트는 기존 블루 계열 유지 */
+  --accent: #2563eb;
+  --accent-strong: #1d4ed8;
+
+  --success: #16a34a;
+  --danger: #dc2626;
+
+  /* 글래스: 라이트에서는 “밝은 유리” */
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(15, 23, 42, 0.12);
+  --glass-shadow: 0 18px 45px rgba(15, 23, 42, 0.14);
+}
+
+/* =========================
+   FONT
+   ========================= */
 @font-face {
-    font-family: "SUIT";
-    src: url("/fonts/SUIT-Medium.woff2") format("woff2");
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
+  font-family: "SUIT";
+  src: url("/fonts/SUIT-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
 }
 
-html, body {
-    height: 100%;
-    background: var(--bg);
-    color: var(--text);
-    font-family: "SUIT", system-ui, -apple-system, "Segoe UI", sans-serif;
-    font-weight: 500;
+/* =========================
+   GLOBAL BASE
+   ========================= */
+html,
+body {
+  height: 100%;
+  background: var(--bg);           /* ✅ 여기서 테마에 따라 바뀜 */
+  color: var(--text);              /* ✅ 여기서 테마에 따라 바뀜 */
+  font-family: "SUIT", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-weight: 500;
 }
 
 #root {
-    min-height: 100%;
+  min-height: 100%;
 }
 
+/* =========================
+   ANIMATIONS
+   ========================= */
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes scaleIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
 
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .animate-fade-in {
-    animation: fadeIn 0.4s ease-out forwards;
+  animation: fadeIn 0.4s ease-out forwards;
 }
 
 .animate-scale-in {
-    animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* =========================
+   UTIL CLASSES
+   ========================= */
 .glass {
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
 
 .premium-shadow {
-    box-shadow: 0 18px 40px rgba(6, 12, 26, 0.45);
+  box-shadow: 0 18px 40px rgba(6, 12, 26, 0.45);
+}
+
+/* 라이트에서는 premium-shadow가 너무 무거우면 살짝 약화(선택) */
+:root[data-theme="light"] .premium-shadow {
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14);
 }
 
 .premium-button {
-    @apply px-6 py-3 rounded-2xl font-bold transition-all active:scale-95 disabled:opacity-50;
+  @apply px-6 py-3 rounded-2xl font-bold transition-all active:scale-95 disabled:opacity-50;
 }
 
 .premium-input {
-    @apply w-full px-4 py-3 rounded-2xl outline-none transition-all;
+  @apply w-full px-4 py-3 rounded-2xl outline-none transition-all;
 }
+
+/* ===== Light: glass 내부 글자 대비 보정 (버튼/뱃지까지 망가뜨리지 않게 최소 범위) ===== */
+:root[data-theme="light"] .glass {
+  color: var(--text);
+}
+
+:root[data-theme="light"] .glass :is(h1,h2,h3,h4,h5,h6,label,p,span,li,dt,dd,th,td,small,strong,em) {
+  color: var(--text);
+}
+
+/* placeholder도 같이 */
+:root[data-theme="light"] .glass input::placeholder,
+:root[data-theme="light"] .glass textarea::placeholder {
+  color: rgba(7, 16, 30, 0.45);
+}
+
+/* 폼 인풋 자체 글자색도 확실히 */
+:root[data-theme="light"] .glass input,
+:root[data-theme="light"] .glass textarea,
+:root[data-theme="light"] .glass select {
+  color: var(--text);
+}
+

@@ -313,8 +313,9 @@ export default function Join() {
     }
   };
 
+  // ✅ 글자색만 라이트에서도 잘 보이게 var(--text)로 교체
   const inputCls =
-    "w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-5 py-3 text-sm text-white " +
+    "w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-5 py-3 text-sm text-[color:var(--text)] " +
     "placeholder:text-[var(--muted)] outline-none transition-all " +
     "focus:ring-2 focus:ring-[var(--accent)]/35 focus:border-[var(--accent)]/40";
 
@@ -332,10 +333,10 @@ export default function Join() {
             <button
               type="button"
               onClick={() => nav("/home")}
-              className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1 text-xs text-[var(--muted)] hover:text-white hover:border-[var(--accent)]/35 transition-colors"
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1 text-xs text-[color:var(--muted)] hover:text-[color:var(--text)] hover:border-[var(--accent)]/35 transition-colors"
             >
               <span aria-hidden>←</span>
-              <span>{t("common:nav.home")}</span>
+              <span className="text-[color:var(--text)]">{t("common:nav.home")}</span>
             </button>
             <div />
           </div>
@@ -354,7 +355,8 @@ export default function Join() {
               </div>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+            {/* ✅ title 흰색 제거 → var 토큰 */}
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[color:var(--text-strong)]">
               {t("member:join.title")}
             </h1>
             <p className="mt-3 text-sm text-[var(--muted)]">{t("member:join.subtitle")}</p>
@@ -444,7 +446,7 @@ export default function Join() {
                     type="button"
                     onClick={handleSendCode}
                     disabled={isSendingCode || isEmailVerified}
-                    className="shrink-0 rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-5 py-3 text-xs font-semibold text-white hover:border-[var(--accent)]/40 hover:bg-[var(--surface)] transition-all disabled:opacity-50"
+                    className="shrink-0 rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-5 py-3 text-xs font-semibold text-[color:var(--text)] hover:border-[var(--accent)]/40 hover:bg-[var(--surface)] transition-all disabled:opacity-50"
                   >
                     {isSendingCode ? t("member:join.btn.sending") : t("member:join.btn.sendCode")}
                   </button>
@@ -477,8 +479,9 @@ export default function Join() {
                 <select
                   className={cn(
                     inputCls,
-                    "appearance-none text-white",
-                    form.countryId ? "text-white" : "text-[var(--muted)]"
+                    "appearance-none",
+                    // ✅ 선택 전에는 muted, 선택 후에는 text로 (흰색 제거)
+                    form.countryId ? "text-[color:var(--text)]" : "text-[var(--muted)]"
                   )}
                   name="countryId"
                   value={form.countryId}
@@ -508,7 +511,10 @@ export default function Join() {
             <div className="text-center">
               <p className="text-sm text-[var(--muted)]">
                 {t("member:join.hint.already")}{" "}
-                <Link to="/login" className="ml-1 text-[var(--accent)] hover:text-white transition-colors">
+                <Link
+                  to="/login"
+                  className="ml-1 text-[var(--accent)] hover:text-[color:var(--text)] transition-colors"
+                >
                   {t("member:join.hint.loginLink")}
                 </Link>
               </p>

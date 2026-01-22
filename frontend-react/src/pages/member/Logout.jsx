@@ -18,7 +18,7 @@ export default function Logout() {
   }, [nav]);
 
   return (
-    <div className="max-w-md mx-auto mt-16 p-6 border rounded-xl bg-white text-center">
+    <div className="max-w-md mx-auto mt-16 p-6 border rounded-xl bg-[var(--surface)] text-center text-[color:var(--text)]">
       {t("logout.loading")}
     </div>
   );

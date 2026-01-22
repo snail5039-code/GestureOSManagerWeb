@@ -8,19 +8,22 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Article {
+    private Integer id;
+    private String title;
+    private String content;
+    private String regDate;
+    private String updateDate;
+    private Integer boardId;
+    private Integer memberId;
+    private String writerName;
 
-	private Integer id;
-	private String title;
-	private String content;
-	private String regDate;
-	private String updateDate;
-	private Integer boardId;
-	private Integer memberId;
-	private String writerName;
-	private Integer hit;
-	private Integer commentCount;
-	private Boolean canModify;
-	private Boolean canDelete;
-	private Integer likeCount;
-	private Boolean isLiked;
+    // ✅ 추가: 작성자 프로필 이미지 URL(또는 경로)
+    private String writerProfileImageUrl;
+
+    private Integer hit;
+    private Integer commentCount;
+    private Boolean canModify;
+    private Boolean canDelete;
+    private Integer likeCount;
+    private Boolean isLiked;
 }

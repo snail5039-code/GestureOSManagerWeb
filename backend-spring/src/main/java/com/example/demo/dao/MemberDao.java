@@ -100,20 +100,22 @@ public interface MemberDao {
     void updatePassword(@Param("id") Integer id, @Param("tempPw") String tempPw);
 
     @Update("""
-    	    update member
-    	    set
-    	        loginpw = COALESCE(#{member.loginPw}, loginpw),
-    	        updatedate = NOW(),
-    	        name = COALESCE(NULLIF(#{member.name}, ''), name),
-    	        email = COALESCE(NULLIF(#{member.email}, ''), email),
-    	        countryid = COALESCE(#{member.countryId}, countryid),
-    	        nickname = COALESCE(NULLIF(#{member.nickname}, ''), nickname),
-    	        nicknameupdatedat = COALESCE(NULLIF(#{member.nicknameUpdatedAt}, '')::timestamp, nicknameupdatedat),
-    	        profile_image_url = COALESCE(NULLIF(#{member.profileImageUrl}, ''), profile_image_url)
-    	    where id = #{id}
-    	""")
+        update member
+        set
+            loginpw = COALESCE(#{member.loginPw}, loginpw),
+            updatedate = NOW(),
+            name = COALESCE(NULLIF(#{member.name}, ''), name),
+            email = COALESCE(NULLIF(#{member.email}, ''), email),
+            countryid = COALESCE(#{member.countryId}, countryid),
+            nickname = COALESCE(NULLIF(#{member.nickname}, ''), nickname),
+            nicknameupdatedat = COALESCE(NULLIF(#{member.nicknameUpdatedAt}, '')::timestamp, nicknameupdatedat),
+            profile_image_url = CASE
+                WHEN #{member.resetProfileImage} THEN NULL
+                ELSE COALESCE(NULLIF(#{member.profileImageUrl}, ''), profile_image_url)
+            END
+        where id = #{id}
+    """)
     void memberModify(@Param("member") Member member, @Param("id") int id);
-
 
     @Delete("""
         delete from member

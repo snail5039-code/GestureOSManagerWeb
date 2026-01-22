@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 const SORT_OPTIONS = [
   { value: "latest", key: "latest" },
   { value: "views", key: "views" },
-  { value: "comments", key: "comments" }
+  { value: "comments", key: "comments" },
 ];
 
 const getStoredBoardId = () => {
@@ -82,7 +82,7 @@ export default function Board() {
     if (nextId !== boardId) {
       setBoardId(nextId);
     }
-  }, [typeParam]);
+  }, [typeParam]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -122,7 +122,7 @@ export default function Board() {
     try {
       setLoading(true);
       const res = await api.get("/boards", {
-        params: { boardId, cPage, searchType, searchKeyword, pageSize, sortType }
+        params: { boardId, cPage, searchType, searchKeyword, pageSize, sortType },
       });
 
       const totalPagesCnt = res.data.totalPagesCnt ?? 1;
@@ -143,7 +143,7 @@ export default function Board() {
 
   useEffect(() => {
     fetchBoards();
-  }, [boardId, cPage, pageSize, searchType, searchKeyword, sortType]);
+  }, [boardId, cPage, pageSize, searchType, searchKeyword, sortType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const didInit = useRef(false);
 
@@ -175,7 +175,6 @@ export default function Board() {
   const formatDate = (dateStr) => {
     if (!dateStr) return "-";
     const date = new Date(dateStr);
-    // 로케일은 브라우저 기본으로 두는 게 자연스러움
     return date.toLocaleDateString(undefined, { year: "numeric", month: "2-digit", day: "2-digit" });
   };
 
@@ -192,21 +191,23 @@ export default function Board() {
   return (
     <div className="min-h-screen text-[var(--text)]">
       <div className="mx-auto max-w-[1200px]">
+        {/* top controls */}
         <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="relative group">
-              <button className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-6 py-3 text-sm text-white transition-all hover:border-[var(--accent)]">
+              <button className="flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-6 py-3 text-sm text-[var(--text)] transition-all hover:border-[var(--accent)]">
                 {boardLabel(boardId)}
                 <svg className="h-5 w-5 text-[var(--muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <div className="absolute top-full left-0 mt-2 w-48 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top scale-95 group-hover:scale-100 z-50">
+
+              <div className="absolute top-full left-0 mt-2 w-48 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top scale-95 group-hover:scale-100 z-50">
                 {BOARD_TYPES.map((type) => (
                   <button
                     key={type.id}
                     onClick={() => handleBoardChange(type.id)}
-                    className="w-full rounded-lg px-4 py-2 text-left text-sm text-[var(--muted)] hover:bg-[rgba(59,130,246,0.15)] hover:text-white transition-all"
+                    className="w-full rounded-lg px-4 py-2 text-left text-sm text-[var(--muted)] hover:bg-[rgba(37,99,235,0.10)] hover:text-[var(--text)] transition-all"
                   >
                     {boardLabel(type.id)}
                   </button>
@@ -223,10 +224,12 @@ export default function Board() {
                 setSortType(e.target.value);
                 setCPage(1);
               }}
-              className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-xs text-white outline-none focus:ring-2 focus:ring-[var(--accent)] transition-all"
+              className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-xs text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--accent)] transition-all"
             >
               {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{t(`sortOptions.${opt.key}`)}</option>
+                <option key={opt.value} value={opt.value}>
+                  {t(`sortOptions.${opt.key}`)}
+                </option>
               ))}
             </select>
 
@@ -237,7 +240,7 @@ export default function Board() {
                 setPageSize(Number(e.target.value));
                 setCPage(1);
               }}
-              className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-xs text-white outline-none focus:ring-2 focus:ring-[var(--accent)] transition-all"
+              className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-2 text-xs text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--accent)] transition-all"
             >
               <option value={10}>{t("pageSize.10")}</option>
               <option value={20}>{t("pageSize.20")}</option>
@@ -246,43 +249,73 @@ export default function Board() {
           </div>
         </div>
 
-        <div className="mb-8 overflow-hidden rounded-2xl border border-[var(--border)] bg-[rgba(18,27,47,0.92)] shadow-[0_18px_40px_rgba(6,12,26,0.45)]">
+        {/* table card (HOME 느낌: 밝은 글래스 + 다크 고정 제거) */}
+        <div className="glass mb-8 overflow-hidden rounded-2xl">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-[var(--border)] bg-[rgba(9,14,26,0.8)]">
-                <th className="w-20 px-8 py-4 text-[10px] uppercase tracking-[0.3em] text-slate-200 whitespace-nowrap">{t("table.no")}</th>
-                <th className="px-8 py-4 text-[10px] uppercase tracking-[0.3em] text-slate-200">{t("table.title")}</th>
-                <th className="w-36 px-8 py-4 text-[10px] uppercase tracking-[0.3em] text-slate-200 whitespace-nowrap">{t("table.writer")}</th>
-                <th className="w-36 px-8 py-4 text-[10px] uppercase tracking-[0.3em] text-slate-200 whitespace-nowrap">{t("table.date")}</th>
-                <th className="w-24 px-8 py-4 text-center text-[10px] uppercase tracking-[0.3em] text-slate-200 whitespace-nowrap">{t("table.views")}</th>
+              <tr className="border-b border-[var(--border)] bg-[var(--surface-soft)]">
+                <th className="w-20 px-8 py-4 text-[10px] uppercase tracking-[0.3em] text-[var(--muted)] whitespace-nowrap">
+                  {t("table.no")}
+                </th>
+                <th className="px-8 py-4 text-[10px] uppercase tracking-[0.3em] text-[var(--muted)]">
+                  {t("table.title")}
+                </th>
+                <th className="w-36 px-8 py-4 text-[10px] uppercase tracking-[0.3em] text-[var(--muted)] whitespace-nowrap">
+                  {t("table.writer")}
+                </th>
+                <th className="w-36 px-8 py-4 text-[10px] uppercase tracking-[0.3em] text-[var(--muted)] whitespace-nowrap">
+                  {t("table.date")}
+                </th>
+                <th className="w-24 px-8 py-4 text-center text-[10px] uppercase tracking-[0.3em] text-[var(--muted)] whitespace-nowrap">
+                  {t("table.views")}
+                </th>
               </tr>
             </thead>
+
             <tbody className="divide-y divide-[var(--border)]">
               {loading ? (
-                <tr><td colSpan={5} className="px-8 py-20 text-center text-sm text-slate-300">{t("loading")}</td></tr>
+                <tr>
+                  <td colSpan={5} className="px-8 py-20 text-center text-sm text-[var(--muted)]">
+                    {t("loading")}
+                  </td>
+                </tr>
               ) : boards.length === 0 ? (
-                <tr><td colSpan={5} className="px-8 py-20 text-center text-sm text-slate-300">{t("empty")}</td></tr>
+                <tr>
+                  <td colSpan={5} className="px-8 py-20 text-center text-sm text-[var(--muted)]">
+                    {t("empty")}
+                  </td>
+                </tr>
               ) : (
                 boards.map((b) => (
                   <tr
                     key={b.id}
                     onClick={() => nav(`/board/${b.id}`)}
-                    className="group cursor-pointer transition-colors hover:bg-[rgba(59,130,246,0.12)]"
+                    className="group cursor-pointer transition-colors hover:bg-[rgba(37,99,235,0.08)]"
                   >
-                    <td className="px-8 py-5 text-sm text-slate-300">{b.id}</td>
+                    <td className="px-8 py-5 text-sm text-[var(--muted)]">{b.id}</td>
+
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-3">
-                        <span className="text-sm text-slate-100 transition-colors group-hover:text-[var(--accent)]">{b.title}</span>
+                        <span className="text-sm text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">
+                          {b.title}
+                        </span>
                         {b.commentCount > 0 && (
-                          <span className="rounded-full bg-[var(--accent)]/20 px-2 py-0.5 text-[10px] text-[var(--accent)]">
+                          <span className="rounded-full bg-[var(--accent)]/15 px-2 py-0.5 text-[10px] text-[var(--accent)]">
                             {b.commentCount}
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="px-8 py-5 text-sm text-slate-300 whitespace-nowrap">{b.writerName || t("anonymous")}</td>
-                    <td className="px-8 py-5 text-sm text-slate-300 whitespace-nowrap">{formatDate(b.regDate)}</td>
-                    <td className="px-8 py-5 text-center text-sm text-slate-300 whitespace-nowrap">{b.hit || 0}</td>
+
+                    <td className="px-8 py-5 text-sm text-[var(--muted)] whitespace-nowrap">
+                      {b.writerName || t("anonymous")}
+                    </td>
+                    <td className="px-8 py-5 text-sm text-[var(--muted)] whitespace-nowrap">
+                      {formatDate(b.regDate)}
+                    </td>
+                    <td className="px-8 py-5 text-center text-sm text-[var(--muted)] whitespace-nowrap">
+                      {b.hit || 0}
+                    </td>
                   </tr>
                 ))
               )}
@@ -290,21 +323,23 @@ export default function Board() {
           </table>
         </div>
 
+        {/* pagination + search/write */}
         <div className="flex flex-col gap-8">
           <div className="flex items-center justify-center gap-2">
             <button
               onClick={() => setCPage(1)}
               disabled={cPage === 1}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] hover:text-white disabled:opacity-30 transition-all"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)] disabled:opacity-30 transition-all bg-[var(--surface-soft)]"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
               </svg>
             </button>
+
             <button
               onClick={() => setCPage(Math.max(1, cPage - 1))}
               disabled={cPage === 1}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] hover:text-white disabled:opacity-30 transition-all"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)] disabled:opacity-30 transition-all bg-[var(--surface-soft)]"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -317,8 +352,8 @@ export default function Board() {
                 onClick={() => setCPage(p)}
                 className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm transition-all ${
                   cPage === p
-                    ? "bg-[var(--accent)] text-white shadow-[0_10px_25px_rgba(59,130,246,0.35)]"
-                    : "text-[var(--muted)] hover:text-white"
+                    ? "bg-[var(--accent)] text-white shadow-[0_10px_25px_rgba(37,99,235,0.25)]"
+                    : "text-[var(--muted)] hover:text-[var(--text)] bg-[transparent]"
                 }`}
               >
                 {p}
@@ -328,16 +363,17 @@ export default function Board() {
             <button
               onClick={() => setCPage(Math.min(pageInfo.totalPagesCnt, cPage + 1))}
               disabled={cPage >= pageInfo.totalPagesCnt}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] hover:text-white disabled:opacity-30 transition-all"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)] disabled:opacity-30 transition-all bg-[var(--surface-soft)]"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
               </svg>
             </button>
+
             <button
               onClick={() => setCPage(pageInfo.totalPagesCnt)}
               disabled={cPage >= pageInfo.totalPagesCnt}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] hover:text-white disabled:opacity-30 transition-all"
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--border)] text-[var(--muted)] hover:text-[var(--text)] disabled:opacity-30 transition-all bg-[var(--surface-soft)]"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
@@ -347,7 +383,7 @@ export default function Board() {
 
           <div className="flex items-center justify-between">
             <div className="flex flex-1 justify-center">
-              <div className="flex w-full max-w-2xl items-center gap-2 rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface)] p-2">
+              <div className="flex w-full max-w-2xl items-center gap-2 rounded-[1.25rem] border border-[var(--border)] bg-[var(--surface-soft)] p-2">
                 <select
                   value={searchType}
                   onChange={(e) => setSearchType(e.target.value)}
@@ -357,15 +393,18 @@ export default function Board() {
                   <option value="content">{t("search.type.content")}</option>
                   <option value="title,content">{t("search.type.titleContent")}</option>
                 </select>
+
                 <div className="h-4 w-[1px] bg-[var(--border)]"></div>
+
                 <input
                   type="text"
                   placeholder={t("search.placeholder")}
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  className="flex-1 bg-transparent px-4 py-2 text-sm text-white outline-none placeholder:text-[var(--muted)]"
+                  className="flex-1 bg-transparent px-4 py-2 text-sm text-[var(--text)] outline-none placeholder:text-[var(--muted)]"
                 />
+
                 <button
                   onClick={handleSearch}
                   className="rounded-lg bg-[var(--accent)] px-6 py-2 text-xs text-white hover:bg-[var(--accent-strong)] transition-all active:scale-95"
@@ -378,7 +417,7 @@ export default function Board() {
             {canWrite && (
               <button
                 onClick={() => nav(`/board/write?boardId=${boardId}`)}
-                className="flex items-center gap-2 rounded-xl bg-[var(--accent)] px-6 py-3 text-xs text-white shadow-[0_18px_35px_rgba(59,130,246,0.35)] hover:bg-[var(--accent-strong)] transition-all active:scale-95"
+                className="flex items-center gap-2 rounded-xl bg-[var(--accent)] px-6 py-3 text-xs text-white shadow-[0_18px_35px_rgba(37,99,235,0.25)] hover:bg-[var(--accent-strong)] transition-all active:scale-95"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />

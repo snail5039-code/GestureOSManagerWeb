@@ -144,7 +144,8 @@ export default function Home() {
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="text-sm text-[var(--muted)]">{t("systemOverview")}</div>
-          <h1 className="text-3xl tracking-tight text-white">{t("title")}</h1>
+          {/* ✅ text-white -> var(--text) */}
+          <h1 className="text-3xl tracking-tight text-[color:var(--text)]">{t("title")}</h1>
         </div>
       </header>
 
@@ -163,22 +164,22 @@ export default function Home() {
                   {cur.eyebrow}
                 </div>
 
-                <h2 className="mt-4 text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+                {/* ✅ text-white -> var(--text) */}
+                <h2 className="mt-4 text-3xl sm:text-4xl font-extrabold tracking-tight text-[color:var(--text)]">
                   {cur.title}
                 </h2>
+
                 <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">{cur.desc}</p>
 
                 <div className="mt-5 flex flex-wrap gap-2">
-                  {[t("hero.pills.0"), t("hero.pills.1"), t("hero.pills.2"), t("hero.pills.3")].map(
-                    (x, i) => (
-                      <span
-                        key={i}
-                        className="rounded-full border border-[var(--border)] bg-[rgba(6,12,26,0.20)] px-3 py-1 text-xs text-white/85"
-                      >
-                        {x}
-                      </span>
-                    )
-                  )}
+                  {[t("hero.pills.0"), t("hero.pills.1"), t("hero.pills.2"), t("hero.pills.3")].map((x, i) => (
+                    <span
+                      key={i}
+                      className="rounded-full border border-[var(--border)] bg-[rgba(6,12,26,0.20)] px-3 py-1 text-xs text-[color:var(--text)]/85"
+                    >
+                      {x}
+                    </span>
+                  ))}
                 </div>
               </div>
 
@@ -187,7 +188,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => setSlideIdx((v) => (v - 1 + slides.length) % slides.length)}
-                  className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-xs font-semibold text-white hover:border-[var(--accent)]/45 transition-colors"
+                  className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-2 text-xs font-semibold text-[color:var(--text)] hover:border-[var(--accent)]/45 transition-colors"
                 >
                   {t("hero.controls.prev")}
                 </button>
@@ -228,7 +229,8 @@ export default function Home() {
       <Reveal>
         <section className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 sm:p-7">
           <div className="flex items-end justify-between gap-3">
-            <h3 className="text-sm font-semibold text-white">{t("features.title")}</h3>
+            {/* ✅ text-white -> var(--text) */}
+            <h3 className="text-sm font-semibold text-[color:var(--text)]">{t("features.title")}</h3>
             <div className="text-xs text-[var(--muted)]">{t("features.badge")}</div>
           </div>
 
@@ -241,7 +243,9 @@ export default function Home() {
                 <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--accent)]/12 ring-1 ring-[var(--accent)]/18">
                   <Icon name={f.icon} />
                 </div>
-                <div className="text-sm font-extrabold text-white">{f.title}</div>
+
+                {/* ✅ text-white -> var(--text) */}
+                <div className="text-sm font-extrabold text-[color:var(--text)]">{f.title}</div>
                 <div className="mt-2 text-xs leading-relaxed text-[var(--muted)]">{f.desc}</div>
               </div>
             ))}
@@ -254,7 +258,8 @@ export default function Home() {
         <section className="space-y-6">
           <Reveal>
             <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 sm:p-7">
-              <h3 className="text-sm font-semibold text-white">{t("highlights.title")}</h3>
+              {/* ✅ text-white -> var(--text) */}
+              <h3 className="text-sm font-semibold text-[color:var(--text)]">{t("highlights.title")}</h3>
               <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">{t("highlights.desc")}</p>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -268,7 +273,8 @@ export default function Home() {
                     key={i}
                     className="rounded-2xl border border-[var(--border)] bg-[rgba(6,12,26,0.18)] p-5"
                   >
-                    <div className="text-sm font-extrabold text-white">{x.t}</div>
+                    {/* ✅ text-white -> var(--text) */}
+                    <div className="text-sm font-extrabold text-[color:var(--text)]">{x.t}</div>
                     <div className="mt-2 text-xs leading-relaxed text-[var(--muted)]">{x.d}</div>
                   </div>
                 ))}
@@ -278,20 +284,19 @@ export default function Home() {
 
           <Reveal>
             <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 sm:p-7">
-              <h3 className="text-sm font-semibold text-white">{t("cta.title")}</h3>
+              {/* ✅ text-white -> var(--text) */}
+              <h3 className="text-sm font-semibold text-[color:var(--text)]">{t("cta.title")}</h3>
               <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">{t("cta.desc")}</p>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                {[t("cta.chips.0"), t("cta.chips.1"), t("cta.chips.2"), t("cta.chips.3")].map(
-                  (x, i) => (
-                    <span
-                      key={i}
-                      className="rounded-full border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1 text-xs text-white/85"
-                    >
-                      {x}
-                    </span>
-                  )
-                )}
+                {[t("cta.chips.0"), t("cta.chips.1"), t("cta.chips.2"), t("cta.chips.3")].map((x, i) => (
+                  <span
+                    key={i}
+                    className="rounded-full border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1 text-xs text-[color:var(--text)]/85"
+                  >
+                    {x}
+                  </span>
+                ))}
               </div>
             </div>
           </Reveal>
@@ -302,7 +307,8 @@ export default function Home() {
           <Reveal>
             <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 sm:p-7">
               <div className="flex items-end justify-between gap-3">
-                <h3 className="text-sm font-semibold text-white">{t("recentUpdates.title")}</h3>
+                {/* ✅ text-white -> var(--text) */}
+                <h3 className="text-sm font-semibold text-[color:var(--text)]">{t("recentUpdates.title")}</h3>
                 <div className="text-xs text-[var(--muted)]">{t("recentUpdates.badge")}</div>
               </div>
 
@@ -319,7 +325,8 @@ export default function Home() {
 
           <Reveal>
             <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 sm:p-7">
-              <h3 className="text-sm font-semibold text-white">{t("note.title")}</h3>
+              {/* ✅ text-white -> var(--text) */}
+              <h3 className="text-sm font-semibold text-[color:var(--text)]">{t("note.title")}</h3>
               <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">{t("note.desc")}</p>
 
               <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] p-5 text-xs text-[var(--muted)]">

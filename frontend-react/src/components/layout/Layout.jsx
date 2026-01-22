@@ -1,61 +1,66 @@
-import { NavLink, Outlet } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+// src/components/layout/Layout.jsx
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import AppHeader from "./AppHeader";
-import ChatWidget from "../help/ChatWidget";
-import { useAuth } from "../../auth/AuthProvider";
+
+function cn(...xs) {
+  return xs.filter(Boolean).join(" ");
+}
 
 export default function Layout() {
-  const { isAuthed } = useAuth();
-  const { t } = useTranslation(["layout"]);
+  const nav = useNavigate();
+  const loc = useLocation();
 
-  const navItems = [
-    { to: "/", key: "home" },
-    { to: "/about", key: "about" },
-    { to: "/board", key: "board" },
-    { to: "/motionGuide", key: "motionGuide" },
-    { to: "/download", key: "download" },
+  const items = [
+    { label: "홈", path: "/" },
+    { label: "소개", path: "/about" },
+    { label: "게시판", path: "/board" },
+    { label: "모션 가이드", path: "/motionGuide" },
+    { label: "다운로드", path: "/download" },
   ];
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(30,58,138,0.35),_transparent_50%),radial-gradient(circle_at_bottom,_rgba(8,47,73,0.35),_transparent_55%),linear-gradient(180deg,_var(--bg)_0%,_var(--bg-deep)_100%)]">
-      {/* ✅ 헤더를 최상단에 두고, 아래에 사이드바+본문 */}
+    <div className="min-h-screen app-bg text-[color:var(--text)]">
       <AppHeader />
 
-      <div className="flex min-h-[calc(100vh-72px)]">
-        <aside className="hidden lg:flex w-72 flex-col border-r border-[var(--border)] bg-[var(--surface-soft)]/70 backdrop-blur-xl">
-          {/* ✅ 로고 영역 삭제 (AppHeader로 이동) */}
-          <nav className="flex-1 px-4 py-4 space-y-1">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-2xl px-4 py-3 transition-all ${
-                    isActive
-                      ? "bg-[var(--surface)] text-white shadow-[0_12px_28px_rgba(6,12,26,0.5)]"
-                      : "text-[var(--muted)] hover:text-white hover:bg-[rgba(59,130,246,0.12)]"
-                  }`
-                }
-              >
-                <span className="h-2 w-2 rounded-full bg-[var(--accent)]/70"></span>
-                <span className="text-sm">{t(`layout:nav.${item.key}`)}</span>
-              </NavLink>
-            ))}
-          </nav>
+      <div className="mx-auto max-w-[1400px] px-6 py-6">
+        <div className="grid grid-cols-[240px_1fr] gap-6">
+          {/* Sidebar */}
+          <aside className="glass-soft p-3">
+            <nav className="space-y-2">
+              {items.map((it) => {
+                const active = loc.pathname === it.path || (it.path !== "/" && loc.pathname.startsWith(it.path));
+                return (
+                  <button
+                    key={it.path}
+                    onClick={() => nav(it.path)}
+                    className={cn(
+                      "w-full flex items-center gap-3 rounded-xl px-3 py-2 text-left transition",
+                      active
+                        ? "bg-[color:var(--surface)] border border-[color:var(--border)]"
+                        : "hover:bg-[color:var(--surface)]"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "h-2 w-2 rounded-full",
+                        active ? "bg-[color:var(--accent)]" : "bg-[color:var(--border)]"
+                      )}
+                    />
+                    <span className={cn("text-sm", active ? "text-[color:var(--text)]" : "text-[color:var(--muted)]")}>
+                      {it.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </nav>
+          </aside>
 
-          <div className="px-6 pb-6 pt-2 text-xs text-[var(--muted)]">
-            {isAuthed ? t("layout:status.signedIn") : t("layout:status.guest")}
-          </div>
-        </aside>
-
-        <div className="flex flex-1 flex-col">
-          <main className="flex-1 px-6 py-6 lg:px-10">
+          {/* Content */}
+          <main className="min-h-[calc(100vh-140px)]">
             <Outlet />
           </main>
         </div>
       </div>
-
-      <ChatWidget />
     </div>
   );
 }

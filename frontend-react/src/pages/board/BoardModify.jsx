@@ -74,12 +74,16 @@ export default function BoardModify() {
   };
 
   return (
-    <div className="min-h-screen text-[var(--text)]">
+    <div className="min-h-screen text-[var(--text)] bg-[var(--bg)]">
       <div className="mx-auto max-w-[980px] px-4 py-10">
         {/* back */}
         <button
           onClick={() => nav(-1)}
-          className="mb-6 inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm text-[var(--muted)] hover:text-white hover:border-[var(--accent)] transition-all"
+          className={cn(
+            "mb-6 inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm transition-all",
+            "border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)]",
+            "hover:text-[var(--text)] hover:border-[var(--accent)]"
+          )}
         >
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -88,9 +92,15 @@ export default function BoardModify() {
         </button>
 
         {/* card */}
-        <div className="rounded-[2rem] border border-[var(--border)] bg-[var(--surface)] p-6 sm:p-10 shadow-[0_18px_40px_rgba(6,12,26,0.45)]">
+        <div
+          className={cn(
+            "rounded-[2rem] border p-6 sm:p-10",
+            "border-[var(--border)] bg-[var(--glass-bg)] backdrop-blur-xl",
+            "shadow-[0_18px_45px_rgba(15,23,42,0.14)]"
+          )}
+        >
           <div className="mb-8">
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text-strong)]">
               {t("modify.title")}
             </h1>
             <p className="mt-2 text-sm text-[var(--muted)]">{t("modify.desc")}</p>
@@ -103,9 +113,10 @@ export default function BoardModify() {
               </label>
               <input
                 className={cn(
-                  "w-full rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-5 py-3 text-sm text-white",
-                  "placeholder:text-[var(--muted)] outline-none transition-all",
-                  "focus:ring-2 focus:ring-[var(--accent)]/35 focus:border-[var(--accent)]/40",
+                  "w-full rounded-2xl border px-5 py-3 text-sm outline-none transition-all",
+                  "border-[var(--border)] bg-[var(--surface-soft)] text-[var(--text)]",
+                  "placeholder:text-[var(--muted)]",
+                  "focus:ring-2 focus:ring-[var(--accent)]/25 focus:border-[var(--accent)]/40",
                   loading && "opacity-70"
                 )}
                 placeholder={t("modify.placeholderTitle")}
@@ -121,9 +132,10 @@ export default function BoardModify() {
               </label>
               <textarea
                 className={cn(
-                  "w-full min-h-[420px] rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-5 py-4 text-sm text-white",
-                  "placeholder:text-[var(--muted)] outline-none transition-all resize-none",
-                  "focus:ring-2 focus:ring-[var(--accent)]/35 focus:border-[var(--accent)]/40",
+                  "w-full min-h-[420px] rounded-2xl border px-5 py-4 text-sm outline-none transition-all resize-none",
+                  "border-[var(--border)] bg-[var(--surface-soft)] text-[var(--text)]",
+                  "placeholder:text-[var(--muted)]",
+                  "focus:ring-2 focus:ring-[var(--accent)]/25 focus:border-[var(--accent)]/40",
                   loading && "opacity-70"
                 )}
                 placeholder={t("modify.placeholderContent")}
@@ -137,19 +149,35 @@ export default function BoardModify() {
               <button
                 type="button"
                 onClick={() => nav(-1)}
-                className="flex-1 rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] py-3 text-sm text-[var(--muted)] hover:text-white hover:border-[var(--accent)]/40 transition-all active:scale-[0.99]"
+                className={cn(
+                  "flex-1 rounded-2xl border py-3 text-sm transition-all active:scale-[0.99]",
+                  "border-[var(--border)] bg-[var(--surface-soft)] text-[var(--muted)]",
+                  "hover:text-[var(--text)] hover:border-[var(--accent)]/40"
+                )}
               >
                 {t("modify.cancel")}
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-[2] rounded-2xl bg-[var(--accent)] py-3 text-sm font-semibold text-white shadow-[0_18px_35px_rgba(59,130,246,0.35)] hover:bg-[var(--accent-strong)] transition-all disabled:opacity-60 active:scale-[0.99]"
+                className={cn(
+                  "flex-[2] rounded-2xl py-3 text-sm font-semibold transition-all active:scale-[0.99]",
+                  "bg-[var(--accent)] text-white hover:bg-[var(--accent-strong)]",
+                  "shadow-[0_18px_35px_rgba(37,99,235,0.22)]",
+                  "disabled:opacity-60"
+                )}
               >
                 {loading ? t("modify.saving") : t("modify.save")}
               </button>
             </div>
           </form>
+
+          {/* 
+            NOTE:
+            이 컴포넌트 아래에 댓글/추가 섹션이 렌더링돼도
+            이제 card 내부 기본 텍스트가 text-white로 죽지 않고 var(--text)로 살아있어서
+            “댓글 색 안 보임”이 같이 해결되는 쪽으로 가게 됨.
+          */}
         </div>
       </div>
     </div>
