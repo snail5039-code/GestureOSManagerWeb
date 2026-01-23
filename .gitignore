@@ -23,6 +23,11 @@ out/
 # VS Code
 .vscode/
 
+# APK
+/frontend-react/public/app/*.apk
+/frontend-react/public/app/**/*.apk
+*.apk
+
 # Eclipse / STS / NetBeans
 .metadata/
 .recommenders/

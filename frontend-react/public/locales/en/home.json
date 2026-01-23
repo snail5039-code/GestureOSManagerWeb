@@ -1,104 +1,101 @@
 {
   "footer": "Gesture OS Manager · Home",
+
+  "systemOverview": "System Overview",
+  "title": "Gesture OS Manager",
+
   "hero": {
     "hint": "Scroll to explore more.",
-    "pills": [
-      "Motion Guide",
-      "Gesture Mapping",
-      "Support Chat",
-      "Updates"
-    ],
+    "pills": ["Motion Guide", "Gesture Mapping", "Support Chat", "Updates"],
     "controls": {
       "prev": "Prev",
       "next": "Next",
-      "go": "#{{n}}"
+      "go": "Slide {{n}}"
     },
     "slides": [
       {
         "eyebrow": "Gesture OS",
-        "title": "Bind hand gestures to OS actions.",
-        "desc": "Manage gesture-to-action mapping and keep the essential features organized in one place."
+        "title": "Control your PC with hand gestures.",
+        "desc": "Connect gestures to OS actions and manage everything in one place."
       },
       {
         "eyebrow": "Manager UI",
-        "title": "Make the purpose clear—right on Home.",
-        "desc": "Designed so first-time visitors instantly understand what this web app is about."
+        "title": "Settings and guidance at a glance.",
+        "desc": "Designed so first-time visitors instantly understand what they can do here."
       },
       {
         "eyebrow": "Support",
-        "title": "Solve issues fast with guided cards.",
-        "desc": "Use the support chat to pick common issues and follow step-by-step guidance."
+        "title": "Stuck? Fix it with a card.",
+        "desc": "Pick a common issue and a step-by-step guide opens right away."
       }
     ]
   },
+
   "features": {
-    "title": "What this web app does",
+    "title": "Manage it all in one place",
     "badge": "Overview",
     "items": [
       {
         "title": "Motion Guide",
-        "desc": "Learn recommended setup and how to use gestures."
+        "desc": "Quickly learn gestures and the recommended setup."
       },
       {
         "title": "Gesture Mapping",
-        "desc": "Map gestures to actions (click/scroll/hotkeys, etc.)."
+        "desc": "Map gestures to clicks, scrolling, hotkeys, and more."
       },
       {
         "title": "Board",
-        "desc": "Manage announcements, questions, and shared notes."
+        "desc": "Keep notices, questions, and sharing organized in one place."
       },
       {
         "title": "Support Chat",
-        "desc": "Resolve common problems quickly with cards."
+        "desc": "Solve common problems fast by choosing a help card."
       }
     ]
   },
+
   "highlights": {
-    "title": "Key points on Home",
-    "desc": "We removed exe-only info (like live snapshots) and kept only what matters on the web side.",
+    "title": "At-a-glance summary",
+    "desc": "Instead of live status, we keep only what you need to get started.",
     "items": [
       {
-        "title": "First impression",
-        "desc": "Understand the project at a glance."
+        "title": "What this is",
+        "desc": "Scan the core features and jump in right away."
       },
       {
-        "title": "Guide-first",
-        "desc": "New users can adapt quickly via Motion Guide."
+        "title": "Start with the guide",
+        "desc": "New here? Motion Guide helps you find the flow fast."
       },
       {
-        "title": "Clean structure",
-        "desc": "Not too many sections—just the essentials."
+        "title": "Clean navigation",
+        "desc": "Common paths are kept short and easy to reach."
       },
       {
-        "title": "Smooth reveal",
-        "desc": "Scroll reveal for a natural, modern feel."
+        "title": "Easy to read",
+        "desc": "Scroll to reveal just the info you need, naturally."
       }
     ]
   },
+
   "cta": {
-    "title": "Home should feel like a real homepage",
-    "desc": "We added slides and scroll-reveal for a richer first screen, while removing unnecessary content.",
-    "chips": [
-      "Simple but premium",
-      "Remove noise",
-      "Scroll effects",
-      "Only essentials"
-    ]
+    "title": "Ready to start",
+    "desc": "Even on your first visit, you won’t feel lost—short guidance, clear essentials.",
+    "chips": ["Get started", "Short paths", "Just the essentials", "Easy reading"]
   },
+
   "note": {
     "title": "Note",
-    "desc": "Home is for overview. Real-time status / execution controls belong to the exe side.",
-    "box": "If you want, we can also enhance the About page with visuals/diagrams."
+    "desc": "Real-time status and execution controls live in the desktop app. The web focuses on guidance and management.",
+    "box": "If you want, we can add images/diagrams to the About page for deeper explanations."
   },
-  
-  "systemOverview": "System Overview",
-  "title": "Gesture OS Manager",
+
   "recentUpdates": {
     "title": "Recent Updates",
+    "badge": "Latest",
     "items": [
       "The Motion Guide page is now available.",
-      "The board UI has been updated to an app-style layout.",
-      "The login page design has been refreshed."
+      "The Board UI has been improved with an app-like style.",
+      "The login page has been redesigned."
     ]
   }
 }

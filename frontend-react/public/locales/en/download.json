@@ -10,13 +10,19 @@
     "note": "This page is temporary until the release."
   },
 
+  "mobileApp": {
+    "title": "Mobile App",
+    "desc": "Install quickly on mobile and get started right away.",
+    "badge": "Android APK",
+    "button": "Download APK",
+    "note": "If installation is blocked, allow “Unknown apps” and try again.",
+    "apkHref": "/downloads/app-release.apk",
+    "features": ["Quick install", "Easy launch", "More features coming in future updates"]
+  },
+
   "requirements": {
     "title": "Minimum Requirements",
-    "items": [
-      "Windows 10 or later",
-      "Webcam recommended",
-      "Internet connection"
-    ]
+    "items": ["Windows 10 or later", "Webcam recommended", "Internet connection"]
   },
 
   "version": {

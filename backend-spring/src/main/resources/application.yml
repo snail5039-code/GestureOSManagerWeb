@@ -7,6 +7,7 @@ spring:
     username: sltuser
     password: sltpass
     driver-class-name: org.postgresql.Driver
+
   sql:
     init:
       mode: always
@@ -14,16 +15,14 @@ spring:
       schema-locations: classpath:schema.sql
       data-locations: classpath:data.sql
 
-    # 이메일 설정 (Gmail SMTP 예시)
-    # application-api.yml에 정의된 MMB 값들을 매핑
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
     properties:
-       mail:
-         smtp:
+      mail:
+        smtp:
           auth: ${MAIL_SMTP_AUTH:true}
           starttls:
             enable: ${MAIL_SMTP_STARTTLS:true}
@@ -36,14 +35,15 @@ spring:
             client-id: ${OAUTH_GOOGLE_CLIENT_ID:}
             client-secret: ${OAUTH_GOOGLE_CLIENT_SECRET:}
             scope: [ email, profile ]
-            redirect-uri: "http://localhost:8082/login/oauth2/code/google"
+            # ✅ 포트/호스트 바뀌어도 자동 반영
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
 
           kakao:
             client-id: ${OAUTH_KAKAO_CLIENT_ID:}
             client-secret: ${OAUTH_KAKAO_CLIENT_SECRET:}
             scope: [ account_email, profile_nickname ]
             authorization-grant-type: authorization_code
-            redirect-uri: "http://localhost:8082/login/oauth2/code/kakao"
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
             client-name: Kakao
             client-authentication-method: client_secret_post
 
@@ -53,7 +53,7 @@ spring:
             scope: [ name, email ]
             client-name: Naver
             authorization-grant-type: authorization_code
-            redirect-uri: "http://localhost:8082/login/oauth2/code/naver"
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
 
         provider:
           kakao:
@@ -89,8 +89,14 @@ jwt:
     exp-days: ${REFRESH_TOKEN_EXP_DAYS:7}
 
 app:
-  frontend-redirect-uri: ${FRONTEND_REDIRECT_URI:http://localhost:5173/oauth2/success}
+  frontend-redirect-uri: ${FRONTEND_REDIRECT_URI:http://localhost:5174/oauth2/success}
   openai:
     api-key: ${OPENAI_API_KEY}
   help:
     vector-cache-path: D:/temp/help-vectors.json
+
+# ✅✅✅ 지금 문제(Invalid credentials) 원인 로그를 “무조건” 찍게 하는 설정
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
