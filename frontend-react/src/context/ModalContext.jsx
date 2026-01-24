@@ -12,7 +12,7 @@ export function ModalProvider({ children }) {
         onClose: null,
         children: null
     });
-
+    
     const showModal = useCallback(({ title, message, type = "info", onClose, children }) => {
         setModal({
             show: true,
