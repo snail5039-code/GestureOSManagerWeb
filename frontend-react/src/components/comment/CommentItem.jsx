@@ -270,8 +270,6 @@ export default function CommentItem({
                 )}
               </div>
             </div>
-          </div>
-        </div>
 
             {/* 본문 / 수정모드 */}
             {!editing ? (

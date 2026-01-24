@@ -10,6 +10,7 @@ import FilePicker from "../../components/common/FilePicker";
 import defaultAvatar from "../../assets/default-avatar.png";
 
 // ✅ 서버 오리진 (Vite 기준)
+// .env에 VITE_API_ORIGIN=http://localhost:8082 넣어두면 더 좋음
 const API_ORIGIN =
   import.meta.env?.VITE_API_ORIGIN ||
   import.meta.env?.VITE_API_URL ||
@@ -24,46 +25,23 @@ const API_ORIGIN =
 function resolveProfileSrc(rawUrl, bust = "") {
   if (!rawUrl) return defaultAvatar;
 
-  const isAbsolute = /^https?:\/\//i.test(rawUrl);
-  const normalized = rawUrl.startsWith("/") ? rawUrl : `/${rawUrl}`;
-  const full = isAbsolute ? rawUrl : `${API_ORIGIN}${normalized}`;
+  const cleaned = String(rawUrl).trim().replace(/^"+|"+$/g, "");
+  if (!cleaned) return defaultAvatar;
 
-  if (!bust) return full;
+  const isAbsolute = /^https?:\/\//i.test(cleaned);
+  const normalized = cleaned.startsWith("/") ? cleaned : `/${cleaned}`;
+  const full = isAbsolute ? cleaned : `${API_ORIGIN}${normalized}`;
 
-  const sep = full.includes("?") ? "&" : "?";
-  return `${full}${sep}v=${encodeURIComponent(bust)}`;
-}
-
-import defaultAvatar from "../../assets/default-avatar.png";
-
-// ✅ 백엔드 오리진(이미지 파일 요청용)
-// .env에 VITE_API_ORIGIN=http://localhost:8082 넣어두면 더 좋음
-const API_ORIGIN = import.meta?.env?.VITE_API_ORIGIN || "http://localhost:8082";
-
-/**
- * member.profileImageUrl 이
- * - "" / null -> default
- * - "/uploads/..." -> API_ORIGIN 붙여서
- * - "http..." -> 그대로
- */
-function resolveProfileSrc(rawUrl, bust = "") {
-  if (!rawUrl) return defaultAvatar;
-
-  const isAbsolute = /^https?:\/\//i.test(rawUrl);
-  const full = isAbsolute ? rawUrl : `${API_ORIGIN}${rawUrl.startsWith("/") ? "" : "/"}${rawUrl}`;
-
-  // 캐시 방지(선택): bust가 있으면 쿼리 붙임
   if (!bust) return full;
   const sep = full.includes("?") ? "&" : "?";
   return `${full}${sep}v=${encodeURIComponent(bust)}`;
 }
 
 export default function MyPage() {
-  // ✅ common 제거 (defaultValue도 제거할 거라 common 키 안 씀)
   const { t } = useTranslation(["member"]);
   const { logout, isAuthed, loading: authLoading } = useAuth();
   const { showModal } = useModal();
-  const nav = useNavigate(); 
+  const nav = useNavigate();
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -239,9 +217,15 @@ export default function MyPage() {
     if (name === "loginPw" || name === "loginPwConfirm") {
       if (newForm.loginPw || newForm.loginPwConfirm) {
         if (newForm.loginPw === newForm.loginPwConfirm) {
-          setPwMsg({ text: t("member:mypage.passwordMatch"), color: "text-emerald-500" });
+          setPwMsg({
+            text: t("member:mypage.passwordMatch"),
+            color: "text-emerald-500",
+          });
         } else {
-          setPwMsg({ text: t("member:mypage.passwordNotMatch"), color: "text-rose-500" });
+          setPwMsg({
+            text: t("member:mypage.passwordNotMatch"),
+            color: "text-rose-500",
+          });
         }
       } else {
         setPwMsg({ text: "", color: "" });
@@ -256,12 +240,20 @@ export default function MyPage() {
     if (!nickname || nickname === (data.member.nickname || "")) return;
 
     try {
-      const res = await api.get(`/members/checkNickname?nickname=${encodeURIComponent(nickname)}`);
+      const res = await api.get(
+        `/members/checkNickname?nickname=${encodeURIComponent(nickname)}`
+      );
       if (res.data?.result === "fail") {
-        setNicknameMsg({ text: t("member:mypage.nicknameDuplicate"), color: "text-rose-500" });
+        setNicknameMsg({
+          text: t("member:mypage.nicknameDuplicate"),
+          color: "text-rose-500",
+        });
         setIsNicknameChecked(false);
       } else {
-        setNicknameMsg({ text: t("member:mypage.nicknameAvailable"), color: "text-emerald-500" });
+        setNicknameMsg({
+          text: t("member:mypage.nicknameAvailable"),
+          color: "text-emerald-500",
+        });
         setIsNicknameChecked(true);
       }
     } catch (e) {
@@ -288,7 +280,10 @@ export default function MyPage() {
         message: t("member:mypage.modal.codeSentMsg"),
         type: "success",
       });
-      setEmailMsg({ text: t("member:mypage.verificationSent"), color: "text-indigo-500" });
+      setEmailMsg({
+        text: t("member:mypage.verificationSent"),
+        color: "text-indigo-500",
+      });
       setIsEmailVerified(false);
     } catch (e) {
       showModal({
@@ -323,7 +318,10 @@ export default function MyPage() {
         type: "success",
       });
       setIsEmailVerified(true);
-      setEmailMsg({ text: t("member:mypage.emailVerified"), color: "text-emerald-500" });
+      setEmailMsg({
+        text: t("member:mypage.emailVerified"),
+        color: "text-emerald-500",
+      });
     } catch (e) {
       showModal({
         title: t("member:mypage.modal.verifyFailTitle"),
@@ -361,7 +359,6 @@ export default function MyPage() {
     setRevertToDefault(false);
     setProfileFile(file);
 
-    // 이전 preview revoke
     if (previewRef.current) URL.revokeObjectURL(previewRef.current);
 
     const url = URL.createObjectURL(file);
@@ -378,7 +375,6 @@ export default function MyPage() {
   };
 
   const handleRevertDefault = () => {
-    // 기본 이미지로 되돌리기: 파일/프리뷰 제거 + revert 플래그 ON
     if (previewRef.current) URL.revokeObjectURL(previewRef.current);
     previewRef.current = "";
     setProfilePreview("");
@@ -404,7 +400,7 @@ export default function MyPage() {
 
     const url = res.data?.url ?? res.data?.profileImageUrl ?? res.data?.data?.url;
     if (!url) throw new Error("NO_PROFILE_URL");
-    return url; // 상대경로("/uploads/...")든 절대경로든 OK
+    return url;
   };
 
   const handleSubmit = async (e) => {
@@ -438,12 +434,15 @@ export default function MyPage() {
       return;
     }
 
-    if (editForm.nickname !== (data.member.nickname || "") && !data.nicknameChangeAllowed) {
+    if (
+      editForm.nickname !== (data.member.nickname || "") &&
+      !data.nicknameChangeAllowed
+    ) {
       showModal({
         title: t("member:mypage.modal.inputErrorTitle"),
-        message: `${t("member:mypage.nicknameLimit")}\n${t("member:mypage.nextChangeDate")}: ${
-          data.nextNicknameChangeDate
-        }`,
+        message: `${t("member:mypage.nicknameLimit")}\n${t(
+          "member:mypage.nextChangeDate"
+        )}: ${data.nextNicknameChangeDate}`,
         type: "warning",
       });
       return;
@@ -461,7 +460,9 @@ export default function MyPage() {
 
       // 2) 업데이트 payload 만들기 (countryId 빈 값 방어)
       const nextCountryId =
-        editForm.countryId === "" || editForm.countryId == null ? null : Number(editForm.countryId);
+        editForm.countryId === "" || editForm.countryId == null
+          ? null
+          : Number(editForm.countryId);
 
       const updateData = {
         id: data.member.id,
@@ -476,7 +477,7 @@ export default function MyPage() {
       // 3) 수정 요청
       await api.put(`/members/modify/${data.member.id}`, updateData);
 
-      // ✅ 서버가 mypage를 늦게 갱신해도 화면 즉시 반영
+      // ✅ 화면 즉시 반영
       setData((prev) => {
         if (!prev?.member) return prev;
         return {
@@ -515,6 +516,7 @@ export default function MyPage() {
 
   // ✅ Hook은 return보다 위에서 항상 호출되게!
   const memberProfileUrl = data?.member?.profileImageUrl;
+
   const displayProfileSrc = useMemo(() => {
     if (profilePreview) return profilePreview;
     if (revertToDefault) return defaultAvatar;
@@ -524,15 +526,14 @@ export default function MyPage() {
   const editPreviewSrc = useMemo(() => {
     if (profilePreview) return profilePreview;
     if (revertToDefault) return defaultAvatar;
-    return resolveProfileSrc(data?.member?.profileImageUrl, profileBust);
-  }, [profilePreview, revertToDefault, data?.member?.profileImageUrl, profileBust]);
+    return resolveProfileSrc(memberProfileUrl, profileBust);
+  }, [profilePreview, revertToDefault, memberProfileUrl, profileBust]);
 
-  // ✅ country 번역 키가 없으면 서버 countryName으로 폴백 (defaultValue 없이 처리)
+  // ✅ country 번역 키가 없으면 서버 countryName으로 폴백
   const countryLabel = useCallback(
     (c) => {
       const key = `member:country.${c.id}`;
       const translated = t(key);
-      // i18next는 키가 없으면 보통 key 문자열 그대로 반환
       if (!translated || translated === key) return c.countryName;
       return translated;
     },
@@ -551,20 +552,10 @@ export default function MyPage() {
 
   const { member, stats, myArticles, myComments, likedArticles } = data;
 
-  // ✅ 화면 표시용 프로필 이미지:
-  // 1) 편집중이고 선택한 파일 있으면 preview
-  // 2) 아니면 member.profileImageUrl(백엔드 오리진 붙임)
-  // 3) 없으면 기본
-  const displayProfileSrc = useMemo(() => {
-    if (profilePreview) return profilePreview;
-    return resolveProfileSrc(member.profileImageUrl, profileBust);
-  }, [profilePreview, member.profileImageUrl, profileBust]);
-
   return (
     <div className="min-h-screen bg-[var(--bg)] py-12 px-6 text-[color:var(--text)]">
       <div className="max-w-5xl mx-auto space-y-10">
         <div className="flex items-center justify-between">
-          {/* ✅ text-slate-100 → var(--text-strong) */}
           <h1 className="text-4xl font-black text-[color:var(--text-strong)] tracking-tight">
             {t("member:mypage.title")}
           </h1>
@@ -606,14 +597,14 @@ export default function MyPage() {
 
             <div className="flex-1 text-center md:text-left">
               <div className="flex flex-wrap items-center gap-4 justify-center md:justify-start mb-4">
-                {/* ✅ text-slate-100 → var(--text-strong) */}
-                <h2 className="text-4xl font-black text-[color:var(--text-strong)]">{member.name}</h2>
+                <h2 className="text-4xl font-black text-[color:var(--text-strong)]">
+                  {member.name}
+                </h2>
                 <span className="px-4 py-1.5 bg-indigo-50 text-indigo-600 text-xs font-black rounded-full border border-indigo-100 uppercase tracking-widest">
                   {member.role}
                 </span>
               </div>
 
-              {/* ✅ text-slate-300 → var(--muted) or var(--text) (메일은 읽기 좋게 text) */}
               <p className="text-xl font-bold text-[color:var(--text)] mb-6">{member.email}</p>
 
               <div className="flex flex-wrap gap-3 justify-center md:justify-start">
@@ -691,7 +682,8 @@ export default function MyPage() {
                       </p>
 
                       <p className="text-[11px] font-bold text-[var(--muted)]">
-                        {t("member:mypage.profile.currentUrl")}: {member.profileImageUrl ?? t("member:mypage.profile.none")}
+                        {t("member:mypage.profile.currentUrl")}:{" "}
+                        {member.profileImageUrl ?? t("member:mypage.profile.none")}
                       </p>
 
                       {revertToDefault && (
@@ -731,7 +723,9 @@ export default function MyPage() {
                         placeholder={t("member:mypage.form.passwordConfirmPlaceholder")}
                         className="w-full px-6 py-4 bg-[var(--surface-soft)] border border-[var(--border)] rounded-2xl focus:ring-2 focus:ring-[var(--accent)] focus:bg-[var(--surface)] outline-none transition-all font-bold text-[color:var(--text)]"
                       />
-                      {pwMsg.text && <p className={`text-xs ml-2 mt-2 font-black ${pwMsg.color}`}>{pwMsg.text}</p>}
+                      {pwMsg.text && (
+                        <p className={`text-xs ml-2 mt-2 font-black ${pwMsg.color}`}>{pwMsg.text}</p>
+                      )}
                     </div>
                   </>
                 )}
@@ -757,7 +751,9 @@ export default function MyPage() {
                         disabled={isSendingCode}
                         className="px-6 bg-slate-900 text-white rounded-2xl font-black hover:bg-slate-800 disabled:opacity-50 transition-all shadow-lg"
                       >
-                        {isSendingCode ? t("member:mypage.email.sending") : t("member:mypage.email.sendCode")}
+                        {isSendingCode
+                          ? t("member:mypage.email.sending")
+                          : t("member:mypage.email.sendCode")}
                       </button>
                     )}
                   </div>
@@ -777,12 +773,16 @@ export default function MyPage() {
                         disabled={isVerifyingCode}
                         className="px-6 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 disabled:opacity-50 transition-all shadow-lg"
                       >
-                        {isVerifyingCode ? t("member:mypage.email.verifying") : t("member:mypage.email.verify")}
+                        {isVerifyingCode
+                          ? t("member:mypage.email.verifying")
+                          : t("member:mypage.email.verify")}
                       </button>
                     </div>
                   )}
 
-                  {emailMsg.text && <p className={`text-xs ml-2 mt-2 font-black ${emailMsg.color}`}>{emailMsg.text}</p>}
+                  {emailMsg.text && (
+                    <p className={`text-xs ml-2 mt-2 font-black ${emailMsg.color}`}>{emailMsg.text}</p>
+                  )}
                 </div>
 
                 <div>
@@ -833,7 +833,8 @@ export default function MyPage() {
                           d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                       </svg>
-                      {t("member:mypage.nicknameLimit")} ({t("member:mypage.nextChangeDate")}: {data.nextNicknameChangeDate})
+                      {t("member:mypage.nicknameLimit")} ({t("member:mypage.nextChangeDate")}:{" "}
+                      {data.nextNicknameChangeDate})
                     </div>
                   )}
                 </div>
