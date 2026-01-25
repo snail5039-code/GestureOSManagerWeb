@@ -1,140 +1,113 @@
 {
-  "footer": "Gesture OS Manager · Home",
+  "footer": "© Gesture OS Manager",
 
-  "systemOverview": "System Overview",
+  "systemOverview": "System overview",
   "title": "Gesture OS Manager",
+
+  "topCta": {
+    "secondary": "Download",
+    "primary": "Motion Guide"
+  },
 
   "hero": {
     "hint": "Scroll to explore more.",
-    "pills": ["Motion Guide", "Gesture Mapping", "Support Chat", "Updates"],
+    "pills": ["Motion Guide", "Download", "QnA", "Updates"],
     "controls": {
       "prev": "Prev",
       "next": "Next",
       "go": "Slide {{n}}"
     },
+    "cta": {
+      "primary": "Download Manager",
+      "secondary": "Browse Motion Guide"
+    },
     "slides": [
       {
-        "eyebrow": "Gesture OS",
-        "title": "Control your PC with hand gestures.",
-        "desc": "Connect gestures to OS actions and manage everything in one place."
-      },
-      {
         "eyebrow": "Manager UI",
-        "title": "Settings and guidance at a glance.",
-        "desc": "Designed so first-time visitors instantly understand what they can do here."
+        "title": "See settings and guides at a glance",
+        "desc": "Jump straight to Download · Motion Guide · QnA"
       },
       {
         "eyebrow": "Support",
-        "title": "Stuck? Fix it with a card.",
-        "desc": "Pick a common issue and a step-by-step guide opens right away."
+        "title": "When you get stuck, solve it with cards",
+        "desc": "Quickly check the most common issues"
+      },
+      {
+        "eyebrow": "Motion Guide",
+        "title": "Search a gesture and follow along instantly",
+        "desc": "See explanations and examples in Motion Guide"
       }
     ]
   },
 
-  "features": {
-    "title": "Manage it all in one place",
-    "badge": "Overview",
+  "overview": {
+    "eyebrow": "Overview",
+    "title": "Key menus",
+    "desc": "Quick access to frequently used menus",
     "items": [
       {
         "title": "Motion Guide",
-        "desc": "Quickly learn gestures and the recommended setup."
+        "desc": "Search gestures and check how to use them"
       },
       {
-        "title": "Gesture Mapping",
-        "desc": "Map gestures to clicks, scrolling, hotkeys, and more."
+        "title": "Gesture Settings",
+        "desc": "Link gestures to functions by mode"
       },
       {
         "title": "Board",
-        "desc": "Keep notices, questions, and sharing organized in one place."
+        "desc": "Check notices and shared posts"
       },
       {
-        "title": "Support Chat",
-        "desc": "Solve common problems fast by choosing a help card."
+        "title": "QnA",
+        "desc": "See frequently asked questions"
       }
     ]
   },
 
-  "highlights": {
-    "title": "At-a-glance summary",
-    "desc": "Instead of live status, we keep only what you need to get started.",
-    "items": [
+  "how": {
+    "eyebrow": "Flow",
+    "title": "Workflow",
+    "desc": "Connect → Calibrate → Learn → Configure",
+    "steps": [
       {
-        "title": "What this is",
-        "desc": "Scan the core features and jump in right away."
+        "title": "Connect",
+        "desc": "Confirm camera/device connection"
       },
       {
-        "title": "Start with the guide",
-        "desc": "New here? Motion Guide helps you find the flow fast."
+        "title": "Calibrate",
+        "desc": "Adjust sensitivity for your environment"
       },
       {
-        "title": "Clean navigation",
-        "desc": "Common paths are kept short and easy to reach."
+        "title": "Learn",
+        "desc": "Learn gestures with the Motion Guide"
       },
       {
-        "title": "Easy to read",
-        "desc": "Scroll to reveal just the info you need, naturally."
+        "title": "Configure",
+        "desc": "Link gestures to functions"
       }
     ]
   },
 
-  "cta": {
-    "title": "Ready to start",
-    "desc": "Even on your first visit, you won’t feel lost—short guidance, clear essentials.",
-    "chips": ["Get started", "Short paths", "Just the essentials", "Easy reading"]
+  "download": {
+    "eyebrow": "Download",
+    "title": "Download",
+    "desc": "Installer and usage guide",
+    "cta": "Go to download page",
+    "p0": "Installer",
+    "p1": "Latest version",
+    "p2": "Update notes"
   },
 
-  "note": {
-    "title": "Note",
-    "desc": "Real-time status and execution controls live in the desktop app. The web focuses on guidance and management.",
-    "box": "If you want, we can add images/diagrams to the About page for deeper explanations."
-  },
-  "highlights": {
-    "title": "Key points on Home",
-    "desc": "We removed exe-only info (like live snapshots) and kept only what matters on the web side.",
-    "items": [
-      {
-        "title": "First impression",
-        "desc": "Understand the project at a glance."
-      },
-      {
-        "title": "Guide-first",
-        "desc": "New users can adapt quickly via Motion Guide."
-      },
-      {
-        "title": "Clean structure",
-        "desc": "Not too many sections—just the essentials."
-      },
-      {
-        "title": "Smooth reveal",
-        "desc": "Scroll reveal for a natural, modern feel."
-      }
-    ]
-  },
-  "cta": {
-    "title": "Home should feel like a real homepage",
-    "desc": "We added slides and scroll-reveal for a richer first screen, while removing unnecessary content.",
-    "chips": [
-      "Simple but premium",
-      "Remove noise",
-      "Scroll effects",
-      "Only essentials"
-    ]
-  },
-  "note": {
-    "title": "Note",
-    "desc": "Home is for overview. Real-time status / execution controls belong to the exe side.",
-    "box": "If you want, we can also enhance the About page with visuals/diagrams."
-  },
-  
-  "systemOverview": "System Overview",
-  "title": "Gesture OS Manager",
-  "recentUpdates": {
-    "title": "Recent Updates",
-    "badge": "Latest",
-    "items": [
-      "The Motion Guide page is now available.",
-      "The Board UI has been improved with an app-like style.",
-      "The login page has been redesigned."
-    ]
+  "faq": {
+    "eyebrow": "QnA",
+    "title": "FAQ",
+    "desc": "Only the essentials",
+    "q0": "What if there is no camera or it doesn't detect?",
+    "a0": "Check connection/permissions, then improve lighting and background",
+    "q1": "Gestures sometimes misfire",
+    "a1": "Distance/lighting matters · saving calibration values is recommended",
+    "q2": "Where can I find the Motion Guide?",
+    "a2": "Search from the Motion Guide menu",
+    "cta": "Go to QnA"
   }
 }

@@ -107,10 +107,26 @@ function Bullet({ idx, text }) {
 export default function About() {
   const { t } = useTranslation("about");
 
+  // tf: 번역이 없으면 fallback 사용 (기능/디자인 변경 없이 문자열만 안전 처리)
+  const tf = (key, fallback, opt) => {
+    const v = t(key, opt);
+    if (!v || v === key) return fallback;
+    return v;
+  };
+
   const itemsRaw = t("core.items", { returnObjects: true });
   const items = useMemo(
     () => (Array.isArray(itemsRaw) ? itemsRaw.filter(Boolean) : []),
     [itemsRaw]
+  );
+
+  const fallbackItems = useMemo(
+    () => [
+      tf("core.fallback.0", "모션 인식 기반 제어"),
+      tf("core.fallback.1", "모드별 동작 매핑"),
+      tf("core.fallback.2", "상태/피드백 표시")
+    ],
+    [t]
   );
 
   return (
@@ -143,56 +159,55 @@ export default function About() {
         </span>
       </header>
 
-      {/* HERO (수어 문구 제거: t("core.desc") 아예 안 씀) */}
+      {/* HERO */}
       <section className="relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-7">
         <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-emerald-400/55 via-sky-400/35 to-transparent" />
 
         <div className="inline-flex items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1 text-xs text-[var(--muted)]">
           <IconWave className="h-4 w-4 text-emerald-300/90" />
-          <span>제스처 · 모션 기반 컴퓨터 제어</span>
+          <span>{tf("hero.kicker", "제스처 · 모션 기반 컴퓨터 제어")}</span>
         </div>
 
         <p className="mt-4 max-w-3xl text-sm leading-relaxed text-[var(--muted)]">
-          Gesture OS Manager는 카메라 입력에서 손 동작을 인식해, 마우스/키보드/프레젠테이션 등
-          다양한 모드로 컴퓨터를 제어하는 데스크톱 솔루션입니다. 현재 상태(모드/트래킹/잠금)를
-          화면에 명확히 표시해 실제 사용 중 혼선을 줄이고, 바로 익혀서 쓰는 흐름에 집중했습니다.
+          {tf(
+            "hero.desc",
+            "Gesture OS Manager는 카메라 입력에서 손 동작을 인식해, 마우스/키보드/프레젠테이션 등 다양한 모드로 컴퓨터를 제어하는 데스크톱 솔루션입니다. 현재 상태(모드/트래킹/잠금)를 화면에 명확히 표시해 실제 사용 중 혼선을 줄이고, 바로 익혀서 쓰는 흐름에 집중했습니다."
+          )}
         </p>
 
         <div className="mt-5 flex flex-wrap gap-2">
           <span className="rounded-md border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1 text-xs text-[color:var(--text)]">
-            실시간 인식
+            {tf("hero.tags.0", "실시간 인식")}
           </span>
           <span className="rounded-md border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1 text-xs text-[color:var(--text)]">
-            모드 전환
+            {tf("hero.tags.1", "모드 전환")}
           </span>
           <span className="rounded-md border border-[var(--border)] bg-[var(--surface-soft)] px-3 py-1 text-xs text-[color:var(--text)]">
-            즉시 피드백
+            {tf("hero.tags.2", "즉시 피드백")}
           </span>
           <span className="rounded-md border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs text-emerald-200">
-            현재 1.0 버전 사용 가능
+            {tf("hero.tags.3", "현재 1.0 버전 사용 가능")}
           </span>
         </div>
       </section>
 
-      {/* 주요 특징 (불필요한 “핵심기능 N개” 같은 통계 제거) */}
+      {/* 주요 특징 */}
       <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-7">
         <div className="flex items-end justify-between gap-3">
           <div>
             <h2 className="text-base font-semibold text-[color:var(--text)]">
-              주요 기능
+              {tf("features.title", "주요 기능")}
             </h2>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              사용 중 체감되는 포인트
+              {tf("features.desc", "사용 중 체감되는 포인트")}
             </p>
           </div>
         </div>
 
         <div className="mt-5 grid gap-3 lg:grid-cols-2">
-          {(items.length ? items : ["모션 인식 기반 제어", "모드별 동작 매핑", "상태/피드백 표시"]).map(
-            (text, idx) => (
-              <Bullet key={idx} idx={idx} text={text} />
-            )
-          )}
+          {(items.length ? items : fallbackItems).map((text, idx) => (
+            <Bullet key={idx} idx={idx} text={text} />
+          ))}
         </div>
       </section>
 
@@ -200,13 +215,19 @@ export default function About() {
       <section className="grid gap-6 lg:grid-cols-3">
         <InfoCard
           icon={<IconStack className="h-5 w-5" />}
-          title="구성"
-          desc="매니저(설정/가이드)와 에이전트(인식/입력/HUD)가 분리되어 동작합니다. 사용자는 매니저에서 모드와 옵션을 조정하고, 에이전트가 실제 입력을 처리합니다."
+          title={tf("cards.arch.title", "구성")}
+          desc={tf(
+            "cards.arch.desc",
+            "매니저(설정/가이드)와 에이전트(인식/입력/HUD)가 분리되어 동작합니다. 사용자는 매니저에서 모드와 옵션을 조정하고, 에이전트가 실제 입력을 처리합니다."
+          )}
         />
         <InfoCard
           icon={<IconWave className="h-5 w-5" />}
-          title="사용 흐름"
-          desc="모드 선택 → 트래킹 확인 → 제스처 수행 → 결과 피드백 확인. 현재 상태가 화면에 표시되므로, ‘왜 안 되는지’를 추측하지 않아도 됩니다."
+          title={tf("cards.flow.title", "사용 흐름")}
+          desc={tf(
+            "cards.flow.desc",
+            "모드 선택 → 트래킹 확인 → 제스처 수행 → 결과 피드백 확인. 현재 상태가 화면에 표시되므로, ‘왜 안 되는지’를 추측하지 않아도 됩니다."
+          )}
         />
         <InfoCard
           icon={<IconMonitor className="h-5 w-5" />}
@@ -215,17 +236,24 @@ export default function About() {
         />
       </section>
 
-      {/* 배포 상태 (준비중/목표/핵심 수치 제거) */}
+      {/* 배포 상태 */}
       <section className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-7">
-        <h3 className="text-sm font-semibold text-[color:var(--text)]">1.0 버전 </h3>
+        <h3 className="text-sm font-semibold text-[color:var(--text)]">
+          {tf("version.title", "1.0 버전")}
+        </h3>
         <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
-          현재 버전은 1.0버전으로 마우수, 키보드, 프레젠테이션, 키보드 모드를 사용할 수 있습니다. 추가적으로 RUSH 게임 등이 있습니다.
+          {tf(
+            "version.desc",
+            "현재 버전은 1.0버전으로 마우수, 키보드, 프레젠테이션, 키보드 모드를 사용할 수 있습니다. 추가적으로 RUSH 게임 등이 있습니다."
+          )}
         </p>
-   
+
         <div className="mt-4 rounded-xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
-          <div className="text-[11px] tracking-wide text-[var(--muted)]">권장</div>
+          <div className="text-[11px] tracking-wide text-[var(--muted)]">
+            {tf("recommend.label", "권장")}
+          </div>
           <div className="mt-1 text-sm text-[color:var(--text)]">
-            조명 안정/카메라 고정 환경에서 인식 안정성이 가장 좋습니다.
+            {tf("recommend.text", "조명 안정/카메라 고정 환경에서 인식 안정성이 가장 좋습니다.")}
           </div>
         </div>
       </section>

@@ -94,9 +94,3 @@ app:
     api-key: ${OPENAI_API_KEY}
   help:
     vector-cache-path: D:/temp/help-vectors.json
-
-# ✅✅✅ 지금 문제(Invalid credentials) 원인 로그를 “무조건” 찍게 하는 설정
-logging:
-  level:
-    org.springframework.security: DEBUG
-    org.springframework.security.oauth2: DEBUG

@@ -51,7 +51,7 @@ public interface ArticleDao {
 			   JOIN member m ON a.memberId = m.id
 			   WHERE a.id = #{id}
 			""")
-			Article articleDetail(int id);
+	Article articleDetail(int id);
 
 	@Update("""
 			UPDATE article
@@ -129,17 +129,33 @@ public interface ArticleDao {
 					</when>
 				</choose>
 			</if>
+
 			<choose>
 				<when test="sortType == 'views'">
-					ORDER BY COALESCE(a.hit, 0) DESC, a.id DESC
+					ORDER BY 
+						a.is_pinned DESC,
+						a.pinned_order ASC NULLS LAST,
+						COALESCE(a.hit, 0) DESC,
+						a.id DESC
 				</when>
+
 				<when test="sortType == 'comments'">
-					ORDER BY commentCount DESC, a.id DESC
+					ORDER BY 
+						a.is_pinned DESC,
+						a.pinned_order ASC NULLS LAST,
+						commentCount DESC,
+						a.id DESC
 				</when>
+
 				<otherwise>
-					ORDER BY a.id DESC
+					<!-- ✅ FIX: Q&A 질문 고정 정렬 -->
+					ORDER BY 
+						a.is_pinned DESC,
+						a.pinned_order ASC NULLS LAST,
+						a.id DESC
 				</otherwise>
 			</choose>
+
 			LIMIT #{limit} OFFSET #{offset}
 			</script>
 			""")

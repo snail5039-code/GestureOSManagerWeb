@@ -1,25 +1,54 @@
 {
   "navTitle": "About",
-  "title": "Program Overview",
+  "title": "About the program",
   "badge": "Gesture OS Manager",
 
+  "hero": {
+    "kicker": "Gesture · Motion-based computer control",
+    "desc": "Gesture OS Manager is a desktop solution that recognizes hand motions from camera input and controls your computer across multiple modes such as mouse, keyboard, and presentations. It clearly displays the current state (mode/tracking/lock) to reduce confusion during real use, focusing on a flow you can learn quickly and use right away.",
+    "tags": ["Real-time recognition", "Mode switching", "Instant feedback", "Version 1.0 available now"]
+  },
+
+  "features": {
+    "title": "Key features",
+    "desc": "What you actually feel while using it"
+  },
+
   "core": {
-    "title": "Core Features",
-    "desc": "An integrated solution that helps you control your computer with sign-language-based gestures and enables real-time interaction.",
-    "items": [
-      "Motion recognition-based control",
-      "User-friendly guide",
-      "Board/feedback system"
-    ]
+    "title": "Core",
+    "desc": "An integrated solution that controls your computer with gesture-based input and supports real-time interaction.",
+    "items": ["Motion-recognition control", "User-friendly guidance", "Board/feedback system"],
+    "fallback": ["Motion-recognition control", "Per-mode gesture mapping", "State/feedback display"]
+  },
+
+  "cards": {
+    "arch": {
+      "title": "Architecture",
+      "desc": "The Manager (settings/guides) and the Agent (recognition/input/HUD) run separately. You adjust modes and options in the Manager, while the Agent handles actual input."
+    },
+    "flow": {
+      "title": "Usage flow",
+      "desc": "Choose a mode → confirm tracking → perform a gesture → check the feedback. Since the current state is shown on screen, you don’t need to guess “why it isn’t working.”"
+    }
   },
 
   "env": {
-    "title": "Supported Environment",
-    "desc": "We provide a desktop app (.exe) that runs on Windows."
+    "title": "Supported environment",
+    "desc": "We provide a Windows desktop application (.exe)."
+  },
+
+  "version": {
+    "title": "Version 1.0",
+    "desc": "The current release is version 1.0 and includes Mouse, Keyboard, Presentation, and Keyboard modes. Additional content such as the RUSH game is also available."
+  },
+
+  "recommend": {
+    "label": "Recommended",
+    "text": "Recognition is most stable with consistent lighting and a fixed camera."
   },
 
   "status": {
-    "title": "Progress",
-    "desc": "The desktop version is currently being prepared for release."
+    "title": "Status",
+    "desc": "The desktop version is currently being prepared for distribution."
   }
 }

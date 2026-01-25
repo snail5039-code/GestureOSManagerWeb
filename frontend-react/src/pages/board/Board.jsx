@@ -51,6 +51,17 @@ const getStoredPage = (id) => {
   return !Number.isNaN(stored) && stored > 0 ? stored : 1;
 };
 
+// ✅ 고정 QnA 대상 boardId
+const QNA_BOARD_ID = 3;
+
+// ✅ 백에서 내려오는 pinned 필드 이름이 다를 수 있으니 안전하게 흡수
+const getPinnedFlag = (b) => Boolean(b?.isPinned ?? b?.is_pinned ?? false);
+const getPinnedOrder = (b) => {
+  const v = b?.pinnedOrder ?? b?.pinned_order ?? null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+
 export default function Board() {
   const { t } = useTranslation("board");
   const { showModal } = useModal();
@@ -188,6 +199,8 @@ export default function Board() {
     return t(`board.types.${key}`);
   };
 
+  const isQnaBoard = boardId === QNA_BOARD_ID;
+
   return (
     <div className="min-h-screen text-[var(--text)]">
       <div className="mx-auto max-w-[1200px]">
@@ -249,7 +262,7 @@ export default function Board() {
           </div>
         </div>
 
-        {/* table card (HOME 느낌: 밝은 글래스 + 다크 고정 제거) */}
+        {/* table card */}
         <div className="glass mb-8 overflow-hidden rounded-2xl">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -286,38 +299,60 @@ export default function Board() {
                   </td>
                 </tr>
               ) : (
-                boards.map((b) => (
-                  <tr
-                    key={b.id}
-                    onClick={() => nav(`/board/${b.id}`)}
-                    className="group cursor-pointer transition-colors hover:bg-[rgba(37,99,235,0.08)]"
-                  >
-                    <td className="px-8 py-5 text-sm text-[var(--muted)]">{b.id}</td>
+                boards.map((b) => {
+                  const isPinned = getPinnedFlag(b);
+                  const pinnedOrder = getPinnedOrder(b);
 
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">
-                          {b.title}
-                        </span>
-                        {b.commentCount > 0 && (
-                          <span className="rounded-full bg-[var(--accent)]/15 px-2 py-0.5 text-[10px] text-[var(--accent)]">
-                            {b.commentCount}
+                  const showPinnedUi = isQnaBoard && isPinned;
+                  const noText = showPinnedUi && pinnedOrder ? String(pinnedOrder) : String(b.id);
+
+                  return (
+                    <tr
+                      key={b.id}
+                      onClick={() => nav(`/board/${b.id}`)}
+                      className={[
+                        "group cursor-pointer transition-colors hover:bg-[rgba(37,99,235,0.08)]",
+                        showPinnedUi ? "bg-[rgba(37,99,235,0.06)]" : "",
+                      ].join(" ")}
+                    >
+                      <td className="px-8 py-5 text-sm text-[var(--muted)]">
+                        <div className="flex items-center gap-2">
+                          <span>{noText}</span>
+
+                          {showPinnedUi && (
+                            <span className="inline-flex items-center rounded-full bg-[var(--accent)]/15 px-2 py-0.5 text-[10px] font-bold text-[var(--accent)] border border-[var(--accent)]/25">
+                              PIN
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm text-[var(--text)] transition-colors group-hover:text-[var(--accent)]">
+                            {b.title}
                           </span>
-                        )}
-                      </div>
-                    </td>
 
-                    <td className="px-8 py-5 text-sm text-[var(--muted)] whitespace-nowrap">
-                      {b.writerName || t("anonymous")}
-                    </td>
-                    <td className="px-8 py-5 text-sm text-[var(--muted)] whitespace-nowrap">
-                      {formatDate(b.regDate)}
-                    </td>
-                    <td className="px-8 py-5 text-center text-sm text-[var(--muted)] whitespace-nowrap">
-                      {b.hit || 0}
-                    </td>
-                  </tr>
-                ))
+                          {b.commentCount > 0 && (
+                            <span className="rounded-full bg-[var(--accent)]/15 px-2 py-0.5 text-[10px] text-[var(--accent)]">
+                              {b.commentCount}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      <td className="px-8 py-5 text-sm text-[var(--muted)] whitespace-nowrap">
+                        {b.writerName || t("anonymous")}
+                      </td>
+                      <td className="px-8 py-5 text-sm text-[var(--muted)] whitespace-nowrap">
+                        {formatDate(b.regDate)}
+                      </td>
+                      <td className="px-8 py-5 text-center text-sm text-[var(--muted)] whitespace-nowrap">
+                        {b.hit || 0}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

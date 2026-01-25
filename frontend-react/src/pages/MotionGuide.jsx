@@ -13,6 +13,7 @@ export default function MotionGuide() {
       { key: "all", label: t("modes.all") },
       { key: "mouse", label: t("modes.mouse") },
       { key: "keyboard", label: t("modes.keyboard") },
+      { key: "virtualKeyboard", label: t("modes.virtualKeyboard") },
       { key: "draw", label: t("modes.draw") },
       { key: "presentation", label: t("modes.presentation") },
     ],

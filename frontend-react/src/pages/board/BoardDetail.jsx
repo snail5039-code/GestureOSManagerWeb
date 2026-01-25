@@ -16,6 +16,9 @@ const BOARD_TYPES = [
   { id: 4, key: "error" },
 ];
 
+// ✅ QnA boardId
+const QNA_BOARD_ID = 3;
+
 // ✅ 서버 오리진 (Vite 기준)
 const API_ORIGIN =
   import.meta.env?.VITE_API_ORIGIN ||
@@ -40,6 +43,14 @@ function resolveProfileSrc(rawUrl, bust = "") {
   const sep = full.includes("?") ? "&" : "?";
   return `${full}${sep}v=${encodeURIComponent(bust)}`;
 }
+
+// ✅ pinned 필드 호환
+const getPinnedFlag = (a) => Boolean(a?.isPinned ?? a?.is_pinned ?? false);
+const getPinnedOrder = (a) => {
+  const v = a?.pinnedOrder ?? a?.pinned_order ?? null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
 
 export default function BoardDetail() {
   const { t } = useTranslation("board");
@@ -92,7 +103,7 @@ export default function BoardDetail() {
     return key ? t(`board.types.${key}`) : t("board.default");
   }, [article, t]);
 
-  // ✅ 작성자 프로필 URL 후보들 전부 커버 (백엔드에서 어떤 이름으로 내려줘도 대응)
+  // ✅ 작성자 프로필 URL 후보들 전부 커버
   const rawWriterProfileUrl =
     article?.writerProfileImageUrl ??
     article?.writer?.profileImageUrl ??
@@ -104,11 +115,14 @@ export default function BoardDetail() {
     article?.writerProfile ??
     "";
 
-  // ✅ 캐시 방지(bust): 수정일/작성일 기준으로 붙이기
   const writerAvatarSrc = useMemo(() => {
     const bust = String(article?.updateDate || article?.regDate || "");
     return resolveProfileSrc(rawWriterProfileUrl, bust);
   }, [rawWriterProfileUrl, article?.updateDate, article?.regDate]);
+
+  const isPinned = getPinnedFlag(article);
+  const pinnedOrder = getPinnedOrder(article);
+  const isQnaPinned = (article?.boardId ?? article?.boardTypeId) === QNA_BOARD_ID && isPinned;
 
   const handleDelete = () => {
     showModal({
@@ -170,24 +184,29 @@ export default function BoardDetail() {
           {t("backToList")}
         </button>
 
-        {/* ✅ 다크 고정 배경 제거 -> 테마 토큰 기반 (라이트면 밝은 카드, 다크면 기존 느낌) */}
         <div className="rounded-[3rem] overflow-hidden border border-[var(--border)] bg-[var(--glass-bg)] backdrop-blur-xl shadow-2xl animate-fade-in">
           <div className="p-12">
             <div className="flex items-center gap-3 mb-6">
               <span className="px-4 py-1.5 bg-[var(--accent)]/15 text-[var(--accent)] text-xs font-black rounded-full border border-[var(--accent)]/30 uppercase tracking-widest">
                 {boardName}
               </span>
+
+              {/* ✅ QnA 고정글 표시 */}
+              {isQnaPinned && (
+                <span className="px-4 py-1.5 bg-[var(--accent)]/15 text-[var(--accent)] text-xs font-black rounded-full border border-[var(--accent)]/25 uppercase tracking-widest">
+                  PIN{pinnedOrder ? ` #${pinnedOrder}` : ""}
+                </span>
+              )}
+
               <span className="text-sm font-bold text-[var(--muted)]">#{article.id}</span>
             </div>
 
-            {/* ✅ 제목: 라이트에서 어둡게 */}
             <h1 className="text-4xl font-black text-[var(--text-strong)] tracking-tight mb-8 leading-tight">
               {article.title}
             </h1>
 
             <div className="flex items-center justify-between pb-8 border-b border-[var(--border)] mb-8">
               <div className="flex items-center gap-4">
-                {/* ✅ 프로필 이미지 박스: 테마 토큰 유지 */}
                 <div className="w-12 h-12 rounded-2xl overflow-hidden border border-[var(--border)] bg-[var(--surface-soft)] shrink-0">
                   <img
                     src={writerAvatarSrc}
@@ -221,8 +240,8 @@ export default function BoardDetail() {
               </div>
             </div>
 
-            {/* ✅ prose-invert 제거 (라이트에서 글씨/링크 다 죽임) */}
-            <div className="max-w-none min-h-[300px] font-bold leading-relaxed whitespace-pre-wrap text-[var(--text)]">
+            {/* ✅ QnA는 줄바꿈이 중요하니까 pre-line(줄바꿈 유지) */}
+            <div className="max-w-none min-h-[300px] font-bold leading-relaxed whitespace-pre-line text-[var(--text)]">
               {article.content}
             </div>
 
@@ -255,7 +274,6 @@ export default function BoardDetail() {
             </div>
           </div>
 
-          {/* ✅ 댓글 영역 배경도 테마 토큰 기반 + 텍스트 상속 살림 */}
           <div className="bg-[var(--surface-soft)] p-12 border-t border-[var(--border)] text-[var(--text)]">
             <CommentSection relTypeCode="article" relId={id} />
           </div>

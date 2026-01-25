@@ -287,7 +287,7 @@ export default function Home() {
     return () => window.clearInterval(id);
   }, [slides.length]);
 
-  // ✅ 메뉴 카드(“한 곳에서 관리” 같은 표현 제거)
+  // ✅ 메뉴 카드
   const overview = useMemo(
     () => [
       { icon: "guide", title: tf("overview.items.0.title", "모션 가이드"), desc: tf("overview.items.0.desc", "동작을 검색하고 사용법을 확인") },
@@ -298,7 +298,7 @@ export default function Home() {
     [tf]
   );
 
-  // ✅ 사용 흐름(“안내합니다” 제거)
+  // ✅ 사용 흐름
   const steps = useMemo(
     () => [
       { n: "01", t: tf("how.steps.0.title", "연결"), d: tf("how.steps.0.desc", "카메라/기기 연결 확인") },
@@ -309,7 +309,7 @@ export default function Home() {
     [tf]
   );
 
-  // ✅ FAQ: 짧게
+  // ✅ FAQ
   const faqs = useMemo(
     () => [
       { q: tf("faq.q0", "카메라가 없거나 인식이 안 되면?"), a: tf("faq.a0", "연결/권한 확인 후 조명과 배경부터 정리") },
@@ -390,12 +390,12 @@ export default function Home() {
 
                 <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">{cur.desc}</p>
 
-                {/* ✅ 상단 칩: 전부 페이지 이동 */}
+                {/* ✅ 상단 칩: 번역 변수 적용(기능/디자인 그대로) */}
                 <div className="mt-5 flex flex-wrap gap-2">
-                  <ChipLink onClick={goMotionGuide}>Motion Guide</ChipLink>
-                  <ChipLink onClick={goDownload}>다운로드</ChipLink>
-                  <ChipLink onClick={goQna}>QnA</ChipLink>
-                  <ChipLink onClick={goUpdates}>Updates</ChipLink>
+                  <ChipLink onClick={goMotionGuide}>{tf("hero.pills.0", "Motion Guide")}</ChipLink>
+                  <ChipLink onClick={goDownload}>{tf("hero.pills.1", "다운로드")}</ChipLink>
+                  <ChipLink onClick={goQna}>{tf("hero.pills.2", "QnA")}</ChipLink>
+                  <ChipLink onClick={goUpdates}>{tf("hero.pills.3", "Updates")}</ChipLink>
                 </div>
 
                 {/* CTA 버튼 */}
@@ -512,7 +512,7 @@ export default function Home() {
             </div>
           </Reveal>
 
-          {/* 다운로드(문구 과장 제거) */}
+          {/* 다운로드 */}
           <Reveal>
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 sm:p-7">
               <SectionTitle

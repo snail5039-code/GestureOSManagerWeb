@@ -27,7 +27,9 @@ export default function OAuth2Redirect() {
       }
 
       await setAccessToken(accessToken);
-      nav("/", { replace: true });
+
+      // ✅ 웹 홈 라우트로 통일
+      nav("/", { replace: true }); // 또는 "/home" 쓰면 그걸로 바꿔
     };
 
     run();
