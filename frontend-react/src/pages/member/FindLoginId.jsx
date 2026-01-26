@@ -1,8 +1,12 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { api } from "../../api/client";
 import { useModal } from "../../context/ModalContext";
 import { useTranslation } from "react-i18next";
+
+function cn(...xs) {
+  return xs.filter(Boolean).join(" ");
+}
 
 export default function FindLoginId() {
   const navigate = useNavigate();
@@ -13,32 +17,90 @@ export default function FindLoginId() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const ui = useMemo(() => {
+    const page =
+      "min-h-screen w-full flex items-center justify-center px-6 py-16 " +
+      "bg-slate-950 text-slate-100 " +
+      "bg-[radial-gradient(1200px_700px_at_20%_10%,rgba(16,185,129,0.12),transparent_60%),radial-gradient(900px_520px_at_80%_0%,rgba(34,211,238,0.10),transparent_55%),radial-gradient(900px_520px_at_50%_100%,rgba(99,102,241,0.08),transparent_55%)]";
+
+    const card =
+      "w-full max-w-xl rounded-2xl border border-slate-700/40 " +
+      "bg-slate-900/60 backdrop-blur-xl shadow-[0_20px_80px_rgba(0,0,0,0.55)] " +
+      "px-10 py-10";
+
+    const badge =
+      "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs " +
+      "border border-emerald-400/25 bg-emerald-400/10 text-emerald-200";
+
+    const title = "text-3xl font-extrabold tracking-tight text-slate-50";
+    const subtitle = "mt-2 text-sm text-slate-300/85";
+
+    const label = "mb-2 ml-0.5 block text-sm font-semibold text-slate-200/90";
+
+    const input =
+      "w-full rounded-xl bg-slate-950/40 border border-slate-700/60 " +
+      "px-4 py-3.5 text-slate-100 placeholder:text-slate-500 " +
+      "outline-none transition " +
+      "focus:border-emerald-400/70 focus:ring-2 focus:ring-emerald-400/25";
+
+    const primaryBtn =
+      "w-full rounded-xl py-3.5 font-extrabold tracking-wide " +
+      "bg-emerald-500 text-slate-950 " +
+      "shadow-[0_10px_30px_rgba(16,185,129,0.15)] " +
+      "hover:bg-emerald-400 active:scale-[0.99] transition " +
+      "disabled:opacity-60 disabled:cursor-not-allowed";
+
+    const secondaryBtn =
+      "w-full rounded-xl py-3.5 font-bold " +
+      "bg-slate-900/40 border border-slate-700/60 text-slate-200 " +
+      "hover:bg-slate-900/70 active:scale-[0.99] transition";
+
+    const link =
+      "text-sm font-semibold text-slate-200/85 underline-offset-4 " +
+      "hover:text-emerald-200 hover:underline transition";
+
+    const dividerDot = "h-1 w-1 rounded-full bg-slate-600/70";
+
+    return {
+      page,
+      card,
+      badge,
+      title,
+      subtitle,
+      label,
+      input,
+      primaryBtn,
+      secondaryBtn,
+      link,
+      dividerDot,
+    };
+  }, []);
+
   const handleFindLoginId = async () => {
-    if (!name.trim())
+    if (!name.trim()) {
       return showModal({
         title: t("member:findLoginId.modal.inputError"),
         message: t("member:findLoginId.modal.needName"),
         type: "warning",
       });
+    }
 
-    if (!email.trim())
+    if (!email.trim()) {
       return showModal({
         title: t("member:findLoginId.modal.inputError"),
         message: t("member:findLoginId.modal.needEmail"),
         type: "warning",
       });
+    }
 
     setLoading(true);
     try {
-      const response = await api.post("/members/findLoginId", { name, email });
-      const { message, loginId } = response.data;
+      // 서버 응답에 loginId가 와도 "이메일로 안내 전송"만 안내
+      await api.post("/members/findLoginId", { name, email });
 
       showModal({
         title: t("member:findLoginId.modal.successTitle"),
-        message: t("member:findLoginId.modal.successMessage", {
-          message,
-          loginId,
-        }),
+        message: "입력하신 이메일로 안내를 전송했습니다.",
         type: "success",
         onClose: () => navigate("/login"),
       });
@@ -57,49 +119,42 @@ export default function FindLoginId() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center py-20 px-6">
-      <div className="w-full max-w-xl bg-white rounded-[3rem] p-12 shadow-2xl border border-slate-100 animate-scale-in">
-        <div className="text-center mb-12">
-          <div className="w-20 h-20 bg-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-indigo-100 rotate-3">
-            <svg
-              className="w-10 h-10 text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2.5}
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-              />
-            </svg>
-          </div>
+    <div className={ui.page}>
+      <div className={ui.card}>
+        <div className="mb-8 flex items-center justify-between gap-3">
+          <Link
+            to="/login"
+            className="text-xs font-semibold text-slate-300/85 hover:text-slate-100 transition"
+          >
+            ← 로그인으로
+          </Link>
 
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">
-            {t("member:findLoginId.title")}
-          </h1>
-          <p className="text-slate-400 mt-3 font-bold">
-            {t("member:findLoginId.subtitle")}
-          </p>
+          <span className={ui.badge}>
+            <span className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_18px_rgba(16,185,129,0.85)]" />
+            Secure Access
+          </span>
+        </div>
+
+        <div className="mb-10">
+          <h1 className={ui.title}>{t("member:findLoginId.title")}</h1>
+          <p className={ui.subtitle}>{t("member:findLoginId.subtitle")}</p>
         </div>
 
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-black text-slate-700 mb-2 ml-1">
-              {t("member:findLoginId.field.name")}
-            </label>
+            <label className={ui.label}>{t("member:findLoginId.field.name")}</label>
             <input
               type="text"
               placeholder={t("member:findLoginId.placeholder.name")}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all placeholder-slate-300 font-bold"
+              className={ui.input}
+              autoComplete="name"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-black text-slate-700 mb-2 ml-1">
+            <label className={ui.label}>
               {t("member:findLoginId.field.email")}
             </label>
             <input
@@ -107,41 +162,33 @@ export default function FindLoginId() {
               placeholder={t("member:findLoginId.placeholder.email")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all placeholder-slate-300 font-bold"
+              className={ui.input}
+              autoComplete="email"
             />
           </div>
 
-          <div className="pt-6 flex flex-col gap-4">
+          <div className="pt-2 space-y-3">
             <button
               onClick={handleFindLoginId}
               disabled={loading}
-              className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all disabled:opacity-60 active:scale-95"
+              className={ui.primaryBtn}
             >
               {loading
                 ? t("member:findLoginId.btn.loading")
                 : t("member:findLoginId.btn.submit")}
             </button>
 
-            <button
-              onClick={() => navigate(-1)}
-              className="w-full py-5 bg-white border border-slate-200 text-slate-600 rounded-2xl font-black hover:bg-slate-50 transition-all active:scale-95"
-            >
+            <button onClick={() => navigate(-1)} className={ui.secondaryBtn}>
               {t("member:findLoginId.btn.back")}
             </button>
           </div>
 
-          <div className="text-center pt-4 flex items-center justify-center gap-6 text-sm font-bold text-slate-400">
-            <Link
-              to="/findLoginPw"
-              className="hover:text-indigo-600 transition-colors"
-            >
+          <div className="pt-2 flex items-center justify-center gap-5">
+            <Link to="/findLoginPw" className={ui.link}>
               {t("member:findLoginId.link.findPw")}
             </Link>
-            <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
-            <Link
-              to="/login"
-              className="hover:text-indigo-600 transition-colors"
-            >
+            <span className={ui.dividerDot} />
+            <Link to="/login" className={ui.link}>
               {t("member:findLoginId.link.login")}
             </Link>
           </div>

@@ -12,43 +12,45 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Member {
 
-	private Integer id;
-	@NotBlank(message = "아이디 필수")
-	private String loginId;
+    private Integer id;
 
-	@NotBlank(message = "비밀번호 필수")
-	private String loginPw;
-	private String regDate;
-	private String updateDate;
-	@NotBlank(message = "이름 필수")
-	private String name;
+    @NotBlank(message = "아이디 필수")
+    private String loginId;
 
-	@NotBlank(message = "이메일 필수")
-	@Email(message = "이메일 형식이 아님")
-	private String email;
+    @NotBlank(message = "비밀번호 필수")
+    private String loginPw;
 
-	@NotNull(message = "국적 선택 필수")
-	private Integer countryId;
-	private String provider;
-	private String providerKey;
+    private String regDate;
+    private String updateDate;
 
-	private String role;
+    @NotBlank(message = "이름 필수")
+    private String name;
 
-	private String nickname;
-	private String nicknameUpdatedAt;
-	
-	private String profileImageUrl;
+    @NotBlank(message = "이메일 필수")
+    @Email(message = "이메일 형식이 아님")
+    private String email;
 
-	public String getProfileImageUrl() { return profileImageUrl; }
-	public void setProfileImageUrl(String profileImageUrl) { this.profileImageUrl = profileImageUrl; }
+    @NotNull(message = "국적 선택 필수")
+    private Integer countryId;
 
-	private boolean resetProfileImage;
+    private String provider;
+    private String providerKey;
 
-	public boolean isResetProfileImage() {
-	    return resetProfileImage;
-	}
-	public void setResetProfileImage(boolean resetProfileImage) {
-	    this.resetProfileImage = resetProfileImage;
-	}
+    private String role;
 
+    private String nickname;
+    private String nicknameUpdatedAt;
+
+    private String profileImageUrl;
+
+    /**
+     * ✅ 프로필 이미지 리셋 플래그
+     * - null: 프론트에서 안 보낸 경우(기본 false로 취급)
+     * - true: 프로필 이미지 제거
+     * - false: 유지
+     *
+     * Lombok(@Data)이 getResetProfileImage()/setResetProfileImage(Boolean) 자동 생성.
+     * ❌ 직접 isResetProfileImage() 같은 메서드 만들면 MyBatis가 ambiguous getter로 터질 수 있음.
+     */
+    private Boolean resetProfileImage;
 }

@@ -36,7 +36,6 @@ export default function Login() {
 
       const res = await api.post("/members/login", { loginId: i, loginPw: p });
 
-      // validateStatus 등으로 401도 resolve 되는 케이스 방어
       if (!res || res.status < 200 || res.status >= 300) {
         const e = new Error("HTTP_ERROR");
         e.response = res;
@@ -55,6 +54,7 @@ export default function Login() {
         throw e;
       }
 
+      // ✅ 핵심: 토큰 저장 + /members/me까지 안정적으로 로드
       await loginWithToken(token);
 
       showModal({
@@ -68,7 +68,6 @@ export default function Login() {
 
       const status = err?.response?.status;
 
-      // 유저 노출 문구는 상태코드 기반으로 고정
       const errorMsg =
         status === 401
           ? t("member:login.modal.fail401")
@@ -107,7 +106,6 @@ export default function Login() {
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--border)] px-3 py-1 text-xs text-[var(--muted)]">
                 {t("member:login.badge")}
               </div>
-              {/* ✅ text-white → var(--text-strong) */}
               <h1 className="text-3xl tracking-tight text-[color:var(--text-strong)]">
                 {t("member:login.title")}
               </h1>
@@ -145,7 +143,6 @@ export default function Login() {
 
               <div className="flex items-center justify-between text-xs text-[var(--muted)]">
                 <div className="flex gap-3">
-                  {/* ✅ hover:text-white → hover:text var(--text) */}
                   <Link to="/findLoginId" className="hover:text-[color:var(--text)] transition-colors">
                     {t("member:login.link.findId")}
                   </Link>
@@ -170,7 +167,6 @@ export default function Login() {
 
           <div className="rounded-[2.5rem] border border-[var(--border)] bg-[var(--surface)] p-10 shadow-[0_20px_45px_rgba(6,12,26,0.55)]">
             <div className="mb-6">
-              {/* ✅ text-white → var(--text-strong) */}
               <h2 className="text-lg text-[color:var(--text-strong)]">{t("member:social.title")}</h2>
               <p className="mt-2 text-sm text-[var(--muted)]">{t("member:social.subtitle")}</p>
             </div>

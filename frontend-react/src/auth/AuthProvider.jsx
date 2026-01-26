@@ -6,6 +6,7 @@ import React, {
   useMemo,
   useState,
   useCallback,
+  useRef,
 } from "react";
 import { api, attachInterceptors } from "../api/client";
 
@@ -26,29 +27,41 @@ export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ 토큰을 state로 들고 간다 (항상 최신)
+  // ✅ UI 리렌더용 state
   const [token, setTokenState] = useState(() => readTokenFromStorage());
+  // ✅ 즉시 반영(레이스 방지)용 ref
+  const tokenRef = useRef(readTokenFromStorage());
 
-  const setToken = useCallback((t) => {
-    const v = String(t || "");
-    setTokenState(v);
-
-    // 저장소에도 동기화 (네 프로젝트 방식대로 localStorage 유지)
-    if (v) localStorage.setItem("accessToken", v);
-    else localStorage.removeItem("accessToken");
-
-    // ✅ axios 기본 헤더에도 즉시 반영 (첫 요청부터 안전)
-    if (v) api.defaults.headers.common.Authorization = `Bearer ${v}`;
+  const applyAxiosAuth = useCallback((t) => {
+    if (t) api.defaults.headers.common.Authorization = `Bearer ${t}`;
     else delete api.defaults.headers.common.Authorization;
   }, []);
 
-  // 초기 토큰이 있으면 defaults에 박아두기
-  useEffect(() => {
-    if (token) api.defaults.headers.common.Authorization = `Bearer ${token}`;
-    else delete api.defaults.headers.common.Authorization;
-  }, [token]);
+  // ✅ setToken은 "ref 먼저" 갱신해서 그 순간부터 요청에 토큰이 붙게 한다
+  const setToken = useCallback(
+    (t) => {
+      const v = String(t || "");
 
-  const getToken = useCallback(() => token, [token]);
+      tokenRef.current = v;     // ✅ 즉시 반영
+      setTokenState(v);         // UI 반영
+
+      if (v) localStorage.setItem("accessToken", v);
+      else localStorage.removeItem("accessToken");
+
+      // (기존에 쓰던 다른 키들 정리)
+      if (!v) {
+        localStorage.removeItem("token");
+        sessionStorage.removeItem("accessToken");
+        sessionStorage.removeItem("token");
+      }
+
+      applyAxiosAuth(v);
+    },
+    [applyAxiosAuth]
+  );
+
+  // ✅ 인터셉터가 참조할 토큰은 ref 기반으로 제공
+  const getToken = useCallback(() => tokenRef.current, []);
 
   const logout = useCallback(async () => {
     try {
@@ -57,24 +70,28 @@ export default function AuthProvider({ children }) {
       console.warn("logout api failed", e);
     } finally {
       setToken("");
-      localStorage.removeItem("token");
-      sessionStorage.removeItem("accessToken");
-      sessionStorage.removeItem("token");
       setUser(null);
     }
   }, [setToken]);
 
-  // ✅ 인터셉터는 렌더 직후 최대한 빨리
+  // ✅ 앱 부팅 시: 저장소 토큰을 axios defaults에 먼저 반영
+  useEffect(() => {
+    const t = tokenRef.current;
+    applyAxiosAuth(t);
+  }, [applyAxiosAuth]);
+
+  // ✅ 인터셉터는 최대한 빠르게 장착
   useLayoutEffect(() => {
     const detach = attachInterceptors(getToken, logout, {
       debug: true, // 확인 끝나면 false로
       logoutOn401: true,
+      // /members/me는 로그인 직후 최초 조회라 401이면 logout이 과하게 동작할 수 있어서 제외해둠
       ignore401Paths: ["/auth/logout", "/auth/refresh", "/members/me"],
     });
     return detach;
   }, [getToken, logout]);
 
-  // 앱 시작 시: 토큰 있으면 내 정보 로딩
+  // ✅ 앱 시작 시: 토큰 있으면 내 정보 로딩
   useEffect(() => {
     const boot = async () => {
       const t = getToken();
@@ -94,11 +111,17 @@ export default function AuthProvider({ children }) {
     boot();
   }, [getToken, logout]);
 
-  // 로그인 성공 시 호출할 함수
+  // ✅ 로그인 성공 시 호출
+  // - ref에 즉시 토큰 반영(setToken)
+  // - /members/me는 혹시라도 인터셉터/타이밍 영향 없도록 토큰을 "명시적으로" 헤더로도 한번 더 보장
   const loginWithToken = useCallback(
     async (t) => {
       setToken(t);
-      const res = await api.get("/members/me");
+
+      const res = await api.get("/members/me", {
+        headers: { Authorization: `Bearer ${String(t || "")}` },
+      });
+
       setUser(res.data.user);
     },
     [setToken]

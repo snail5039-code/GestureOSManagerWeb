@@ -1,3 +1,4 @@
+// src/pages/board/Board.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
@@ -66,6 +67,7 @@ export default function Board() {
   const { t } = useTranslation("board");
   const { showModal } = useModal();
   const { user } = useAuth();
+
   const [searchParams, setSearchParams] = useSearchParams();
   const typeParam = searchParams.get("type");
   const initialBoardId = resolveBoardId(typeParam);
@@ -189,9 +191,14 @@ export default function Board() {
     return date.toLocaleDateString(undefined, { year: "numeric", month: "2-digit", day: "2-digit" });
   };
 
+  // ✅ 로그인 체크 + 관리자 체크
+  const isLoggedIn = Boolean(user?.id); // AuthProvider에서 user에 id가 없으면 Boolean(user)로 바꿔도 됨
   const role = typeof user?.role === "string" ? user.role : "";
   const isAdmin = role.toLowerCase().includes("admin") || role.includes("관리자");
-  const canWrite = boardId !== 1 || isAdmin;
+
+  // ✅ 비로그인: 글쓰기 버튼 숨김
+  // ✅ 공지(boardId=1): 관리자만 글쓰기
+  const canWrite = isLoggedIn && (boardId !== 1 || isAdmin);
 
   const boardLabel = (id) => {
     const key = BOARD_TYPES.find((b) => b.id === id)?.key;

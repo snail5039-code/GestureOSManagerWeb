@@ -248,11 +248,29 @@ public class MemberController {
 
 	@PostMapping(value = "/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public Map<String, Object> uploadProfileImage(@RequestPart("file") MultipartFile file, Authentication auth) {
-		if (auth == null)
+		if (auth == null) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인 필요");
+		}
 		Integer memberId = (Integer) auth.getPrincipal();
 
-		String url = memberService.updateProfileImage(memberId, file); // ✅ 서비스로
+		// ✅ 컨트롤러에서도 1차 방어(서비스까지 안 가게)
+		if (file == null || file.isEmpty()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일이 없습니다.");
+		}
+
+		// ✅ 3MB 초과면 413 + FILE_TOO_LARGE로 프론트가 잡을 수 있게
+		final long MAX = 3L * 1024 * 1024;
+		if (file.getSize() > MAX) {
+			throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "3MB 이하로 업로드해 주세요.");
+		}
+
+		String contentType = file.getContentType();
+		if (contentType == null || !contentType.startsWith("image/")) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미지 파일만 업로드할 수 있습니다.");
+		}
+
+		String url = memberService.updateProfileImage(memberId, file);
 		return Map.of("url", url);
 	}
+
 }

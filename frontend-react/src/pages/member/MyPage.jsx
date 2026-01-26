@@ -1,3 +1,4 @@
+// src/pages/member/MyPage.jsx
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/client";
@@ -9,12 +10,17 @@ import FilePicker from "../../components/common/FilePicker";
 
 import defaultAvatar from "../../assets/default-avatar.png";
 
-// ✅ 서버 오리진 (Vite 기준)
-// .env에 VITE_API_ORIGIN=http://localhost:8082 넣어두면 더 좋음
 const API_ORIGIN =
   import.meta.env?.VITE_API_ORIGIN ||
   import.meta.env?.VITE_API_URL ||
   window.location.origin;
+
+// ✅ 업로드 제한(3MB)
+const MAX_PROFILE_BYTES = 3 * 1024 * 1024;
+
+function bytesToMB(bytes) {
+  return (bytes / 1024 / 1024).toFixed(2);
+}
 
 /**
  * member.profileImageUrl 이
@@ -78,7 +84,7 @@ export default function MyPage() {
   // ✅ 저장 직후 캐시 방지용
   const [profileBust, setProfileBust] = useState(String(Date.now()));
 
-  // revoke용 ref (렌더 타이밍 꼬임 방지)
+  // revoke용 ref
   const previewRef = useRef("");
 
   useEffect(() => {
@@ -240,9 +246,7 @@ export default function MyPage() {
     if (!nickname || nickname === (data.member.nickname || "")) return;
 
     try {
-      const res = await api.get(
-        `/members/checkNickname?nickname=${encodeURIComponent(nickname)}`
-      );
+      const res = await api.get(`/members/checkNickname?nickname=${encodeURIComponent(nickname)}`);
       if (res.data?.result === "fail") {
         setNicknameMsg({
           text: t("member:mypage.nicknameDuplicate"),
@@ -333,12 +337,35 @@ export default function MyPage() {
     }
   };
 
-  // ✅ 이미지 선택/미리보기
-  const handlePickProfile = (e) => {
-    const file = e.target.files?.[0];
+  // ✅ 이미지 선택/미리보기 (+ 3MB 초과 시 모달)
+  const handlePickProfile = (payload) => {
+    let file = null;
+
+    // (1) native input change event
+    if (payload?.target?.files?.[0]) {
+      file = payload.target.files[0];
+    }
+    // (2) File directly
+    else if (payload instanceof File) {
+      file = payload;
+    }
+    // (3) FileList or wrapper
+    else if (payload?.files?.[0] instanceof File) {
+      file = payload.files[0];
+    } else if (payload?.file instanceof File) {
+      file = payload.file;
+    }
+
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
+    // 같은 파일 재선택 가능하게 input value 리셋(이벤트일 때만)
+    try {
+      if (payload?.target) payload.target.value = "";
+    } catch {
+      // ignore
+    }
+
+    if (!file.type?.startsWith("image/")) {
       showModal({
         title: t("member:mypage.modal.uploadFailTitle"),
         message: t("member:mypage.modal.uploadOnlyImage"),
@@ -347,11 +374,12 @@ export default function MyPage() {
       return;
     }
 
-    if (file.size > 3 * 1024 * 1024) {
+    // ✅ 3MB 초과면 모달 띄우고 업로드/미리보기 막음
+    if (file.size > MAX_PROFILE_BYTES) {
       showModal({
         title: t("member:mypage.modal.uploadFailTitle"),
         message: t("member:mypage.modal.uploadMaxSize"),
-        type: "error",
+        type: "error", // ✅ warning 말고 error
       });
       return;
     }
@@ -389,14 +417,23 @@ export default function MyPage() {
     };
   }, []);
 
-  // ✅ 업로드 API 호출: 응답키가 url/profileImageUrl 둘 다 가능하게
+  // ✅ 업로드 API 호출
+  // ✅ 중요: multipart/form-data 헤더를 수동 지정하지 말 것(axios가 boundary 자동 설정)
   const uploadProfileImage = async (file) => {
+    // ✅ 방어: 선택 단계가 씹혀도 업로드 단계에서 하드 차단
+    if (file?.size > MAX_PROFILE_BYTES) {
+      showModal({
+        title: t("member:mypage.modal.uploadFailTitle"),
+        message: `${t("member:mypage.modal.uploadMaxSize")} (선택한 파일: ${bytesToMB(file.size)}MB)`,
+        type: "error",
+      });
+      throw new Error("FILE_TOO_LARGE");
+    }
+
     const fd = new FormData();
     fd.append("file", file);
 
-    const res = await api.post("/members/profile-image", fd, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    const res = await api.post("/members/profile-image", fd);
 
     const url = res.data?.url ?? res.data?.profileImageUrl ?? res.data?.data?.url;
     if (!url) throw new Error("NO_PROFILE_URL");
@@ -406,6 +443,16 @@ export default function MyPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!data?.member) return;
+
+    // ✅ 저장 시점에서도 3MB 하드 차단 (여기가 핵심)
+    if (profileFile && profileFile.size > MAX_PROFILE_BYTES) {
+      showModal({
+        title: t("member:mypage.modal.uploadFailTitle"),
+        message: t("member:mypage.modal.uploadMaxSize"),
+        type: "error",
+      });
+      return;
+    }
 
     if (editForm.loginPw && editForm.loginPw !== editForm.loginPwConfirm) {
       showModal({
@@ -434,15 +481,10 @@ export default function MyPage() {
       return;
     }
 
-    if (
-      editForm.nickname !== (data.member.nickname || "") &&
-      !data.nicknameChangeAllowed
-    ) {
+    if (editForm.nickname !== (data.member.nickname || "") && !data.nicknameChangeAllowed) {
       showModal({
         title: t("member:mypage.modal.inputErrorTitle"),
-        message: `${t("member:mypage.nicknameLimit")}\n${t(
-          "member:mypage.nextChangeDate"
-        )}: ${data.nextNicknameChangeDate}`,
+        message: `${t("member:mypage.nicknameLimit")}\n${t("member:mypage.nextChangeDate")}: ${data.nextNicknameChangeDate}`,
         type: "warning",
       });
       return;
@@ -460,9 +502,7 @@ export default function MyPage() {
 
       // 2) 업데이트 payload 만들기 (countryId 빈 값 방어)
       const nextCountryId =
-        editForm.countryId === "" || editForm.countryId == null
-          ? null
-          : Number(editForm.countryId);
+        editForm.countryId === "" || editForm.countryId == null ? null : Number(editForm.countryId);
 
       const updateData = {
         id: data.member.id,
@@ -480,13 +520,7 @@ export default function MyPage() {
       // ✅ 화면 즉시 반영
       setData((prev) => {
         if (!prev?.member) return prev;
-        return {
-          ...prev,
-          member: {
-            ...prev.member,
-            ...updateData,
-          },
-        };
+        return { ...prev, member: { ...prev.member, ...updateData } };
       });
 
       showModal({
@@ -506,6 +540,21 @@ export default function MyPage() {
       await fetchData();
     } catch (e2) {
       console.error(e2);
+
+      // FILE_TOO_LARGE는 이미 모달 띄웠으니 조용히 종료
+      if (String(e2?.message || "").includes("FILE_TOO_LARGE")) return;
+
+      // ✅ 서버가 용량 초과를 500으로 뭉개서 보내는 경우까지 프론트에서 문구 교체(보험)
+      const rawMsg = String(e2?.response?.data?.message || e2?.message || "");
+      if (/maxuploadsize|too large|payload|multipart/i.test(rawMsg)) {
+        showModal({
+          title: t("member:mypage.modal.uploadFailTitle"),
+          message: t("member:mypage.modal.uploadMaxSize"),
+          type: "error",
+        });
+        return;
+      }
+
       showModal({
         title: t("member:mypage.modal.updateFailTitle"),
         message: e2.response?.data?.message || t("member:mypage.errors.updateFail"),
@@ -514,7 +563,6 @@ export default function MyPage() {
     }
   };
 
-  // ✅ Hook은 return보다 위에서 항상 호출되게!
   const memberProfileUrl = data?.member?.profileImageUrl;
 
   const displayProfileSrc = useMemo(() => {
@@ -631,7 +679,6 @@ export default function MyPage() {
               className="mt-12 pt-12 border-t border-[var(--border)] space-y-8 animate-scale-in"
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* ✅ 프로필 사진 변경 UI */}
                 <div className="md:col-span-2">
                   <label className="block text-sm font-black text-[color:var(--text)] mb-2 ml-1">
                     {t("member:mypage.profile.label")}
@@ -691,6 +738,10 @@ export default function MyPage() {
                           {t("member:mypage.profile.willRevertDefault")}
                         </p>
                       )}
+
+                      <p className="text-[11px] font-bold text-[var(--muted)]">
+                        최대 3MB 이미지 파일만 업로드 가능합니다.
+                      </p>
                     </div>
                   </div>
                 </div>

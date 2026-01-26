@@ -11,7 +11,9 @@ const CHIPS_DEFAULT_HEIGHT = 140;
 export default function ChatWidget() {
   const { t, i18n, ready } = useTranslation("chat");
 
-  const [open, setOpen] = useState(true);
+  // ✅ 처음 로드시 닫힌 상태로 시작
+  const [open, setOpen] = useState(false);
+
   const [isChipsCollapsed, setIsChipsCollapsed] = useState(false);
   const [chipsHeight, setChipsHeight] = useState(CHIPS_DEFAULT_HEIGHT);
   const dragState = useRef({
@@ -198,10 +200,7 @@ export default function ChatWidget() {
         { role: "assistant", type: "cards", matched },
       ]);
     } catch (e) {
-      setMessages((m) => [
-        ...m,
-        { role: "assistant", type: "text", text: t("fail") },
-      ]);
+      setMessages((m) => [...m, { role: "assistant", type: "text", text: t("fail") }]);
     }
   };
 

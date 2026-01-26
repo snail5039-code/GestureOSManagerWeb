@@ -15,6 +15,12 @@ spring:
       schema-locations: classpath:schema.sql
       data-locations: classpath:data.sql
 
+  # ✅ 여기 추가: 업로드 제한(3MB)
+  servlet:
+    multipart:
+      max-file-size: 3MB
+      max-request-size: 3MB
+
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
@@ -35,7 +41,6 @@ spring:
             client-id: ${OAUTH_GOOGLE_CLIENT_ID:}
             client-secret: ${OAUTH_GOOGLE_CLIENT_SECRET:}
             scope: [ email, profile ]
-            # ✅ 포트/호스트 바뀌어도 자동 반영
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
 
           kakao:
