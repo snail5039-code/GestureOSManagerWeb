@@ -11,35 +11,36 @@
     "keyboard": "Keyboard",
     "virtualKeyboard": "Virtual Keyboard",
     "draw": "Draw",
-    "presentation": "PPT"
+    "presentation": "PPT",
+    "mobile": "Mobile"
   },
   "list": {
     "title": "Action List",
-    "desc": "Check the supported gestures by mode, and click an item to see the detailed description.",
+    "desc": "Check supported gestures by mode, and click an item to view details.",
     "searchPlaceholder": "Search: pinch, right click, drag, F5 ...",
     "badge": "ACTIVE",
     "empty": "No actions match your criteria."
   },
   "detail": {
     "title": "Action Details",
-    "selectHint": "Select an action on the left to see its details.",
+    "selectHint": "Select an action on the left to see detailed instructions.",
     "sections": {
       "summary": "Summary",
       "trigger": "Trigger",
       "action": "Result",
-      "howTo": "How to Perform",
-      "tips": "Recognition Tips",
-      "pitfalls": "Common Failures"
+      "howTo": "How to",
+      "tips": "Tips",
+      "pitfalls": "Common fails"
     },
-    "imageAlt": "Gesture description image"
+    "imageAlt": "Gesture explanation image"
   },
   "caution": {
-    "title": "Caution",
+    "title": "Cautions",
     "items": [
-      "Recognition may be reduced in low light.",
+      "Recognition accuracy decreases in low light.",
       "Keep your hands within the camera frame.",
-      "Perform motions slowly and with clear, large movements.",
-      "Combination gestures must be held at the same time to be recognized."
+      "Perform motions slowly and with larger movements.",
+      "For combo gestures, keep them held simultaneously to be recognized."
     ]
   },
   "gestures": [
@@ -47,15 +48,15 @@
       "id": "mouse_open_palm_move",
       "mode": "mouse",
       "name": "OPEN_PALM",
-      "summary": "Move Cursor",
+      "summary": "Move cursor",
       "trigger": "One-hand OPEN_PALM",
       "action": "Move mouse cursor",
       "howTo": [
         "Face your palm toward the camera",
-        "Move slowly near the center of the frame"
+        "Move slowly around the center of the frame"
       ],
       "tips": [
-        "Moving smoothly with your whole arm improves stability."
+        "Moving your whole arm smoothly is more stable."
       ],
       "pitfalls": [
         "If your hand leaves the frame, the cursor may stop."
@@ -69,18 +70,18 @@
       "id": "mouse_pinch_click_drag",
       "mode": "mouse",
       "name": "PINCH",
-      "summary": "Left Click / Drag",
+      "summary": "Left click / drag",
       "trigger": "Thumb + index PINCH",
-      "action": "Short: Left click / Hold: Drag",
+      "action": "Short: left click / Hold: drag",
       "howTo": [
-        "Pinch firmly with your thumb and index finger",
+        "Pinch your thumb and index finger firmly",
         "Hold longer to drag"
       ],
       "tips": [
         "Don’t move too fast while dragging."
       ],
       "pitfalls": [
-        "A weak PINCH may cause missed clicks."
+        "If the pinch is weak, clicks may be missed."
       ],
       "media": {
         "thumb": "/motion/pinch.png",
@@ -91,14 +92,14 @@
       "id": "mouse_v_right_click",
       "mode": "mouse",
       "name": "V",
-      "summary": "Right Click",
-      "trigger": "Index + middle finger V",
+      "summary": "Right click",
+      "trigger": "Index + middle in V",
       "action": "Right click",
       "howTo": [
-        "Spread your index and middle fingers to form a V shape"
+        "Spread your index and middle finger to make a V"
       ],
       "tips": [
-        "Keeping a wider V angle improves recognition."
+        "A wider V angle improves recognition."
       ],
       "pitfalls": [
         "If fingers overlap, recognition may become unstable."
@@ -113,12 +114,12 @@
       "id": "keyboard_fist_left",
       "mode": "keyboard",
       "name": "FIST",
-      "summary": "Arrow Key Move (←)",
+      "summary": "Arrow move (←)",
       "trigger": "One-hand FIST",
       "action": "Left",
       "howTo": [
-        "Keep a clear fist shape",
-        "Position your hand near the center of the frame"
+        "Hold a clear fist",
+        "Keep your hand near the center of the frame"
       ],
       "tips": [
         "Recognition is more stable when fingers are fully folded."
@@ -135,14 +136,14 @@
       "id": "keyboard_v_right",
       "mode": "keyboard",
       "name": "V",
-      "summary": "Arrow Key Move (→)",
+      "summary": "Arrow move (→)",
       "trigger": "One-hand V",
       "action": "Right",
       "howTo": [
-        "Spread your index and middle fingers to form a V shape"
+        "Spread your index and middle finger to make a V"
       ],
       "tips": [
-        "Keep a wide V angle."
+        "Keep the V angle wide."
       ],
       "pitfalls": [
         "If the angle is too narrow, it may be misrecognized as PINCH."
@@ -156,17 +157,17 @@
       "id": "keyboard_open_palm_down",
       "mode": "keyboard",
       "name": "OPEN_PALM",
-      "summary": "Arrow Key Move (↓)",
+      "summary": "Arrow move (↓)",
       "trigger": "One-hand OPEN_PALM",
       "action": "Down",
       "howTo": [
         "Keep your palm open"
       ],
       "tips": [
-        "Don’t move too close to the camera."
+        "Don’t place your hand too close to the camera."
       ],
       "pitfalls": [
-        "If your fingers bend, recognition may become unstable."
+        "If fingers bend, recognition may become unstable."
       ],
       "media": {
         "thumb": "/motion/open_palm.png",
@@ -177,11 +178,11 @@
       "id": "keyboard_pinch_up",
       "mode": "keyboard",
       "name": "PINCH",
-      "summary": "Arrow Key Move (↑)",
+      "summary": "Arrow move (↑)",
       "trigger": "Thumb + index PINCH",
       "action": "Up",
       "howTo": [
-        "Pinch firmly with your thumb and index finger"
+        "Pinch your thumb and index finger firmly"
       ],
       "tips": [
         "Hold the pinch for at least 0.2 seconds."
@@ -202,13 +203,13 @@
       "trigger": "FIST while holding PINCH",
       "action": "Backspace",
       "howTo": [
-        "Make a fist while maintaining PINCH"
+        "Make a fist while keeping PINCH held"
       ],
       "tips": [
         "Both gestures must be held at the same time."
       ],
       "pitfalls": [
-        "If performed sequentially, it may be recognized as a single gesture."
+        "If done sequentially, it may be recognized as a single gesture."
       ],
       "media": {
         "thumb": "/motion/pinch_fist.png",
@@ -223,10 +224,10 @@
       "trigger": "OPEN_PALM while holding PINCH",
       "action": "Space",
       "howTo": [
-        "Open your palm while maintaining PINCH"
+        "Open your palm while keeping PINCH held"
       ],
       "tips": [
-        "Keep the hand shape large and clear."
+        "Keep your hand shape large and clear."
       ],
       "pitfalls": [
         "If fingers fold, only PINCH may be recognized."
@@ -241,16 +242,16 @@
       "mode": "keyboard",
       "name": "PINCH + PINCH",
       "summary": "Enter",
-      "trigger": "PINCH combination",
+      "trigger": "PINCH combo",
       "action": "Enter",
       "howTo": [
         "Hold the PINCH state firmly"
       ],
       "tips": [
-        "Apply a clearly noticeable pinch pressure."
+        "Make the pinch clearly with stronger contact."
       ],
       "pitfalls": [
-        "If too weak, it may be treated as a single PINCH."
+        "If weak, it may be handled as a single PINCH."
       ],
       "media": {
         "thumb": "/motion/pinchs.png",
@@ -265,13 +266,13 @@
       "trigger": "V while holding PINCH",
       "action": "ESC",
       "howTo": [
-        "Make a V gesture while maintaining PINCH"
+        "Make a V gesture while keeping PINCH held"
       ],
       "tips": [
-        "Keep a wide V angle."
+        "Keep the V angle wide."
       ],
       "pitfalls": [
-        "If timing is off, it may be recognized as a direction input."
+        "If timing is off, it may be recognized as directional input."
       ],
       "media": {
         "thumb": "/motion/pinch_v.png",
@@ -283,20 +284,20 @@
       "id": "keyboard_left_fist_right_open_palm_move",
       "mode": "keyboard",
       "name": "LEFT FIST + RIGHT OPEN_PALM",
-      "summary": "Move Cursor",
+      "summary": "Move cursor",
       "trigger": "Hold left-hand FIST + move right-hand OPEN_PALM",
       "action": "Move cursor",
       "howTo": [
-        "Keep your left hand in a clear FIST continuously",
-        "Open your right hand (OPEN_PALM) and move it slowly as if moving the cursor",
+        "Keep your left hand in a fist (FIST) continuously",
+        "Open your right hand (OPEN_PALM) and move it slowly like moving a cursor",
         "Keep both hands within the camera frame"
       ],
       "tips": [
-        "Keeping the left-hand FIST firmly helps the right-hand movement stay stable.",
-        "Move smoothly with your whole arm rather than only your wrist."
+        "Keep the left FIST firmly to stabilize right-hand movement recognition.",
+        "Move your whole arm smoothly rather than just your wrist."
       ],
       "pitfalls": [
-        "If the left-hand FIST loosens, cursor movement may stop or cancel.",
+        "If the left FIST releases, cursor movement may stop or disengage.",
         "If either hand leaves the frame, recognition may be canceled."
       ],
       "media": {
@@ -312,17 +313,17 @@
       "trigger": "Hold left-hand FIST + right-hand PINCH",
       "action": "Left Click",
       "howTo": [
-        "Keep your left hand in a clear FIST",
-        "Pinch clearly and briefly with your right thumb and index finger (PINCH)",
+        "Keep your left hand in a fist (FIST)",
+        "Pinch your right thumb and index briefly and clearly (PINCH)",
         "After clicking, relax your hand naturally"
       ],
       "tips": [
-        "A short and clear PINCH is best for clicking.",
-        "Make sure the fingertips touch clearly during the PINCH."
+        "A short, clear pinch works best for clicks.",
+        "Make sure fingertip contact is obvious on the right-hand pinch."
       ],
       "pitfalls": [
-        "If the left-hand FIST loosens, the click may be missed.",
-        "If the PINCH is weak or released too quickly, it may not be recognized."
+        "If the left FIST releases, clicks may be missed.",
+        "If PINCH is weak or released too quickly, it may not be recognized."
       ],
       "media": {
         "thumb": "/motion/pinch_fist.png",
@@ -334,15 +335,15 @@
       "id": "virtual_keyboard_fist_toggle",
       "mode": "virtualKeyboard",
       "name": "FIST",
-      "summary": "Open / Close Virtual Keyboard",
+      "summary": "Open / close virtual keyboard",
       "trigger": "One-hand FIST",
       "action": "Toggle virtual keyboard",
       "howTo": [
-        "Keep a clear fist shape",
-        "Hold for at least 0.3 seconds to be recognized"
+        "Hold a clear fist",
+        "Recognized when held for 0.3s or more"
       ],
       "tips": [
-        "Recognition is more stable when fingers are fully folded."
+        "More stable when fingers are fully folded."
       ],
       "pitfalls": [
         "A half-closed hand may be misrecognized as another gesture."
@@ -356,18 +357,18 @@
       "id": "virtual_keyboard_pinch_click",
       "mode": "virtualKeyboard",
       "name": "PINCH",
-      "summary": "Key Click",
+      "summary": "Key press",
       "trigger": "Thumb + index PINCH",
-      "action": "Virtual keyboard key input",
+      "action": "Type on virtual keyboard",
       "howTo": [
-        "Pinch firmly with your thumb and index finger",
+        "Pinch your thumb and index finger firmly",
         "PINCH over the selected key"
       ],
       "tips": [
-        "Keep the PINCH short and clear."
+        "Keep the pinch short and clear"
       ],
       "pitfalls": [
-        "A weak pinch may cause missed inputs."
+        "If the pinch is weak, input may be missed."
       ],
       "media": {
         "thumb": "/motion/pinch.png",
@@ -379,21 +380,21 @@
       "id": "draw_pinch_pen",
       "mode": "draw",
       "name": "PINCH",
-      "summary": "Start / Stop Drawing",
+      "summary": "Start / stop drawing",
       "trigger": "Thumb + index PINCH",
-      "action": "PINCH start: pen down / Release: pen up",
+      "action": "PINCH down: pen down / Release: pen up",
       "howTo": [
-        "Pinch firmly with your thumb and index finger",
+        "Pinch your thumb and index finger firmly",
         "Move your hand while pinching to draw lines",
         "Release to stop drawing"
       ],
       "tips": [
-        "Keeping pinch strength consistent stabilizes the line.",
+        "Keeping pinch strength consistent helps stabilize lines.",
         "Moving too fast may break the line."
       ],
       "pitfalls": [
-        "A weak pinch may be misrecognized as a click or move.",
-        "It can be confused with mouse drag—check the DRAW mode indicator."
+        "A weak pinch may be mistaken for click or move.",
+        "Check the DRAW mode indicator to avoid confusing it with mouse drag."
       ],
       "media": {
         "thumb": "/motion/pinch.png",
@@ -404,16 +405,16 @@
       "id": "draw_open_palm_move",
       "mode": "draw",
       "name": "OPEN_PALM",
-      "summary": "Move Pen Position",
+      "summary": "Move pen position",
       "trigger": "One-hand OPEN_PALM",
       "action": "Move pen position (cursor)",
       "howTo": [
         "Open your palm facing the camera",
-        "Move slowly near the center of the frame"
+        "Move slowly around the center of the frame"
       ],
       "tips": [
-        "Moving smoothly with your whole arm improves stability.",
-        "If lines shake, try adjusting sensitivity/smoothing settings."
+        "Moving your whole arm smoothly helps stability.",
+        "If lines jitter, adjust sensitivity/smoothing settings."
       ],
       "pitfalls": [
         "If fingers bend, it may be recognized as another gesture."
@@ -428,17 +429,17 @@
       "id": "global_v_v_start",
       "mode": "all",
       "name": "V + V",
-      "summary": "Start Motion",
+      "summary": "Start motion",
       "trigger": "Both hands V",
-      "action": "Start motion recognition",
+      "action": "Start gesture recognition",
       "howTo": [
         "Keep both hands within the camera frame",
-        "Make a V shape with both hands (index + middle fingers)",
-        "Hold briefly (about 0.3–0.5 seconds)"
+        "Make V shapes with both hands (index + middle fingers spread)",
+        "Hold briefly (about 0.3–0.5s)"
       ],
       "tips": [
-        "Both hands must be recognized at the same time to start.",
-        "Keeping a wider V angle improves recognition."
+        "Both hands must be recognized simultaneously.",
+        "A wider V angle improves recognition."
       ],
       "pitfalls": [
         "If only one hand is recognized, it may not start.",
@@ -453,19 +454,19 @@
       "id": "global_v_v_mode_map_toggle",
       "mode": "all",
       "name": "V + V",
-      "summary": "Mode Map",
+      "summary": "Mode map",
       "trigger": "Both hands V",
-      "action": "Open the mode map (mode selection UI)",
+      "action": "Open mode map (mode selection UI)",
       "howTo": [
         "Keep both hands within the camera frame",
-        "Make a V shape with both hands (index + middle fingers)",
-        "Hold briefly (about 0.3–0.5 seconds)"
+        "Make V shapes with both hands (index + middle fingers spread)",
+        "Hold briefly (about 0.3–0.5s)"
       ],
       "tips": [
-        "Both hands must be recognized at the same time to open the mode map."
+        "Both hands must be recognized to open the mode map."
       ],
       "pitfalls": [
-        "This gesture is the same as Start Motion, so behavior may differ depending on the app state (READY/LIVE, etc.)."
+        "Because it shares the same gesture as 'Start motion', behavior may depend on app state (READY/LIVE, etc.)."
       ],
       "media": {
         "thumb": "/motion/vv.png",
@@ -476,19 +477,19 @@
       "id": "global_fist_fist_stop",
       "mode": "all",
       "name": "FIST + FIST",
-      "summary": "Stop Motion",
+      "summary": "Stop motion",
       "trigger": "Both hands FIST",
-      "action": "Stop motion recognition",
+      "action": "Stop gesture recognition",
       "howTo": [
-        "Make a FIST with both hands and hold",
+        "Make fists with both hands and hold",
         "Keep both hands within the camera frame",
-        "Hold briefly (about 0.3–0.5 seconds)"
+        "Hold briefly (about 0.3–0.5s)"
       ],
       "tips": [
-        "Make sure both fists are clearly formed to avoid misfires."
+        "Make firm fists with both hands to prevent accidental triggers."
       ],
       "pitfalls": [
-        "If held too briefly, the stop action may be missed.",
+        "If held too briefly, stop may be missed.",
         "If either hand leaves the frame, recognition may be canceled."
       ],
       "media": {
@@ -501,20 +502,20 @@
       "id": "global_fist_lock_toggle",
       "mode": "all",
       "name": "FIST (Hold)",
-      "summary": "Input Lock ON / OFF",
+      "summary": "Input lock ON / OFF",
       "trigger": "Hold one-hand FIST",
       "action": "Toggle lock for all gesture inputs",
       "howTo": [
-        "Hold a FIST for a set duration",
-        "When locked, gestures will not be recognized"
+        "Hold a fist (FIST) for a certain duration",
+        "Gestures are not recognized while locked"
       ],
       "tips": [
         "Useful for preventing unintended inputs.",
-        "It’s recommended to show a LOCKED badge in the UI when locked."
+        "Consider showing a LOCKED badge in the UI while locked."
       ],
       "pitfalls": [
-        "If the hold time is too short, lock may not activate.",
-        "If misfires happen often, increase the required hold time (e.g., 1.0s)."
+        "If held too briefly, lock may not engage.",
+        "If misfires are frequent, increase the hold duration (e.g., 1.0s)."
       ],
       "media": {
         "thumb": "/motion/fist_lock.png",
@@ -526,18 +527,18 @@
       "id": "ppt_open_palm_both_start",
       "mode": "presentation",
       "name": "OPEN_PALM + OPEN_PALM",
-      "summary": "Start Presentation",
+      "summary": "Start presentation",
       "trigger": "Both hands OPEN_PALM",
       "action": "F5",
       "howTo": [
         "Keep both hands within the camera frame",
-        "Open both palms facing forward"
+        "Open both palms facing the camera"
       ],
       "tips": [
         "It won’t work if only one hand is recognized."
       ],
       "pitfalls": [
-        "If your hands leave the frame, recognition may be canceled."
+        "If hands leave the frame, recognition may be canceled."
       ],
       "media": {
         "thumb": "/motion/open_palms.png",
@@ -548,7 +549,7 @@
       "id": "ppt_open_palm_move",
       "mode": "presentation",
       "name": "OPEN_PALM",
-      "summary": "Move Cursor",
+      "summary": "Move cursor",
       "trigger": "One-hand OPEN_PALM",
       "action": "Move mouse cursor",
       "howTo": [
@@ -558,7 +559,7 @@
         "Used to select links or buttons during PPT."
       ],
       "pitfalls": [
-        "Moving too fast may cause the cursor to jump."
+        "Moving too fast can cause cursor jumps."
       ],
       "media": {
         "thumb": "/motion/open_palm.png",
@@ -569,14 +570,14 @@
       "id": "ppt_pinch_click",
       "mode": "presentation",
       "name": "PINCH",
-      "summary": "Select / Click",
+      "summary": "Select / click",
       "trigger": "Thumb + index PINCH",
       "action": "Left Click",
       "howTo": [
-        "Perform a short and clear PINCH"
+        "Do a short, clear PINCH"
       ],
       "tips": [
-        "Use mostly short gestures."
+        "Prefer short motions."
       ],
       "pitfalls": [
         "Holding too long may be misrecognized as another gesture."
@@ -590,14 +591,14 @@
       "id": "ppt_fist_next",
       "mode": "presentation",
       "name": "FIST",
-      "summary": "Next Slide",
+      "summary": "Next slide",
       "trigger": "One-hand FIST",
       "action": "Right (→)",
       "howTo": [
         "Make a fist with the cursor hand"
       ],
       "tips": [
-        "In PPT mode, FIST is dedicated to slide control."
+        "In PPT mode, FIST is dedicated to slides."
       ],
       "pitfalls": [
         "If too short, it may not be recognized."
@@ -611,14 +612,14 @@
       "id": "ppt_v_prev",
       "mode": "presentation",
       "name": "V",
-      "summary": "Previous Slide",
+      "summary": "Previous slide",
       "trigger": "One-hand V",
       "action": "Left (←)",
       "howTo": [
-        "Spread your index and middle fingers to form a V shape"
+        "Spread your index and middle finger to make a V"
       ],
       "tips": [
-        "Keep a wide V angle."
+        "Keep the V angle wide."
       ],
       "pitfalls": [
         "If the angle is too narrow, it may be misrecognized as PINCH."
@@ -632,14 +633,14 @@
       "id": "ppt_fist_fist_exit",
       "mode": "presentation",
       "name": "FIST + FIST (Hold)",
-      "summary": "End Presentation",
+      "summary": "End presentation",
       "trigger": "Hold both hands FIST",
       "action": "ESC",
       "howTo": [
         "Hold both hands as fists"
       ],
       "tips": [
-        "Hold longer to prevent misfires."
+        "Hold longer to prevent accidental triggers."
       ],
       "pitfalls": [
         "If held too briefly, it may not exit."
@@ -653,7 +654,7 @@
       "id": "ppt_pinch_pinch_alt_tab",
       "mode": "presentation",
       "name": "PINCH + PINCH (Hold)",
-      "summary": "Return to Previous App",
+      "summary": "Return to previous app",
       "trigger": "Hold both hands PINCH",
       "action": "ALT + TAB",
       "howTo": [
@@ -668,6 +669,137 @@
       "media": {
         "thumb": "/motion/pinchs.png",
         "image": "/motion/pinchs.png"
+      }
+    },
+
+    {
+      "id": "mobile_open_palm_move",
+      "mode": "mobile",
+      "name": "OPEN_PALM",
+      "summary": "Move mouse cursor",
+      "trigger": "One-hand OPEN_PALM",
+      "action": "Move mouse cursor",
+      "howTo": [
+        "Open your palm facing the camera",
+        "Move slowly around the center of the frame"
+      ],
+      "tips": [
+        "Moving your whole arm smoothly stabilizes the cursor."
+      ],
+      "pitfalls": [
+        "If your hand leaves the frame, the cursor may stop."
+      ],
+      "media": {
+        "thumb": "/motion/open_palm.png",
+        "image": "/motion/open_palm.png"
+      }
+    },
+    {
+      "id": "mobile_pinch_click",
+      "mode": "mobile",
+      "name": "PINCH",
+      "summary": "Click",
+      "trigger": "Thumb + index PINCH",
+      "action": "Click",
+      "howTo": [
+        "Pinch your thumb and index briefly and clearly (PINCH)"
+      ],
+      "tips": [
+        "A quick pinch-and-release reduces missed clicks."
+      ],
+      "pitfalls": [
+        "If the pinch is weak, clicks may be missed."
+      ],
+      "media": {
+        "thumb": "/motion/pinch.png",
+        "image": "/motion/pinch.png"
+      }
+    },
+    {
+      "id": "mobile_v_right_click",
+      "mode": "mobile",
+      "name": "V",
+      "summary": "Right click",
+      "trigger": "One-hand V",
+      "action": "Right click",
+      "howTo": [
+        "Spread your index and middle finger to make a V"
+      ],
+      "tips": [
+        "A wider V angle improves recognition."
+      ],
+      "pitfalls": [
+        "If fingers overlap, recognition may become unstable."
+      ],
+      "media": {
+        "thumb": "/motion/v.png",
+        "image": "/motion/v.png"
+      }
+    },
+    {
+      "id": "mobile_pinch_stretch_drag",
+      "mode": "mobile",
+      "name": "PINCH + STRETCH",
+      "summary": "Drag",
+      "trigger": "PINCH + stretch",
+      "action": "Drag",
+      "howTo": [
+        "Start with a PINCH (thumb + index), then",
+        "Keep the pinch held and 'stretch' your fingers/hand to drag"
+      ],
+      "tips": [
+        "Keep PINCH held during drag."
+      ],
+      "pitfalls": [
+        "If PINCH releases, the drag may end."
+      ],
+      "media": {
+        "thumb": "/motion/pinch.png",
+        "image": "/motion/pinch.png"
+      }
+    },
+    {
+      "id": "mobile_v_hold_keyboard_show",
+      "mode": "mobile",
+      "name": "V (Hold)",
+      "summary": "Show keyboard",
+      "trigger": "Hold V (one hand)",
+      "action": "Show keyboard",
+      "howTo": [
+        "Make a V gesture with one hand, then",
+        "Hold it for a certain duration (like a long-press)"
+      ],
+      "tips": [
+        "Keeping a wide V angle improves stability."
+      ],
+      "pitfalls": [
+        "If held too briefly, it may be treated as a normal V action."
+      ],
+      "media": {
+        "thumb": "/motion/v.png",
+        "image": "/motion/v.png"
+      }
+    },
+    {
+      "id": "mobile_v_hold_keyboard_hide",
+      "mode": "mobile",
+      "name": "V (Hold)",
+      "summary": "Hide keyboard",
+      "trigger": "Hold V (one hand)",
+      "action": "Hide keyboard",
+      "howTo": [
+        "Make a V gesture with one hand, then",
+        "Hold it for a certain duration (like a long-press)"
+      ],
+      "tips": [
+        "Depending on the current state (shown/hidden), the keyboard may toggle."
+      ],
+      "pitfalls": [
+        "If held too briefly, it may be treated as a normal V action."
+      ],
+      "media": {
+        "thumb": "/motion/v.png",
+        "image": "/motion/v.png"
       }
     }
   ]

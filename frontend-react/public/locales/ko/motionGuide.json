@@ -11,7 +11,8 @@
     "keyboard": "키보드",
     "virtualKeyboard": "가상 키보드",
     "draw": "그리기",
-    "presentation": "PPT"
+    "presentation": "PPT",
+    "mobile": "모바일"
   },
   "list": {
     "title": "동작 리스트",
@@ -668,6 +669,136 @@
       "media": {
         "thumb": "/motion/pinchs.png",
         "image": "/motion/pinchs.png"
+      }
+    },
+    {
+      "id": "mobile_open_palm_move",
+      "mode": "mobile",
+      "name": "OPEN_PALM",
+      "summary": "마우스 커서 이동",
+      "trigger": "한 손 OPEN_PALM",
+      "action": "마우스 커서 이동",
+      "howTo": [
+        "손바닥을 카메라 정면으로 펼치기",
+        "프레임 중앙에서 천천히 이동"
+      ],
+      "tips": [
+        "팔 전체로 부드럽게 움직이면 커서가 안정적입니다."
+      ],
+      "pitfalls": [
+        "손이 프레임 밖으로 나가면 커서가 멈출 수 있어요."
+      ],
+      "media": {
+        "thumb": "/motion/open_palm.png",
+        "image": "/motion/open_palm.png"
+      }
+    },
+    {
+      "id": "mobile_pinch_click",
+      "mode": "mobile",
+      "name": "PINCH",
+      "summary": "클릭",
+      "trigger": "엄지+검지 PINCH",
+      "action": "클릭",
+      "howTo": [
+        "엄지와 검지를 짧고 확실하게 집기(PINCH)"
+      ],
+      "tips": [
+        "짧게 집고 바로 풀면 클릭 누락이 줄어듭니다."
+      ],
+      "pitfalls": [
+        "PINCH가 약하면 클릭이 누락될 수 있어요."
+      ],
+      "media": {
+        "thumb": "/motion/pinch.png",
+        "image": "/motion/pinch.png"
+      }
+    },
+    {
+      "id": "mobile_v_right_click",
+      "mode": "mobile",
+      "name": "V",
+      "summary": "우클릭",
+      "trigger": "한 손 V",
+      "action": "우클릭",
+      "howTo": [
+        "검지와 중지를 벌려 V 모양 만들기"
+      ],
+      "tips": [
+        "V 각도를 확실히 벌리면 인식률이 올라갑니다."
+      ],
+      "pitfalls": [
+        "손가락이 겹치면 인식이 흔들릴 수 있어요."
+      ],
+      "media": {
+        "thumb": "/motion/v.png",
+        "image": "/motion/v.png"
+      }
+    },
+    {
+      "id": "mobile_pinch_stretch_drag",
+      "mode": "mobile",
+      "name": "PINCH + STRETCH",
+      "summary": "드래그",
+      "trigger": "PINCH + 늘리기",
+      "action": "드래그",
+      "howTo": [
+        "엄지+검지로 PINCH를 만든 뒤",
+        "집은 상태를 유지하면서 손가락/손을 '늘리듯' 움직여 드래그"
+      ],
+      "tips": [
+        "드래그 중에는 PINCH를 유지하세요."
+      ],
+      "pitfalls": [
+        "PINCH가 풀리면 드래그가 해제될 수 있어요."
+      ],
+      "media": {
+        "thumb": "/motion/pinch.png",
+        "image": "/motion/pinch.png"
+      }
+    },
+    {
+      "id": "mobile_v_hold_keyboard_show",
+      "mode": "mobile",
+      "name": "V (Hold)",
+      "summary": "키보드 띄우기",
+      "trigger": "브이 길게(한 손)",
+      "action": "키보드 띄우기",
+      "howTo": [
+        "한 손으로 V 제스처를 만든 뒤",
+        "일정 시간(롱프레스처럼) 길게 유지"
+      ],
+      "tips": [
+        "V 각도를 크게 유지하면 인식이 안정적입니다."
+      ],
+      "pitfalls": [
+        "유지 시간이 너무 짧으면 일반 V 동작으로 처리될 수 있어요."
+      ],
+      "media": {
+        "thumb": "/motion/v.png",
+        "image": "/motion/v.png"
+      }
+    },
+    {
+      "id": "mobile_v_hold_keyboard_hide",
+      "mode": "mobile",
+      "name": "V (Hold)",
+      "summary": "키보드 끄기",
+      "trigger": "브이 길게(한 손)",
+      "action": "키보드 끄기",
+      "howTo": [
+        "한 손으로 V 제스처를 만든 뒤",
+        "일정 시간(롱프레스처럼) 길게 유지"
+      ],
+      "tips": [
+        "현재 상태(켜짐/꺼짐)에 따라 키보드가 토글될 수 있습니다."
+      ],
+      "pitfalls": [
+        "유지 시간이 너무 짧으면 일반 V 동작으로 처리될 수 있어요."
+      ],
+      "media": {
+        "thumb": "/motion/v.png",
+        "image": "/motion/v.png"
       }
     }
   ]

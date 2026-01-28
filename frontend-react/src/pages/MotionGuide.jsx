@@ -16,6 +16,7 @@ export default function MotionGuide() {
       { key: "virtualKeyboard", label: t("modes.virtualKeyboard") },
       { key: "draw", label: t("modes.draw") },
       { key: "presentation", label: t("modes.presentation") },
+      { key: "mobile", label: t("modes.mobile") },
     ],
     [t]
   );
