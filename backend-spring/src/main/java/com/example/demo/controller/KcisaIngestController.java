@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/kcisa")
-@CrossOrigin(originPatterns = {"http://localhost:5173", "http://localhost:5174"})
+@CrossOrigin(originPatterns = "*", allowCredentials = "true")
 public class KcisaIngestController {
 	private final KcisaIngestService kcisaIngestService;
 	

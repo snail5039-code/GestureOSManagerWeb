@@ -23,7 +23,7 @@ import com.example.demo.token.RefreshToken;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-@CrossOrigin(origins = { "http://localhost:5173", "http://localhost:5174" }, allowCredentials = "true")
+@CrossOrigin(originPatterns = "*", allowCredentials = "true")
 @RestController
 public class AuthController {
 

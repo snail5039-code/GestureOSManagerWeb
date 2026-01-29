@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import java.io.IOException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -9,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
+@CrossOrigin(originPatterns = "*", allowCredentials = "true")
 public class OAuth2RedirectFixController {
 
     @Value("${app.frontend-redirect-uri:http://localhost:5174/oauth2/success}")

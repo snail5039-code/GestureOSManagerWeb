@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(originPatterns = {"http://localhost:5173", "http://localhost:5174"})
+@CrossOrigin(originPatterns = "*", allowCredentials = "true")
 public class TranslateController {
 	//파이썬 연결
 	private final WebClient webClient = WebClient.create("http://127.0.0.1:8000");

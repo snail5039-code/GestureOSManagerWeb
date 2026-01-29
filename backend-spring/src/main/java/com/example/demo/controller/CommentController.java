@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/comments")
 @RequiredArgsConstructor
+@CrossOrigin(originPatterns = "*", allowCredentials = "true")
 public class CommentController {
 
     private final CommentService commentService;

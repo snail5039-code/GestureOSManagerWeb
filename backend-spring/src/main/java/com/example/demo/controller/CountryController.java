@@ -11,7 +11,7 @@ import com.example.demo.service.MemberService;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
+@CrossOrigin(originPatterns = "*", allowCredentials = "true")
 public class CountryController {
 
     private final MemberService memberService;
