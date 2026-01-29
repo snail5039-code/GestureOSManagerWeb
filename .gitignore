@@ -121,3 +121,50 @@ HELP.md
 
 backend-spring/uploads/
 backend-spring/uploads/**/*.png
+
+# =================================================================
+# 🧩 Front (Vite/React) extra caches
+# =================================================================
+.vite/
+.eslintcache
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =================================================================
+# 🖥️ Electron / electron-builder / packaging outputs
+# =================================================================
+release/
+out/
+dist_electron/
+*.exe
+*.msi
+*.dmg
+*.AppImage
+
+# win-unpacked / installer artifacts (anywhere)
+**/win-unpacked/
+**/win-ia32-unpacked/
+**/win-arm64-unpacked/
+**/mac/
+**/linux-unpacked/
+
+# =================================================================
+# 🤖 GestureOS Agent packaging (PyInstaller onefile internals)
+# =================================================================
+# PyInstaller 내부 _internal 폴더는 절대 커밋하지 말 것
+**/_internal/
+
+# GestureOSManager 구조에서 특히 문제되는 경로들
+front/extra/agent/_internal/
+front/resources/agent/_internal/
+front/release/
+front/out/
+front/**/win-unpacked/
+
+# (선택) agent exe를 레포에 포함하지 않을 거면 아래도 켜라
+# front/extra/agent/
+# front/resources/agent/
+# **/resources/agent/
