@@ -15,7 +15,7 @@ spring:
       schema-locations: classpath:schema.sql
       data-locations: classpath:data.sql
 
-  # ✅ 여기 추가: 업로드 제한(3MB)
+  # ✅ 업로드 제한(3MB)
   servlet:
     multipart:
       max-file-size: 3MB
@@ -24,8 +24,8 @@ spring:
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
@@ -83,11 +83,12 @@ mybatis:
 
 kcisa:
   base-url: https://api.kcisa.kr/openapi/service/rest/meta13/getCTE01701
-  service-key: 1099ca75-c757-450f-bb0f-3f7f4d90833f
-  num-of-rows: 10
+  service-key: ${KCISA_SERVICE_KEY:}
+  num-of-rows: ${KCISA_NUM_OF_ROWS:10}
 
 jwt:
-  secret: ${JWT_SECRET:dev-secret-please-change-this-32chars-min}
+  # ⚠️ 배포에서는 반드시 환경변수로 주입 (빈값이면 보안상 실행 안 되게 하는 게 베스트)
+  secret: ${JWT_SECRET:}
   access-token:
     exp-minutes: ${ACCESS_TOKEN_EXP_MINUTES:60}
   refresh-token:
@@ -96,6 +97,6 @@ jwt:
 app:
   frontend-redirect-uri: ${FRONTEND_REDIRECT_URI:http://localhost:5174/oauth2/success}
   openai:
-    api-key: ${OPENAI_API_KEY}
+    api-key: ${OPENAI_API_KEY:}
   help:
-    vector-cache-path: D:/temp/help-vectors.json
+    vector-cache-path: ${HELP_VECTOR_CACHE_PATH:D:/temp/help-vectors.json}
