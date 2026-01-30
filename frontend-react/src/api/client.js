@@ -1,8 +1,31 @@
 // src/api/client.js
 import axios from "axios";
 
+const isFile = typeof window !== "undefined" && window.location.protocol === "file:";
+
+// dev(vite)에서는 proxy(/api) 유지
+// 설치본(file://)에서는 직접 백엔드로 라우팅
+// - API(대부분): 8080
+// - AUTH(/auth/*): 8082
+const API_BASE = isFile ? "http://127.0.0.1:8080/api" : "/api";
+const AUTH_BASE = isFile ? "http://127.0.0.1:8082/api" : "/api";
+
+function _isAuthPath(url) {
+  const u = String(url || "");
+  return (
+    u.startsWith("/auth/") ||
+    u.startsWith("auth/") ||
+    u.startsWith("/oauth2/") ||
+    u.startsWith("oauth2/") ||
+    u.startsWith("/login") ||
+    u.startsWith("login") ||
+    u.startsWith("/logout") ||
+    u.startsWith("logout")
+  );
+}
+
 export const api = axios.create({
-  baseURL: "/api",
+  baseURL: API_BASE,
   withCredentials: true,
 });
 
@@ -20,7 +43,8 @@ async function _refreshAccessToken({ setToken, debug }) {
   _refreshPromise = (async () => {
     try {
       // ✅ api 인스턴스 말고 "axios"를 써서 인터셉터 루프를 피함
-      const r = await axios.post("/api/auth/token", null, {
+      const url = isFile ? `${AUTH_BASE}/auth/token` : "/api/auth/token";
+      const r = await axios.post(url, null, {
         withCredentials: true,
         headers: { Accept: "application/json" },
       });
@@ -74,8 +98,12 @@ export function attachInterceptors(getToken, onLogout, options = {}) {
   if (_resId !== null) api.interceptors.response.eject(_resId);
 
   _reqId = api.interceptors.request.use((config) => {
-    const t = getToken?.();
+    // file:// 빌드에서는 엔드포인트별 포트 분리 라우팅
+    if (isFile && config) {
+      config.baseURL = _isAuthPath(config.url) ? AUTH_BASE : API_BASE;
+    }
 
+    const t = getToken?.();
     config.headers = _setAuthHeader(config.headers, t);
 
     if (debug) {
@@ -84,10 +112,7 @@ export function attachInterceptors(getToken, onLogout, options = {}) {
         typeof h?.set === "function" && typeof h?.get === "function";
       const auth = isAxiosHeaders ? h.get("Authorization") : h.Authorization;
 
-      console.log("[REQ]", config.method, config.url, {
-        hasToken: !!t,
-        auth,
-      });
+      console.log("[REQ]", config.method, config.url, { hasToken: !!t, auth });
     }
 
     return config;
@@ -117,9 +142,7 @@ export function attachInterceptors(getToken, onLogout, options = {}) {
         const newToken = await _refreshAccessToken({ setToken, debug });
 
         if (newToken) {
-          // 재시도 요청에 Authorization 확실히 넣기
           original.headers = _setAuthHeader(original.headers, newToken);
-
           if (debug) console.log("[RETRY]", original.method, original.url);
           return api(original);
         }
