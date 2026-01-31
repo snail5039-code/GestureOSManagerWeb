@@ -6,8 +6,9 @@
   "desktopApp": {
     "title": "デスクトップアプリ",
     "desc": "チャットボットとハンドモーション操作機能はデスクトップアプリで利用できます。",
-    "button": "ダウンロード準備中",
-    "note": "正式配布までの一時案内ページです。"
+    "button": "Windows版インストーラーをダウンロード",
+    "note": "インストーラー（.exe）をダウンロードして実行してください。",
+    "exeHref": "/downloads/GestureOSManager-Setup-1.0.0.exe"
   },
 
   "mobileApp": {
@@ -21,12 +22,12 @@
   },
 
   "requirements": {
-    "title": "必要環境",
-    "items": ["Windows 10 以上", "Webカメラ接続推奨", "インターネット接続"]
+    "title": "動作要件",
+    "items": ["Windows 10/11", "カメラ（推奨）", "インターネット接続"]
   },
 
   "version": {
     "title": "バージョン",
-    "value": "Beta 準備中"
+    "value": "1.0.0"
   }
 }

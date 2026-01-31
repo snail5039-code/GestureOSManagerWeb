@@ -1,6 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
+import { api } from "../api/client";
 
 export default function Test() {
   const [result, setResult] = useState("");
@@ -11,12 +11,10 @@ export default function Test() {
     setError("");
 
     try {
-      const res = await axios.post("http://localhost:8080/api/translate", {
-        text: "hello",
-      });
-      setResult(res.data.text ?? JSON.stringify(res.data));
+      const res = await api.post("/translate", { text: "hello" });
+      setResult(res.data?.text ?? JSON.stringify(res.data));
     } catch (e) {
-      setError(e.message);
+      setError(e?.message ?? String(e));
     }
   };
 

@@ -6,8 +6,9 @@
   "desktopApp": {
     "title": "Desktop App",
     "desc": "The chatbot and hand-motion control features are available in the desktop app.",
-    "button": "Download coming soon",
-    "note": "This is a temporary info page until the official release."
+    "button": "Download Windows Installer",
+    "note": "Download and run the installer (.exe).",
+    "exeHref": "/downloads/GestureOSManager-Setup-1.0.0.exe"
   },
 
   "mobileApp": {
@@ -22,11 +23,11 @@
 
   "requirements": {
     "title": "Requirements",
-    "items": ["Windows 10 or later", "Webcam recommended", "Internet connection required"]
+    "items": ["Windows 10/11", "Camera (recommended)", "Internet connection"]
   },
 
   "version": {
     "title": "Version",
-    "value": "Beta coming soon"
+    "value": "1.0.0"
   }
 }

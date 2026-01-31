@@ -6,6 +6,11 @@ export default function Download() {
 
   const reqs = t("requirements.items", { returnObjects: true });
 
+  // ✅ 데스크톱 EXE 링크 (서버 /downloads/ 경로)
+  const exeHref = t("desktopApp.exeHref", {
+    defaultValue: "/downloads/GestureOSManager-Setup-1.0.0.exe",
+  });
+
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
@@ -20,7 +25,7 @@ export default function Download() {
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr,1fr]">
-        {/* ✅ 기존 데스크톱 섹션 그대로 + 아래에 모바일 카드만 추가 */}
+        {/* ✅ 기존 데스크톱 섹션 + 모바일 카드 */}
         <div className="space-y-6">
           <section className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-8">
             <h2 className="text-lg text-[color:var(--text)]">{t("desktopApp.title")}</h2>
@@ -28,13 +33,13 @@ export default function Download() {
             <p className="mt-3 text-sm text-[var(--muted)]">{t("desktopApp.desc")}</p>
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                disabled
-                className="rounded-2xl bg-[var(--accent)] px-6 py-3 text-sm text-white opacity-60"
+              <a
+                href={exeHref}
+                download
+                className="rounded-2xl bg-[var(--accent)] px-6 py-3 text-sm text-white"
               >
                 {t("desktopApp.button")}
-              </button>
+              </a>
 
               <span className="text-xs text-[var(--muted)]">{t("desktopApp.note")}</span>
             </div>
