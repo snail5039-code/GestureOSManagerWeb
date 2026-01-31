@@ -1,52 +1,33 @@
-import { useTranslation } from "react-i18next";
-
-function getAuthOrigin() {
-  if (typeof window === "undefined") return "";
-
-  const isFile = window.location.protocol === "file:";
-  const rt = window.__RUNTIME_CONFIG__ || {};
-
-  // file://일 때만 ORIGIN / AUTH_BASE 활용
-  if (isFile) {
-    if (rt.AUTH_ORIGIN) return String(rt.AUTH_ORIGIN).replace(/\/$/, "");
-    if (rt.ORIGIN) return String(rt.ORIGIN).replace(/\/$/, "");
-    // fallback: 로컬 auth
-    return "http://127.0.0.1:8082";
-  }
-
-  // 웹 배포: 같은 오리진(nginx가 /oauth2/ 를 백엔드로 넘겨줘야 함)
-  return window.location.origin;
-}
+import React from "react";
+import { getRuntimeConfig } from "../../config/runtime";
 
 export default function SocialLoginButtons() {
-  const { t } = useTranslation("member");
-  const AUTH_ORIGIN = getAuthOrigin();
+  const { isFile } = getRuntimeConfig();
 
-  const goToLogin = (provider) => {
-    const redirectUri = `${window.location.origin}/oauth2/success`;
+  // ✅ 웹 배포: 같은 origin으로 /oauth2/... 요청
+  // ✅ 설치형: runtime.AUTH_ORIGIN(/api 프록시 있는 서버)로 보냄
+  const runtime = typeof window !== "undefined" ? (window.__RUNTIME__ || {}) : {};
+  const AUTH_ORIGIN = isFile
+    ? (runtime.AUTH_ORIGIN || runtime.API_ORIGIN || "http://127.0.0.1:8082")
+    : window.location.origin;
 
-    const url =
-      `${AUTH_ORIGIN}/oauth2/authorization/${provider}` +
-      `?redirect_uri=${encodeURIComponent(redirectUri)}`;
+  const googleLogin = () => {
+    window.location.href = `${AUTH_ORIGIN}/oauth2/authorization/google`;
+  };
 
-    window.location.href = url;
+  const kakaoLogin = () => {
+    window.location.href = `${AUTH_ORIGIN}/oauth2/authorization/kakao`;
+  };
+
+  const naverLogin = () => {
+    window.location.href = `${AUTH_ORIGIN}/oauth2/authorization/naver`;
   };
 
   return (
-    <div className="space-y-3">
-      {["google", "kakao", "naver"].map((p) => (
-        <button
-          key={p}
-          type="button"
-          onClick={() => goToLogin(p)}
-          className="flex w-full items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3 text-xs text-[color:var(--text)] hover:border-[var(--accent)] transition-all"
-        >
-          <span>{t(`social.provider.${p}`)}</span>
-          <span className="text-[10px] text-[var(--muted)]">
-            {t("social.continue")}
-          </span>
-        </button>
-      ))}
+    <div style={{ display: "flex", gap: 12 }}>
+      <button onClick={googleLogin}>Google</button>
+      <button onClick={kakaoLogin}>Kakao</button>
+      <button onClick={naverLogin}>Naver</button>
     </div>
   );
 }

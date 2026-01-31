@@ -1,28 +1,8 @@
 // src/api/client.js
 import axios from "axios";
+import { getRuntimeConfig } from "../config/runtime";
 
-const isBrowser = typeof window !== "undefined";
-const isFile = isBrowser && window.location.protocol === "file:";
-
-// runtime.js에서 주입 (없으면 {})
-const RUNTIME = isBrowser ? window.__RUNTIME_CONFIG__ || {} : {};
-
-// -------------------------
-// Base URL 결정 규칙
-// -------------------------
-// 1) 웹(http/https): 무조건 상대경로 사용 => "/api"
-// 2) Electron(file://):
-//    - runtime.js에 ORIGIN/API_BASE/AUTH_BASE가 있으면 그걸 사용
-//    - 없으면 로컬(127.0.0.1:8080, 8082) 사용
-const API_BASE = !isFile
-  ? "/api"
-  : (RUNTIME.API_BASE ||
-      (RUNTIME.ORIGIN ? `${RUNTIME.ORIGIN.replace(/\/$/, "")}/api` : "http://127.0.0.1:8080/api"));
-
-const AUTH_BASE = !isFile
-  ? "/api"
-  : (RUNTIME.AUTH_BASE ||
-      (RUNTIME.ORIGIN ? `${RUNTIME.ORIGIN.replace(/\/$/, "")}/api` : "http://127.0.0.1:8082/api"));
+const { isFile, apiBase: API_BASE, authBase: AUTH_BASE } = getRuntimeConfig();
 
 function _isAuthPath(url) {
   const u = String(url || "");
@@ -34,7 +14,9 @@ function _isAuthPath(url) {
     u.startsWith("/login") ||
     u.startsWith("login") ||
     u.startsWith("/logout") ||
-    u.startsWith("logout")
+    u.startsWith("logout") ||
+    u.startsWith("/members/login") ||
+    u.startsWith("members/login")
   );
 }
 
@@ -51,15 +33,13 @@ let _refreshPromise = null;
 
 async function _refreshAccessToken({ setToken, debug }) {
   if (typeof setToken !== "function") return "";
+
   if (_refreshPromise) return _refreshPromise;
 
   _refreshPromise = (async () => {
     try {
       // ✅ api 인스턴스 말고 "axios"를 써서 인터셉터 루프를 피함
-      // 웹(http)에서는 nginx 통해 /api/auth/token
-      // file:// 에서는 AUTH_BASE 사용
       const url = isFile ? `${AUTH_BASE}/auth/token` : "/api/auth/token";
-
       const r = await axios.post(url, null, {
         withCredentials: true,
         headers: { Accept: "application/json" },
@@ -106,7 +86,6 @@ export function attachInterceptors(getToken, onLogout, options = {}) {
     logoutOn401 = true,
     ignore401Paths = ["/auth/logout", "/auth/refresh", "/auth/token", "/members/me"],
     debug = false,
-    // ✅ AuthProvider에서 주입해줄 것(토큰 재발급 성공 시 반영)
     setToken = null,
   } = options;
 
@@ -114,7 +93,7 @@ export function attachInterceptors(getToken, onLogout, options = {}) {
   if (_resId !== null) api.interceptors.response.eject(_resId);
 
   _reqId = api.interceptors.request.use((config) => {
-    // file:// 빌드에서는 엔드포인트별 라우팅(그래도 runtime 우선)
+    // ✅ file:// 빌드에서는 엔드포인트별 라우팅(필요 시 분기)
     if (isFile && config) {
       config.baseURL = _isAuthPath(config.url) ? AUTH_BASE : API_BASE;
     }
@@ -144,7 +123,6 @@ export function attachInterceptors(getToken, onLogout, options = {}) {
 
       if (debug) console.log("[ERR]", status, url);
 
-      // ✅ 401이면: refreshToken 쿠키로 accessToken 재발급 → 원요청 1회 재시도
       if (
         status === 401 &&
         !ignore &&
@@ -164,7 +142,6 @@ export function attachInterceptors(getToken, onLogout, options = {}) {
         }
       }
 
-      // ✅ refresh 실패/불가하면 기존 로직대로 logout 처리
       if (logoutOn401 && status === 401 && !ignore) {
         const t = getToken?.();
         if (t) onLogout?.();
