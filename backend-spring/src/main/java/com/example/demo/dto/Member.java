@@ -1,5 +1,8 @@
 package com.example.demo.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,7 +20,14 @@ public class Member {
     @NotBlank(message = "아이디 필수")
     private String loginId;
 
+    /**
+     * 요청으로 받기만 하고 응답에는 절대 싣지 않는다.
+     * MemberDao 가 SELECT * 로 조회하므로 이 필드에는 bcrypt 해시가 담긴다.
+     * WRITE_ONLY 가 없으면 /api/members/me, /api/members/mypage 응답에 해시가 그대로 나간다.
+     * (MyBatis 매핑에는 영향이 없다 — Jackson 직렬화에만 적용된다)
+     */
     @NotBlank(message = "비밀번호 필수")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String loginPw;
 
     private String regDate;
@@ -34,6 +44,9 @@ public class Member {
     private Integer countryId;
 
     private String provider;
+
+    /** 소셜 제공자 내부 식별자. 클라이언트에 노출할 이유가 없다(계정 식별에 쓰이는 값). */
+    @JsonIgnore
     private String providerKey;
 
     private String role;
