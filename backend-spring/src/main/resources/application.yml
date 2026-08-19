@@ -82,12 +82,16 @@ mybatis:
     map-underscore-to-camel-case: true
 
 kcisa:
-  base-url: https://api.kcisa.kr/openapi/service/rest/meta13/getCTE01701
-  service-key: 1099ca75-c757-450f-bb0f-3f7f4d90833f
-  num-of-rows: 10
+  base-url: ${KCISA_BASE_URL:https://api.kcisa.kr/openapi/service/rest/meta13/getCTE01701}
+  # 인증키는 소스에 두지 않는다. 값이 없으면 KCISA 연동만 비활성된다.
+  service-key: ${KCISA_SERVICE_KEY:}
+  num-of-rows: ${KCISA_NUM_OF_ROWS:10}
 
 jwt:
-  secret: ${JWT_SECRET:dev-secret-please-change-this-32chars-min}
+  # 반드시 환경변수 JWT_SECRET 으로 준다. 기본값을 두면 그 값이 리포에 공개된 서명키가 되고,
+  # 누구나 임의 회원/권한의 토큰을 만들 수 있다. 값이 없으면 기동 시 실패한다.
+  # 생성 예: openssl rand -base64 48
+  secret: ${JWT_SECRET:}
   access-token:
     exp-minutes: ${ACCESS_TOKEN_EXP_MINUTES:60}
   refresh-token:

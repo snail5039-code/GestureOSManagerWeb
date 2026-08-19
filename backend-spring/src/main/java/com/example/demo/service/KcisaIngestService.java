@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -14,15 +15,48 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 public class KcisaIngestService {
 
-    private static final String BASE_URL = "https://api.kcisa.kr/openapi/service/rest/meta13/getCTE01701";
-    private static final String SERVICE_KEY = "1099ca75-c757-450f-bb0f-3f7f4d90833f";
+    // 인증키는 소스에 두지 않는다. 환경변수 KCISA_SERVICE_KEY 로 주입한다.
+    private final String baseUrl;
+    private final String serviceKey;
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper om = new ObjectMapper();
 
+    public KcisaIngestService(
+            @Value("${kcisa.base-url}") String baseUrl,
+            @Value("${kcisa.service-key:}") String serviceKey) {
+        this.baseUrl = baseUrl;
+        this.serviceKey = serviceKey;
+    }
+
+    /** 인증키가 없으면 외부 호출을 시도하지 않는다. */
+    public boolean isConfigured() {
+        return serviceKey != null && !serviceKey.isBlank();
+    }
+
+    /** 원본 JSON 응답 (디버깅용). 인증키가 없으면 빈 객체를 준다. */
+    public String rawJson(int pageNo, int numOfRows, String keyword) {
+        if (!isConfigured()) return "{}";
+        return restTemplate.getForObject(buildUrl(pageNo, numOfRows, keyword), String.class);
+    }
+
+    private String buildUrl(int pageNo, int numOfRows, String keyword) {
+        var b = UriComponentsBuilder.fromUriString(baseUrl)
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("pageNo", pageNo)
+                .queryParam("numOfRows", numOfRows);
+
+        if (keyword != null && !keyword.isBlank()) {
+            b.queryParam("keyword", keyword);
+        }
+        return b.build().toUriString();
+    }
+
     public List<KcisaItem> items(int pageNo, int numOfRows, String keyword) {
-        var b = UriComponentsBuilder.fromUriString(BASE_URL)
-                .queryParam("serviceKey", SERVICE_KEY)
+        if (!isConfigured()) return List.of();
+
+        var b = UriComponentsBuilder.fromUriString(baseUrl)
+                .queryParam("serviceKey", serviceKey)
                 .queryParam("pageNo", pageNo)
                 .queryParam("numOfRows", numOfRows);
 

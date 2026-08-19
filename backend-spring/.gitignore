@@ -39,3 +39,6 @@ build/
 .vscode/
 
 
+
+### Eclipse build output (소스 사본이 두 벌 생겨서 제외) ###
+bin/
