@@ -2,10 +2,12 @@ spring:
   config:
     import: "optional:classpath:application-api.yml"
 
+  # 웹 서비스라 DB 는 필수다. spring.sql.init 이 기동 시 schema.sql/data.sql 을 실행하므로
+  # PostgreSQL 이 없으면 기동되지 않는다.
   datasource:
-    url: jdbc:postgresql://localhost:5432/slt
-    username: sltuser
-    password: sltpass
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/slt}
+    username: ${DB_USER:sltuser}
+    password: ${DB_PASSWORD:sltpass}
     driver-class-name: org.postgresql.Driver
 
   sql:
@@ -21,11 +23,13 @@ spring:
       max-file-size: 3MB
       max-request-size: 3MB
 
+  # 메일 계정이 없으면 기동은 되고, 메일을 쓰는 기능(인증코드/아이디찾기/비밀번호재설정)만
+  # 503 으로 거절된다. 예전에는 기본값이 없어서 환경변수를 잊으면 앱이 아예 뜨지 않았다.
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
@@ -33,19 +37,23 @@ spring:
           starttls:
             enable: ${MAIL_SMTP_STARTTLS:true}
 
+  # client-id 가 빈 문자열이면 Spring 이 기동을 거부한다
+  # (Client id of registration 'google' must not be empty).
+  # 그래서 미설정 기본값은 빈 값이 아니라 not-configured 다. 설정하지 않은 제공자는
+  # 버튼을 눌렀을 때 실패하고, 어떤 제공자가 미설정인지는 기동 로그에 나온다.
   security:
     oauth2:
       client:
         registration:
           google:
-            client-id: ${OAUTH_GOOGLE_CLIENT_ID:}
-            client-secret: ${OAUTH_GOOGLE_CLIENT_SECRET:}
+            client-id: ${OAUTH_GOOGLE_CLIENT_ID:not-configured}
+            client-secret: ${OAUTH_GOOGLE_CLIENT_SECRET:not-configured}
             scope: [ email, profile ]
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
 
           kakao:
-            client-id: ${OAUTH_KAKAO_CLIENT_ID:}
-            client-secret: ${OAUTH_KAKAO_CLIENT_SECRET:}
+            client-id: ${OAUTH_KAKAO_CLIENT_ID:not-configured}
+            client-secret: ${OAUTH_KAKAO_CLIENT_SECRET:not-configured}
             scope: [ account_email, profile_nickname ]
             authorization-grant-type: authorization_code
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
@@ -53,8 +61,8 @@ spring:
             client-authentication-method: client_secret_post
 
           naver:
-            client-id: ${OAUTH_NAVER_CLIENT_ID:}
-            client-secret: ${OAUTH_NAVER_CLIENT_SECRET:}
+            client-id: ${OAUTH_NAVER_CLIENT_ID:not-configured}
+            client-secret: ${OAUTH_NAVER_CLIENT_SECRET:not-configured}
             scope: [ name, email ]
             client-name: Naver
             authorization-grant-type: authorization_code
@@ -103,7 +111,9 @@ app:
     # 시드 admin 계정의 초기 비밀번호. 비어 있으면 admin 은 로그인 불가 상태로 남는다.
     # 이미 비밀번호가 설정된 뒤에는 이 값을 바꿔도 덮어쓰지 않는다.
     initial-password: ${ADMIN_INITIAL_PASSWORD:}
+  # 값이 없으면 AI 도움말(/api/help)만 비활성된다.
   openai:
-    api-key: ${OPENAI_API_KEY}
+    api-key: ${OPENAI_API_KEY:}
   help:
-    vector-cache-path: D:/temp/help-vectors.json
+    # D 드라이브 하드코딩이었다. 프로젝트 폴더 기준 상대 경로가 기본값.
+    vector-cache-path: ${HELP_VECTOR_CACHE_PATH:./data/help-vectors.json}

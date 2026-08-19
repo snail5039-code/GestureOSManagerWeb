@@ -40,7 +40,7 @@ public class MemberService {
 	private final EmailVerificationDao emailVerificationDao;
 	private final PasswordEncoder passwordEncoder;
 
-	@Value("${spring.mail.username}")
+	@Value("${spring.mail.username:}")
 	private String mailFrom;
 
 	public MemberService(MemberDao memberDao, org.springframework.mail.javamail.JavaMailSender mailSender,
@@ -285,6 +285,13 @@ public class MemberService {
 	}
 
 	private void sendEmail(String to, String subject, String htmlBody) {
+		// 메일 계정이 설정되지 않은 환경에서는 "서버 오류"가 아니라 기능이 없다고 알려준다.
+		if (mailFrom == null || mailFrom.isBlank()) {
+			log.warn("메일 기능이 설정되지 않아 발송을 건너뜁니다. (MAIL_USERNAME / MAIL_PASSWORD 필요)");
+			throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+					"메일 기능이 설정되지 않았습니다. 관리자에게 문의해주세요.");
+		}
+
 		try {
 			MimeMessage message = mailSender.createMimeMessage();
 			MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
