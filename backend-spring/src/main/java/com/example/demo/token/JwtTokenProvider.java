@@ -30,6 +30,24 @@ public class JwtTokenProvider {
     @Value("${jwt.refresh-token.exp-days:7}")
     private int refreshExpDays;
 
+    /**
+     * 서명키가 없거나 너무 짧으면 기동 단계에서 멈춘다.
+     * 예전에는 application.yml 에 기본값이 있어서, 환경변수를 잊으면 리포에 공개된 키로
+     * 토큰을 서명했다. 그 상태에서는 누구나 임의 회원/권한의 토큰을 만들 수 있다.
+     */
+    @jakarta.annotation.PostConstruct
+    void validateSecret() {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException(
+                    "JWT 서명키가 없습니다. 환경변수 JWT_SECRET 를 설정하세요. (생성 예: openssl rand -base64 48)");
+        }
+        int bytes = secret.getBytes(StandardCharsets.UTF_8).length;
+        if (bytes < 32) {
+            throw new IllegalStateException(
+                    "JWT_SECRET 가 너무 짧습니다(" + bytes + " bytes). HS256 은 32 bytes 이상이 필요합니다.");
+        }
+    }
+
     private SecretKey key() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }

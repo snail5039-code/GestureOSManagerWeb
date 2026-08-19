@@ -7,7 +7,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,6 +30,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Service
 public class MemberService {
 
+	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MemberService.class);
+
 	private final MemberDao memberDao;
 	private final org.springframework.mail.javamail.JavaMailSender mailSender;
 	private final ArticleDao articleDao;
@@ -38,7 +40,7 @@ public class MemberService {
 	private final EmailVerificationDao emailVerificationDao;
 	private final PasswordEncoder passwordEncoder;
 
-	@Value("${spring.mail.username}")
+	@Value("${spring.mail.username:}")
 	private String mailFrom;
 
 	public MemberService(MemberDao memberDao, org.springframework.mail.javamail.JavaMailSender mailSender,
@@ -144,29 +146,29 @@ public class MemberService {
 		emailVerificationDao.deleteByEmail(member.getEmail());
 	}
 
-	// ✅ 로그인 (bcrypt + 평문 마이그레이션)
+	// ✅ 로그인 (bcrypt 해시만 인정)
 	public Member login(String loginId, String loginPw) {
 		Member m = this.memberDao.findByLoginId(loginId.trim());
 		if (m == null) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 올바르지 않습니다.");
 		}
 
+		// 소셜로 가입한 계정은 아이디/비밀번호 로그인을 허용하지 않는다.
+		// 예전에는 loginPw 에 "SOCIAL_LOGIN" 이라는 고정 문자열이 들어가 있었고 아래 평문 비교
+		// 경로가 살아 있어서, loginId "kakao_<providerKey>" + 비밀번호 "SOCIAL_LOGIN" 으로
+		// 남의 소셜 계정에 로그인할 수 있었다.
+		if (m.getProvider() != null && !m.getProvider().isBlank()) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+					"소셜 로그인으로 가입한 계정입니다. 소셜 로그인 버튼을 이용해주세요.");
+		}
+
 		String raw = loginPw.trim();
 		String stored = m.getLoginPw();
 
-		boolean ok;
-
-		if (stored != null && stored.startsWith("$2")) {
-			ok = passwordEncoder.matches(raw, stored);
-		} else {
-			ok = (stored != null && stored.equals(raw));
-
-			if (ok) {
-				String hashed = passwordEncoder.encode(raw);
-				memberDao.updatePassword(m.getId(), hashed);
-				m.setLoginPw(hashed);
-			}
-		}
+		// bcrypt 해시만 인정한다. (평문 비교 경로는 제거)
+		// 기존 평문 비밀번호는 기동 시 LegacyPasswordMigration 이 같은 비밀번호의 해시로 옮긴다.
+		// 해시가 아닌 값(예: "!")이 들어 있으면 어떤 입력과도 일치하지 않으므로 로그인 불가 계정이다.
+		boolean ok = stored != null && stored.startsWith("$2") && passwordEncoder.matches(raw, stored);
 
 		if (!ok) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 올바르지 않습니다.");
@@ -199,7 +201,9 @@ public class MemberService {
 		nm.setEmail(safeEmail);
 		nm.setName(safeName);
 		nm.setLoginId(provider + "_" + providerKey);
-		nm.setLoginPw("SOCIAL_LOGIN");
+		// 소셜 계정은 비밀번호로 로그인하지 않는다. loginPw 가 NOT NULL 컬럼이라 값은 넣어야 하므로
+		// 아무도 모르는 랜덤 값의 해시를 채운다. (고정 문자열을 쓰면 그게 곧 공용 비밀번호가 된다)
+		nm.setLoginPw(passwordEncoder.encode(UUID.randomUUID().toString()));
 		nm.setCountryId(1);
 		nm.setNickname(safeName);
 
@@ -281,6 +285,13 @@ public class MemberService {
 	}
 
 	private void sendEmail(String to, String subject, String htmlBody) {
+		// 메일 계정이 설정되지 않은 환경에서는 "서버 오류"가 아니라 기능이 없다고 알려준다.
+		if (mailFrom == null || mailFrom.isBlank()) {
+			log.warn("메일 기능이 설정되지 않아 발송을 건너뜁니다. (MAIL_USERNAME / MAIL_PASSWORD 필요)");
+			throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+					"메일 기능이 설정되지 않았습니다. 관리자에게 문의해주세요.");
+		}
+
 		try {
 			MimeMessage message = mailSender.createMimeMessage();
 			MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -429,41 +440,84 @@ public class MemberService {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "3MB 이하만 업로드 가능");
 		}
 
+		// 확장자는 "실제 파일 내용"으로 서버가 정한다. 여기서 원본 파일명을 쓰면 안 된다.
+		// - 파일명에 ../ 가 섞여 오면 업로드 폴더 밖으로 쓰기가 가능하다.
+		// - .html / .svg 로 올리면 /uploads 에서 그대로 서빙되어 저장형 XSS 가 된다.
+		// Content-Type 헤더도 클라이언트가 정하는 값이라 신뢰하지 않는다.
+		byte[] bytes;
+		try {
+			bytes = file.getBytes();
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일을 읽을 수 없습니다.");
+		}
+
+		String ext = detectImageExtension(bytes);
+		if (ext == null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					"PNG, JPG, WEBP, GIF 이미지만 업로드할 수 있습니다.");
+		}
+
 		try {
 			Path baseDir = Paths.get("uploads", "profile", String.valueOf(memberId)).toAbsolutePath().normalize();
 			Files.createDirectories(baseDir);
 
-			String original = file.getOriginalFilename() == null ? "" : file.getOriginalFilename();
-			String ext = "";
-			int dot = original.lastIndexOf(".");
-			if (dot >= 0)
-				ext = original.substring(dot).toLowerCase();
+			String filename = UUID.randomUUID().toString().replace("-", "") + "." + ext;
+			Path target = baseDir.resolve(filename).normalize();
 
-			if (ext.isBlank()) {
-				String ct = file.getContentType();
-				if ("image/png".equals(ct))
-					ext = ".png";
-				else if ("image/jpeg".equals(ct))
-					ext = ".jpg";
-				else if ("image/webp".equals(ct))
-					ext = ".webp";
-				else
-					ext = ".png";
+			// 방어적으로 한 번 더 확인 — 저장 경로가 baseDir 안이 아니면 중단한다.
+			if (!target.startsWith(baseDir)) {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "잘못된 파일 이름입니다.");
 			}
 
-			String filename = UUID.randomUUID().toString().replace("-", "") + ext;
-			Path target = baseDir.resolve(filename);
-			Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+			Files.write(target, bytes, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
 
 			String url = "/uploads/profile/" + memberId + "/" + filename;
 
 			memberDao.updateProfileImageUrl(memberId, url);
 
 			return url;
+		} catch (ResponseStatusException e) {
+			throw e;
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.warn("프로필 이미지 업로드 실패 memberId={}", memberId, e);
 			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "업로드 실패");
 		}
+	}
+
+	/**
+	 * 파일 앞부분의 시그니처(매직 넘버)로 이미지 형식을 판별한다.
+	 * 지원하지 않는 형식이면 null. SVG 는 스크립트를 담을 수 있어 의도적으로 제외했다.
+	 *
+	 * @return "png" | "jpg" | "webp" | "gif" | null
+	 */
+	private static String detectImageExtension(byte[] b) {
+		if (b == null || b.length < 12) return null;
+
+		// PNG: 89 50 4E 47 0D 0A 1A 0A
+		if ((b[0] & 0xFF) == 0x89 && b[1] == 'P' && b[2] == 'N' && b[3] == 'G'
+				&& (b[4] & 0xFF) == 0x0D && (b[5] & 0xFF) == 0x0A
+				&& (b[6] & 0xFF) == 0x1A && (b[7] & 0xFF) == 0x0A) {
+			return "png";
+		}
+
+		// JPEG: FF D8 FF
+		if ((b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xD8 && (b[2] & 0xFF) == 0xFF) {
+			return "jpg";
+		}
+
+		// GIF: "GIF87a" | "GIF89a"
+		if (b[0] == 'G' && b[1] == 'I' && b[2] == 'F' && b[3] == '8'
+				&& (b[4] == '7' || b[4] == '9') && b[5] == 'a') {
+			return "gif";
+		}
+
+		// WEBP: "RIFF" ....(길이) "WEBP"
+		if (b[0] == 'R' && b[1] == 'I' && b[2] == 'F' && b[3] == 'F'
+				&& b[8] == 'W' && b[9] == 'E' && b[10] == 'B' && b[11] == 'P') {
+			return "webp";
+		}
+
+		return null;
 	}
 
 	// ✅ 비밀번호 정책: 6자리 이상
