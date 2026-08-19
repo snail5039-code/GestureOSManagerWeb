@@ -7,7 +7,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,6 +29,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 public class MemberService {
+
+	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MemberService.class);
 
 	private final MemberDao memberDao;
 	private final org.springframework.mail.javamail.JavaMailSender mailSender;
@@ -431,41 +433,84 @@ public class MemberService {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "3MB 이하만 업로드 가능");
 		}
 
+		// 확장자는 "실제 파일 내용"으로 서버가 정한다. 여기서 원본 파일명을 쓰면 안 된다.
+		// - 파일명에 ../ 가 섞여 오면 업로드 폴더 밖으로 쓰기가 가능하다.
+		// - .html / .svg 로 올리면 /uploads 에서 그대로 서빙되어 저장형 XSS 가 된다.
+		// Content-Type 헤더도 클라이언트가 정하는 값이라 신뢰하지 않는다.
+		byte[] bytes;
+		try {
+			bytes = file.getBytes();
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "파일을 읽을 수 없습니다.");
+		}
+
+		String ext = detectImageExtension(bytes);
+		if (ext == null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					"PNG, JPG, WEBP, GIF 이미지만 업로드할 수 있습니다.");
+		}
+
 		try {
 			Path baseDir = Paths.get("uploads", "profile", String.valueOf(memberId)).toAbsolutePath().normalize();
 			Files.createDirectories(baseDir);
 
-			String original = file.getOriginalFilename() == null ? "" : file.getOriginalFilename();
-			String ext = "";
-			int dot = original.lastIndexOf(".");
-			if (dot >= 0)
-				ext = original.substring(dot).toLowerCase();
+			String filename = UUID.randomUUID().toString().replace("-", "") + "." + ext;
+			Path target = baseDir.resolve(filename).normalize();
 
-			if (ext.isBlank()) {
-				String ct = file.getContentType();
-				if ("image/png".equals(ct))
-					ext = ".png";
-				else if ("image/jpeg".equals(ct))
-					ext = ".jpg";
-				else if ("image/webp".equals(ct))
-					ext = ".webp";
-				else
-					ext = ".png";
+			// 방어적으로 한 번 더 확인 — 저장 경로가 baseDir 안이 아니면 중단한다.
+			if (!target.startsWith(baseDir)) {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "잘못된 파일 이름입니다.");
 			}
 
-			String filename = UUID.randomUUID().toString().replace("-", "") + ext;
-			Path target = baseDir.resolve(filename);
-			Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+			Files.write(target, bytes, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
 
 			String url = "/uploads/profile/" + memberId + "/" + filename;
 
 			memberDao.updateProfileImageUrl(memberId, url);
 
 			return url;
+		} catch (ResponseStatusException e) {
+			throw e;
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.warn("프로필 이미지 업로드 실패 memberId={}", memberId, e);
 			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "업로드 실패");
 		}
+	}
+
+	/**
+	 * 파일 앞부분의 시그니처(매직 넘버)로 이미지 형식을 판별한다.
+	 * 지원하지 않는 형식이면 null. SVG 는 스크립트를 담을 수 있어 의도적으로 제외했다.
+	 *
+	 * @return "png" | "jpg" | "webp" | "gif" | null
+	 */
+	private static String detectImageExtension(byte[] b) {
+		if (b == null || b.length < 12) return null;
+
+		// PNG: 89 50 4E 47 0D 0A 1A 0A
+		if ((b[0] & 0xFF) == 0x89 && b[1] == 'P' && b[2] == 'N' && b[3] == 'G'
+				&& (b[4] & 0xFF) == 0x0D && (b[5] & 0xFF) == 0x0A
+				&& (b[6] & 0xFF) == 0x1A && (b[7] & 0xFF) == 0x0A) {
+			return "png";
+		}
+
+		// JPEG: FF D8 FF
+		if ((b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xD8 && (b[2] & 0xFF) == 0xFF) {
+			return "jpg";
+		}
+
+		// GIF: "GIF87a" | "GIF89a"
+		if (b[0] == 'G' && b[1] == 'I' && b[2] == 'F' && b[3] == '8'
+				&& (b[4] == '7' || b[4] == '9') && b[5] == 'a') {
+			return "gif";
+		}
+
+		// WEBP: "RIFF" ....(길이) "WEBP"
+		if (b[0] == 'R' && b[1] == 'I' && b[2] == 'F' && b[3] == 'F'
+				&& b[8] == 'W' && b[9] == 'E' && b[10] == 'B' && b[11] == 'P') {
+			return "webp";
+		}
+
+		return null;
 	}
 
 	// ✅ 비밀번호 정책: 6자리 이상
