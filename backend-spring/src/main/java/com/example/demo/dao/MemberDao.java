@@ -133,7 +133,16 @@ public interface MemberDao {
     """)
     boolean existsByLoginId(String loginId);
 
-    // 14. 프로필 이미지 별도 업데이트
+    // 14. 해시되지 않은 비밀번호가 남아 있는 계정 (기동 시 1회 마이그레이션용)
+    //     bcrypt 해시는 항상 "$2"로 시작한다.
+    @Select("""
+        SELECT id, loginid, loginpw, provider
+        FROM member
+        WHERE loginpw IS NULL OR loginpw NOT LIKE '$2%'
+    """)
+    List<Member> findWithLegacyPassword();
+
+    // 15. 프로필 이미지 별도 업데이트
     @Update("""
         UPDATE member
         SET profile_image_url = #{url}

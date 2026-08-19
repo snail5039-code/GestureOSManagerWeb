@@ -144,29 +144,29 @@ public class MemberService {
 		emailVerificationDao.deleteByEmail(member.getEmail());
 	}
 
-	// ✅ 로그인 (bcrypt + 평문 마이그레이션)
+	// ✅ 로그인 (bcrypt 해시만 인정)
 	public Member login(String loginId, String loginPw) {
 		Member m = this.memberDao.findByLoginId(loginId.trim());
 		if (m == null) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 올바르지 않습니다.");
 		}
 
+		// 소셜로 가입한 계정은 아이디/비밀번호 로그인을 허용하지 않는다.
+		// 예전에는 loginPw 에 "SOCIAL_LOGIN" 이라는 고정 문자열이 들어가 있었고 아래 평문 비교
+		// 경로가 살아 있어서, loginId "kakao_<providerKey>" + 비밀번호 "SOCIAL_LOGIN" 으로
+		// 남의 소셜 계정에 로그인할 수 있었다.
+		if (m.getProvider() != null && !m.getProvider().isBlank()) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+					"소셜 로그인으로 가입한 계정입니다. 소셜 로그인 버튼을 이용해주세요.");
+		}
+
 		String raw = loginPw.trim();
 		String stored = m.getLoginPw();
 
-		boolean ok;
-
-		if (stored != null && stored.startsWith("$2")) {
-			ok = passwordEncoder.matches(raw, stored);
-		} else {
-			ok = (stored != null && stored.equals(raw));
-
-			if (ok) {
-				String hashed = passwordEncoder.encode(raw);
-				memberDao.updatePassword(m.getId(), hashed);
-				m.setLoginPw(hashed);
-			}
-		}
+		// bcrypt 해시만 인정한다. (평문 비교 경로는 제거)
+		// 기존 평문 비밀번호는 기동 시 LegacyPasswordMigration 이 같은 비밀번호의 해시로 옮긴다.
+		// 해시가 아닌 값(예: "!")이 들어 있으면 어떤 입력과도 일치하지 않으므로 로그인 불가 계정이다.
+		boolean ok = stored != null && stored.startsWith("$2") && passwordEncoder.matches(raw, stored);
 
 		if (!ok) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 올바르지 않습니다.");
@@ -199,7 +199,9 @@ public class MemberService {
 		nm.setEmail(safeEmail);
 		nm.setName(safeName);
 		nm.setLoginId(provider + "_" + providerKey);
-		nm.setLoginPw("SOCIAL_LOGIN");
+		// 소셜 계정은 비밀번호로 로그인하지 않는다. loginPw 가 NOT NULL 컬럼이라 값은 넣어야 하므로
+		// 아무도 모르는 랜덤 값의 해시를 채운다. (고정 문자열을 쓰면 그게 곧 공용 비밀번호가 된다)
+		nm.setLoginPw(passwordEncoder.encode(UUID.randomUUID().toString()));
 		nm.setCountryId(1);
 		nm.setNickname(safeName);
 

@@ -95,6 +95,10 @@ jwt:
 
 app:
   frontend-redirect-uri: ${FRONTEND_REDIRECT_URI:http://localhost:5174/oauth2/success}
+  admin:
+    # 시드 admin 계정의 초기 비밀번호. 비어 있으면 admin 은 로그인 불가 상태로 남는다.
+    # 이미 비밀번호가 설정된 뒤에는 이 값을 바꿔도 덮어쓰지 않는다.
+    initial-password: ${ADMIN_INITIAL_PASSWORD:}
   openai:
     api-key: ${OPENAI_API_KEY}
   help:
